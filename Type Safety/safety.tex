@@ -1,0 +1,295 @@
+\documentclass[11pt]{article}
+
+%%%%%%%%%%%%%%%%%%%% Title %%%%%%%%%%%%%%%%%%%%%
+\title{Type Safety for Sessions with Intersections}
+\date{February 22, 2015}
+\author{Josh Acay}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%% Default packages %%%%%%%%%%%%%%%%
+\usepackage{fullpage}           % Page style
+\usepackage{amsmath, amsfonts, amsthm, amssymb, mathtools} % Math
+\usepackage{proof}              % For inference rules
+\usepackage{mathpartir}         % Automatic rule layout
+\usepackage{enumerate, calc}    % Environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%% Page outline %%%%%%%%%%%%%%%%%
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%% Theorem environments %%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{cor}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+%\newtheorem{task}{Task}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%% Generic Macros %%%%%%%%%%%%%%%%
+
+%%% Paired delimiters
+\DeclarePairedDelimiter\parens{(}{)}             % parenthesis
+\DeclarePairedDelimiter\bracks{\lbrack}{\rbrack} % brackets
+\DeclarePairedDelimiter\braces{\lbrace}{\rbrace} % brackets
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}      % absolute value
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}     % double verts
+\DeclarePairedDelimiter\angled{\langle}{\rangle} % angle brackets
+\DeclarePairedDelimiterX\set[2]{\{}{\}}
+  {#1 \mathrel{}\mathclose{}\delimsize|\mathopen{}\mathrel{} #2}
+
+
+%%% Math
+\newcommand{\sq}{\text{\ttfamily{\char'15}}} % Single quote
+\newcommand{\qq}{\text{\ttfamily"}}          % Double quote
+\newcommand{\qquote}[1]{\qq #1\qq{}}         % Strings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%% Document specific macros %%%%%%%%%%%
+
+%% Types
+\newcommand\intersect{\mathbin{\sqcap}}
+\newcommand\imp{\supset}
+\newcommand\lolli{\multimap}
+\newcommand\terminate{\mathbf{1}}
+\newcommand\tensor{\otimes}
+\newcommand\internal{\oplus}
+\newcommand\external{\&}
+\newcommand\internals[1]{\oplus\braces{#1}}
+\newcommand\externals[1]{\&\braces{#1}}
+
+
+%% Terms
+\newcommand\seq{\;;\;}
+\newcommand\tbranch[2]{#1 \rightarrow #2}
+
+\newcommand\tfwd[2]{#1 \leftarrow #2}
+\newcommand\tclose[1]{\mathrm{close}\;#1}
+\newcommand\twait[2]{\mathrm{wait}\;#1 \seq #2}
+\newcommand\tsend[4]{\mathrm{send}\; #1 \; \parens{#2 \leftarrow #3} \seq #4}
+\newcommand\trecv[3]{#1 \leftarrow \mathrm{recv} \; #2 \seq #3}
+\newcommand\tsendval[4]{\mathrm{send}\; #1 \; #2 \seq #3}
+\newcommand\tcase[2]{\mathrm{case}\;#1\;\mathrm{of}\;#2}
+\newcommand\tselect[3]{#1 . #2 \seq #3}
+
+%% Typed Terms
+\newcommand\toutt[3]{\_ \leftarrow \mathrm{output}\;#1\;#2 : #3}
+\newcommand\tint[3]{#1 \leftarrow \mathrm{input}\;#2 : #3}
+
+
+%% Inference
+\newcommand{\irb}[1]{\texttt{#1}}
+\newcommand{\intro}{\text{-I}}
+\newcommand{\elim}{\text{-E}}
+\newcommand\sub[1]{#1\text{-Sub}}
+
+\newcommand{\val}[1]{\ensuremath{{#1}~\mathsf{val}}}
+
+\newcommand{\emptyCtx}{\emptyset}
+\newcommand{\ctxFun}{\Gamma}
+\newcommand{\ctxChan}{\Psi}
+\newcommand{\config}{\Omega}
+
+\newcommand\typeProc[3]{#1 :: \parens{#2 : #3}}
+\newcommand\typeS[5]{#1; #2 \vdash \typeProc{#3}{#4}{#5}}
+\newcommand\typeSJ{\typeS{\ctxFun}{\ctxChan}}
+
+
+\newcommand\stepArrow{\longrightarrow}
+\newcommand\steps[2]{#1 \stepArrow #2}
+\newcommand\stepsMany[2]{#1 \stepArrow^* #2}
+\newcommand\provides[2]{\models #1 :: \parens{#2}}
+\newcommand\proc[2]{\irb{proc}_{#1}\parens{#2}}
+
+\newcommand\poised[1]{\parens{#1}\;\mathrm{poised}}
+\newcommand\valid[4]{\models \typeProc{\state{#1}{#2}}{#3}{#4}}
+
+%% Induction
+\newcommand\pred[1]{\mathcal{P}\parens*{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%% Document body %%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%% Title page
+\maketitle
+
+%% Document
+
+\section{Process Assignment}
+
+$\ctxFun$ types functional variables, $\ctxChan$ types linear channels:
+
+\begin{mathpar}
+	\infer[\irb{id}]{\typeS{\ctxFun}{\ctxChan, d : A}{\tfwd{c}{d}}{c}{A}}
+	 {}
+	\and \infer[\external R]{\typeSJ{\tcase{c}{\braces{\tbranch{lab_i} {P_i} }_I}}{c}{\externals{lab_j : A_j}_J}}
+	 { \parens{\typeSJ{P_j}{c}{A_j}}_J
+	 & J \subseteq I
+	 }
+	\and \infer[\external L_j]{\typeS{\ctxFun}{\ctxChan, d : \externals{lab_i : A_i}_I}{\tselect{d}{lab_j}{Q}}{c}{B}}
+	 { \typeS{\ctxFun}{\ctxChan, d : A_j}{Q}{c}{B}
+	 }
+	\\
+     \infer[\intersect R]{\typeSJ{P}{c}{A_1 \intersect A_2}}
+	 { \typeSJ{P}{c}{A_1}
+	 & \typeSJ{P}{c}{A_2}
+	 }
+	\\
+	\and \infer[\intersect L_1]{\typeS{\ctxFun}{\ctxChan, c : A_1 \intersect A_2}{P}{c}{B}}
+	 { \typeS{\ctxFun}{\ctxChan, c : A_1}{P}{c}{B}}
+	\and \infer[\intersect L_2]{\typeS{\Psi}{\Delta, c : A_1 \intersect A_2}{P}{c}{B}}
+	 { \typeS{\ctxFun}{\ctxChan, c : A_2}{P}{c}{B}}
+\end{mathpar}
+
+The rules for $\terminate,$ $\wedge$, $\imp,$ $\lolli,$ $\tensor,$ and $\internal$ are unchanged.
+
+Note that the following rules are admissible:
+\begin{mathpar}
+	\infer{\typeSJ{P}{c}{B \intersect A}}
+	 {\typeSJ{P}{c}{A \intersect B}}
+	\and \infer{\typeSJ{P}{c}{\externals{lab_i : A_i}_{I} \intersect \externals{lab_j : A_j}_{J}}}
+	 { \typeSJ{P}{c}{\externals{lab_k : A_k}_{K}}
+	 & I \subseteq K
+	 & J \subseteq K
+	 }
+	\and \infer{\typeSJ{P}{c}{\externals{lab_k : A_k}_{I \cup J}}}
+	 {\typeSJ{P}{c}{\externals{lab_i : A_i}_{I} \intersect \externals{lab_j : A_j}_{J}}
+	 & I \cap J = \emptyset
+	 }
+\end{mathpar}
+
+It might be worthwhile to make these properties derivable using the subtyping system.
+
+
+\section{Typing of Process Configurations}
+
+\begin{mathpar}
+	\infer{\provides{(\cdot)}{\cdot}}
+	 {}
+	\and \infer{\provides{\parens{\proc{c}{P}, \Omega}}{\ctxChan, c : A}}
+	 { \typeS{\emptyCtx}{\ctxChan'}{P}{c}{A}
+	 & \provides{\Omega}{\ctxChan, \ctxChan'}
+	 }
+\end{mathpar}
+
+(Note: I don't think the empty functional context is right. The structure of the proofs do not heavily depend on it, so it should be easy to retroactively fix it later.)
+
+
+\section{Operational Semantics}
+
+\begin{align*}
+	\irb{tensor} \hspace{1em} & : \proc{c}{\tsend{c}{d}{P_d}{Q}}
+	\otimes \proc{e}{\trecv{d}{c}{R_d}} \\
+	& \hspace{2em} \lolli \{ \exists d'. \proc{d'}{P_{d'}} \otimes \proc{c}{Q} \otimes \proc{e}{R_{d'}} \} \\
+	%
+	\irb{sendval} \hspace{1em} & : \proc{c}{\tsendval{d}{M}{P}} \otimes \proc{d}{\trecv{n}{d}{Q_n}} \\
+	& \hspace{2em} \lolli \{ \proc{c}{P} \otimes \proc{d}{Q_M} \} \\
+\end{align*}
+
+
+
+\section{Progress}
+The progress theorem is mostly unaffected by intersections since this is a conservative extension. We cannot type any new forms of processes.
+
+To state the progress theorem, we introduce a new judgement $\poised{P}.$ Intuitively, a process $P$ is poised if it is waiting on its client.
+
+\begin{mathpar}
+	\infer{\poised{\proc{c}{\tclose{c}}}}
+	 {}
+	\and \infer{\poised{\proc{c}{\tsend{c}{d}{P_d}{Q}}}}
+	 {}
+	\and \infer{\poised{\proc{c}{\tsendval{c}{M}{Q}}}}
+	 {}
+	\and \infer{\poised{\proc{c}{\trecv{x}{c}{Q_x}}}}
+	 {}	
+	\and \infer{\poised{\proc{c}{\trecv{n}{c}{Q_n}}}}
+	 {}	
+	\and \infer{\poised{\proc{c}{\tselect{c}{lab}{P}}}}
+	 {}	
+	\and \infer{\poised{\proc{c}{\tcase{c}{ \braces{\tbranch{lab_i}{Q_i}}_I }}}}
+	 {}	
+\end{mathpar}
+
+We say that a process configuration $\config$ is poised if every process in $\config$ is poised.  Now we can state the progress theorem.
+
+\begin{theorem}[Progress]
+If $\provides{\config}{\ctxChan}$ then either
+\begin{enumerate}
+	\item $\steps{\config}{\config'}$ for some $\config'$, or
+	\item $\config$ is poised.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+The proof is by induction on $\provides{\config}{\ctxChan}.$
+\begin{itemize}
+	\item Case for $\parens{\cdot}.$ All processes are poised vacuously.
+	\item Case for $\parens{\proc{c}{P}, \config}.$ The induction hypothesis applies to $\config.$ If $\config$ can transition, then $\proc{c}{P}, \config$ can transition. Otherwise, all processes in $\config$ are poised. 
+	
+	Define $\pred{\typeS{\emptyCtx}{\ctxChan'}{P}{c}{A}} :=$ either $\proc{c}{P}$ is poised or $\proc{c}{P}, \config$ can transition. We induct on $\typeS{\emptyCtx}{\ctxChan'}{P}{c}{A}$ to prove $\mathcal{P}.$
+	\begin{description}
+		\item[Case $\irb{id}:$] $P$ dies.
+		\item[Case $\irb{cut}:$] $P$ spawns a new process.
+		\item[Case $\intersect R, \intersect L_1, \intersect L_2:$] Follows immediately by IH (for the left rules, either of the two hypotheses works).
+		\item[Case $\terminate R, \wedge R, \imp R, \lolli R, \tensor R, \internal R, \external R:$] $\proc c P$ is poised.
+		\item[Case $\terminate L:$] $P = \twait d {P'}.$ By inversion, there is a process $\proc d Q$ in $\config$ that is poised. Inversion on the poised judgement gives $Q = \tclose d.$ Thus, $\irb{one}$ applies.
+		
+		\par Other left rules work similarly.
+	\end{description}
+\end{itemize}
+\end{proof}
+
+
+\section{Preservation}
+Proving preservation is trickier. Here is the theorem.
+
+\begin{theorem}[Preservation]
+If $\provides{\config}{\ctxChan}$ and $\steps{\config}{\config'}$ then $\provides{\config'}{\ctxChan}.$
+\end{theorem}
+
+\begin{proof}
+The proof proceeds by case analysis on $\steps{\config}{\config'}$ followed inversion on the configuration typing, and induction on the typing derivations of the involved processes. The cases for \irb{id} and \irb{cut} are simple. All other cases either send or receive a message. We will only show the \irb{sendval} case to keep things simple (all cases are very similar). We will assume that the client and the provider are next to each other (using a lemma similar to the permutation lemma from the paper).
+
+\begin{description}
+	\item[Case \irb{sendval}:] By inversion, we have
+	\[
+	\infer{\provides{\parens{\proc{c}{\tsendval{d}{M}{P}}, \Omega}}{\ctxChan, c : A}}
+	 { \typeS{\emptyCtx}{\ctxChan', d : B}{\proc{c}{\tsendval{d}{M}{P}}}{c}{A}
+	 & \provides{\Omega}{\ctxChan, \ctxChan', d : B}
+	 }
+	\]
+	Also by inversion, we have $\typeS{\emptyCtx}{\ctxChan''}{\proc{d}{\trecv{x}{d}{Q}}}{d}{B}.$ 
+	
+	Define $\pred{\typeS{\emptyCtx}{\ctxChan', d : B}{\proc{c}{\tsendval{d}{M}{P}}}{c}{A}} :=$ there exists $B'$ such that $\typeS{\emptyCtx}{\ctxChan', d : B'}{\proc{c}{P}}{c}{A}$ and $\typeS{\emptyCtx}{\ctxChan''}{\proc{d}{Q_M}}{d}{B'}.$ We need the use induction (on the derivation of the process typing) due to the intersection rules.
+	\begin{itemize} 
+		\item Case for $\intersect R:$ $A = A_1 \intersect A_2.$ By IH$_1$, there is $B_1$ such that $\typeS{\emptyCtx}{\ctxChan', d : B_1}{\proc{c}{P}}{c}{A_1}$ and $\typeS{\emptyCtx}{\ctxChan''}{\proc{d}{Q_M}}{d}{B_1}.$ IH$_2$ gives a similar result for $A_2$ and a $B_2.$ We then have $\typeS{\emptyCtx}{\ctxChan''}{\proc{d}{Q_M}}{d}{B_1 \intersect B_2}$ by $\intersect R.$ Finally, $\intersect R$ followed by $\intersect L_1$ and $\intersect L_2$ for the respective branches gives $\typeS{\emptyCtx}{\ctxChan', d : B_1 \intersect B_2}{\proc{c}{P}}{c}{A}.$
+		\item Case for $\intersect L_1:$ $B = B_1 \intersect B_2.$ The result follows immediately from IH (we essentially ignore the right branch).
+		\item Case for $\intersect L_2$ is similar. 
+		\item Case for $\lolli L $ (i.e. the base case): $B = \tau \lolli B'.$ We have $\typeS{\emptyCtx}{\ctxChan', d : B'}{\proc{c}{P}}{c}{A}$ from the premises. For the second part, we use another induction. There are three applicable rules ($\lolli R$, $\intersect L_1$, $\intersect L_2$). If the last rule was $\lolli R,$ we have $\typeS{\emptyCtx}{\ctxChan''}{\proc{d}{Q_M}}{d}{B'}$ from the premises. Otherwise, IH along with $\intersect L_1$ or $\intersect L_2$ gives the desired result.
+	\end{itemize}
+	The predicate $\mathcal{P}$ needs to be stated slightly differently for other cases (for example, the provider disappears in \irb{one}). But the idea is essentially the same.
+\end{description}
+\end{proof}
+
+\end{document}
