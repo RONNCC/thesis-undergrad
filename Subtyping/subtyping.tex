@@ -1,0 +1,180 @@
+\documentclass[11pt]{article}
+
+%%%%%%%%%%%%%%%%%%%% Title %%%%%%%%%%%%%%%%%%%%%
+\title{Subtyping Session Types}
+\date{February 22, 2015}
+\author{Josh Acay}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%% Default packages %%%%%%%%%%%%%%%%
+\usepackage{fullpage}           % Page style
+\usepackage{amsmath, amsfonts, amsthm, amssymb, mathtools} % Math
+\usepackage{proof}              % For inference rules
+\usepackage{mathpartir}         % Automatic rule layout
+\usepackage{enumerate, calc}    % Environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%% Page outline %%%%%%%%%%%%%%%%%
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%% Theorem environments %%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{example}[thm]{Example}
+%\newtheorem{task}{Task}
+
+\theoremstyle{remark}
+\newtheorem{remark}[thm]{Remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%% Generic Macros %%%%%%%%%%%%%%%%
+
+%%% Paired delimiters
+\DeclarePairedDelimiter\parens{(}{)}             % parenthesis
+\DeclarePairedDelimiter\bracks{\lbrack}{\rbrack} % brackets
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}      % absolute value
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}     % double verts
+\DeclarePairedDelimiter\angled{\langle}{\rangle} % angle brackets
+\DeclarePairedDelimiterX\set[2]{\{}{\}}
+  {#1 \mathrel{}\mathclose{}\delimsize|\mathopen{}\mathrel{} #2}
+
+
+%%% Math
+\newcommand{\sq}{\text{\ttfamily{\char'15}}} % Single quote
+\newcommand{\qq}{\text{\ttfamily"}}          % Double quote
+\newcommand{\qquote}[1]{\qq #1\qq{}}         % Strings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%% Document specific macros %%%%%%%%%%%
+
+%% Types
+\newcommand\imp{\supset}
+\newcommand\lolli{\multimap}
+\newcommand\intersect{\mathbin{\&\&}}
+\newcommand\tout[2]{\_ \leftarrow \mathrm{output}\;#1\;#2}
+\newcommand\tin[2]{#1 \leftarrow \mathrm{input}\;#2}
+\newcommand\tseq[2]{#1 ; #2}
+
+\newcommand\terminate{\mathbf{1}}
+
+
+%% Terms
+
+
+%% Inference
+\newcommand{\intro}{\text{-I}}
+\newcommand{\elim}{\text{-E}}
+\newcommand\sub[1]{#1\text{-Sub}}
+
+\newcommand{\val}[1]{\ensuremath{{#1}~\mathsf{val}}}
+
+\newcommand\typeProc[3]{#1 :: #2 : #3}
+\newcommand\typeS[5]{#1; #2 \vdash \typeProc{#3}{#4}{#5}}
+\newcommand\typeSJ{\typeS{\Psi}{\Delta}}
+\newcommand\exec[3]{\mathrm{exec}\;{#1}\;{#2}\;{#3}}
+\newcommand\steps{\longrightarrow}
+\newcommand\valid[4]{\models \typeProc{(#1 \mid #2)}{#3}{#4}}
+
+
+%% Induction
+\newcommand\pred[1]{\mathcal{P}\parens*{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%% Document body %%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%% Title page
+\maketitle
+
+%% Document
+
+\section{Subtyping}
+% Positive places are covariant, negative places are contravariant.
+
+\begin{mathpar}
+	\infer[\sub{id}]{S \sqsubseteq S}{}
+	\and \infer[\sub\wedge]{\tau \wedge S \sqsubseteq \tau' \wedge S'}{\tau \le \tau' & S \sqsubseteq S'}
+	\and \infer[\sub\imp]{\tau \imp S \sqsubseteq \tau' \imp S'}{\tau \ge \tau & S \sqsubseteq S'}
+	\and \infer[\sub\lolli]{S_1 \lolli S_2 \sqsubseteq S_1' \lolli  S_2'}{S_1' \sqsubseteq S_1 & S_2 \sqsubseteq S_2}
+	\and \infer[\sub\otimes]{S_1 \otimes S_2 \sqsubseteq S_1' \otimes S_2'}
+		  {S_1 \sqsubseteq S_1' & S_2 \sqsubseteq S_2'}
+	\and \infer[\sub\&]{{\&}\{l_i : S_i\}_I \sqsubseteq {\&}\{l_j : S_j'\}_J}
+	      {J \subseteq I & S_j \sqsubseteq S_j' \text{ for } j \in J}
+	\and \infer[\sub\oplus]{{\oplus}\{l_i : S_i\}_I \sqsubseteq {\oplus}\{l_j : S_j'\}_J}
+	      {I \subseteq J & S_i \sqsubseteq S_i' \text{ for } i \in I}
+\end{mathpar}
+
+\[
+\infer[\text{Sub}]{\typeSJ{P}{c}{S'}}
+ { \typeSJ{P}{c}{S}
+ & S \sqsubseteq S'
+ }
+\]
+
+\section{Intersection Types}
+
+\begin{mathpar}
+	\infer[\intersect\intro]{\typeSJ{P}{c}{S_1 \intersect S_2}}
+	 { \typeSJ{P}{c}{S_1}
+	 & \typeSJ{P}{c}{S_2}
+	 }
+	\\
+	\and \infer[\intersect\elim_1]{\typeSJ{P}{c}{S_1}}
+	 { \typeSJ{P}{c}{S_1 \intersect S_2}}
+	\and \infer[\intersect\elim_2]{\typeSJ{P}{c}{S_2}}
+	 { \typeSJ{P}{c}{S_1 \intersect S_2}}
+\end{mathpar}
+
+
+\section{Datatypes}
+
+Are $\otimes$ and $\&$ generative?
+
+\section{Type Preservation}
+\begin{thm}
+If $\valid{\Sigma}{\Omega}{c_0}{\terminate}$ and $(\Sigma \mid \Omega) \steps (\Sigma' \mid \Omega')$%
+\footnote{We carry around $\Sigma$ which is a ''signature of channels``. Shouldn't this be limited to static semantics?} then $\valid{\Sigma'}{\Omega'}{c_0}{\terminate}.$%
+\footnote{The theorem in the paper uses $\steps^*.$ Is there a reason one step is not enough?}
+\end{thm}
+\begin{proof}
+Define $\pred{(\Sigma_1 \mid \Omega_1) \steps (\Sigma_2 \mid \Omega_2), \valid{\Sigma_1}{\Omega_1}{c_0}{\terminate}}$ as $\valid{\Sigma_2}{\Omega_2}{c_0}{\terminate}.$ We proceed by lexicographic induction:
+
+\begin{itemize}
+	\item Case for $\wedge R$: We have
+	\[\Omega_1 = \Omega_1', \exec{(\tseq{\tout{c_m}{V}}{P})}{c_m}{S_m}, \exec{(\tseq{\tin{x}{c_m}}{Q_x})}{c_n}{S_n})\]
+	\[ \Omega_2 = \Omega_2', \exec{P}{c_m}{S_m'}, \exec{Q_V)}{c_n}{S_n'}) \]
+	
+	assuming $\val V.$
+	
+	By inversion, either $S_m = A \intersect B,$ or $S_m = \tau \wedge A$ where $V : \tau$ and $\typeProc{P}{c_m}{A}.$ In the former case, we case on the derivation of $A \intersect B.$
+	
+	\begin{itemize}
+		\item ()
+		\item
+	\end{itemize} 
+	
+\end{itemize}
+\end{proof}
+
+\section{Progress}
+
+\end{document}
