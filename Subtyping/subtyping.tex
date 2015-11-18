@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 
 %%%%%%%%%%%%%%%%%%%% Title %%%%%%%%%%%%%%%%%%%%%
-\title{Subtyping Session Types}
+\title{Session Intersections}
 \date{February 22, 2015}
 \author{Josh Acay}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,17 +62,17 @@
 %%%%%%%%%%% Document specific macros %%%%%%%%%%%
 
 %% Types
+\newcommand\intersect{\mathbin{\sqcap}}
 \newcommand\imp{\supset}
 \newcommand\lolli{\multimap}
-\newcommand\intersect{\mathbin{\&\&}}
-\newcommand\tout[2]{\_ \leftarrow \mathrm{output}\;#1\;#2}
-\newcommand\tin[2]{#1 \leftarrow \mathrm{input}\;#2}
-\newcommand\tseq[2]{#1 ; #2}
-
 \newcommand\terminate{\mathbf{1}}
 
 
 %% Terms
+\newcommand\tout[2]{\_ \leftarrow \mathrm{output}\;#1\;#2}
+\newcommand\tin[2]{#1 \leftarrow \mathrm{input}\;#2}
+\newcommand\tseq[2]{#1 ; #2}
+\newcommand\close[1]{\mathrm{close}\;#1}
 
 
 %% Inference
@@ -82,13 +82,19 @@
 
 \newcommand{\val}[1]{\ensuremath{{#1}~\mathsf{val}}}
 
+\newcommand\replace[3]{[#1/#2]#3}
 \newcommand\typeProc[3]{#1 :: #2 : #3}
 \newcommand\typeS[5]{#1; #2 \vdash \typeProc{#3}{#4}{#5}}
 \newcommand\typeSJ{\typeS{\Psi}{\Delta}}
-\newcommand\exec[3]{\mathrm{exec}\;{#1}\;{#2}\;{#3}}
-\newcommand\steps{\longrightarrow}
-\newcommand\valid[4]{\models \typeProc{(#1 \mid #2)}{#3}{#4}}
 
+\newcommand\state[2]{(#1 \mathrel{;} #2)}
+\newcommand\stepArrow{\longrightarrow}
+\newcommand\steps[4]{\state{#1}{#2} \longrightarrow \state{#3}{#4}}
+\newcommand\exec[3]{\mathrm{exec}\;{#1}\;{#2}\;{#3}}
+\newcommand\execC[2]{\mathrm{exec}\;{#1} :: {#2}}
+\newcommand\valid[4]{\models \typeProc{\state{#1}{#2}}{#3}{#4}}
+
+\newcommand\combine[3]{\mathrm{combine}\;#1\;#2 \rightarrow #3}
 
 %% Induction
 \newcommand\pred[1]{\mathcal{P}\parens*{#1}}
@@ -111,70 +117,108 @@
 % Positive places are covariant, negative places are contravariant.
 
 \begin{mathpar}
-	\infer[\sub{id}]{S \sqsubseteq S}{}
-	\and \infer[\sub\wedge]{\tau \wedge S \sqsubseteq \tau' \wedge S'}{\tau \le \tau' & S \sqsubseteq S'}
-	\and \infer[\sub\imp]{\tau \imp S \sqsubseteq \tau' \imp S'}{\tau \ge \tau & S \sqsubseteq S'}
-	\and \infer[\sub\lolli]{S_1 \lolli S_2 \sqsubseteq S_1' \lolli  S_2'}{S_1' \sqsubseteq S_1 & S_2 \sqsubseteq S_2}
-	\and \infer[\sub\otimes]{S_1 \otimes S_2 \sqsubseteq S_1' \otimes S_2'}
-		  {S_1 \sqsubseteq S_1' & S_2 \sqsubseteq S_2'}
-	\and \infer[\sub\&]{{\&}\{l_i : S_i\}_I \sqsubseteq {\&}\{l_j : S_j'\}_J}
-	      {J \subseteq I & S_j \sqsubseteq S_j' \text{ for } j \in J}
-	\and \infer[\sub\oplus]{{\oplus}\{l_i : S_i\}_I \sqsubseteq {\oplus}\{l_j : S_j'\}_J}
-	      {I \subseteq J & S_i \sqsubseteq S_i' \text{ for } i \in I}
+	\infer[\sub{id}]{A \sqsubseteq A}{}
+	\and \infer[\sub\wedge]{\tau \wedge A \sqsubseteq \tau' \wedge A'}{\tau \le \tau' & A \sqsubseteq A'}
+	\and \infer[\sub\imp]{\tau \imp A \sqsubseteq \tau' \imp A'}{\tau \ge \tau & A \sqsubseteq A'}
+	\and \infer[\sub\lolli]{A_1 \lolli A_2 \sqsubseteq A_1' \lolli  A_2'}{A_1' \sqsubseteq A_1 & A_2 \sqsubseteq A_2}
+	\and \infer[\sub\otimes]{A_1 \otimes A_2 \sqsubseteq A_1' \otimes A_2'}
+		  {A_1 \sqsubseteq A_1' & A_2 \sqsubseteq A_2'}
+	\and \infer[\sub\&]{{\&}\{l_i : A_i\}_I \sqsubseteq {\&}\{l_j : A_j'\}_J}
+	      {J \subseteq I & A_j \sqsubseteq A_j' \text{ for } j \in J}
+	\and \infer[\sub\oplus]{{\oplus}\{l_i : A_i\}_I \sqsubseteq {\oplus}\{l_j : A_j'\}_J}
+	      {I \subseteq J & A_i \sqsubseteq A_i' \text{ for } i \in I}
 \end{mathpar}
 
+$\Psi$ types functional variables, $\Delta$ types linear channels:
+
+\begin{mathpar}
+\infer[\text{Sub}R]{\typeSJ{P}{c}{A'}}
+ { \typeSJ{P}{c}{A}
+ & A \sqsubseteq A'
+ }
+\and
+\infer[\text{Sub}L]{\typeS{\Psi}{\Delta, c : A}{P}{d}{B}}
+ {\typeS{\Psi}{\Delta, c : A'}{P}{d}{B}
+ & A \sqsubseteq A'}
+\end{mathpar}
+
+\section{Intersections}
+
+We can use the following subtyping rules for intersections instead of $\intersect L$ rules:
+
+\begin{mathpar}
+\infer[\sub{\intersect}_1]{A_1 \intersect A_2 \sqsubseteq A_1}{}
+\and \infer[\sub{\intersect}_2]{A_1 \intersect A_2 \sqsubseteq A_2}{}
+\end{mathpar}
+
+$\Psi$ types functional variables, $\Delta$ types linear channels:
+
+\begin{mathpar}
+	\infer[\intersect R]{\typeSJ{P}{c}{A_1 \intersect A_2}}
+	 { \typeSJ{P}{c}{A_1}
+	 & \typeSJ{P}{c}{A_2}
+	 }
+	\\
+	\and \infer[\intersect L_1]{\typeS{\Psi}{\Delta, c : A_1 \intersect A_2}{P}{c}{B}}
+	 { \typeS{\Gamma}{\Delta, c : A_1}{P}{c}{B}}
+	\and \infer[\intersect L_2]{\typeS{\Psi}{\Delta, c : A_1 \intersect A_2}{P}{c}{B}}
+	 { \typeS{\Gamma}{\Delta, c : A_2}{P}{c}{B}}\end{mathpar}
+
+
+\section{Evaluation}
+
+We first define the following auxiliary judgement:
+
+\begin{mathpar}
+\infer{\combine{}{}{}}
+ {}
+\end{mathpar}
+
+
+\section{Metatheory}
+
+We annotate each process $P$ with the channel $c$ along which $P$ offers its output. This exploits the fact that each process offers along exactly one channel. We can then check that a whole process state is well typed according to signature (of linear channels) as follows:
 \[
-\infer[\text{Sub}]{\typeSJ{P}{c}{S'}}
- { \typeSJ{P}{c}{S}
- & S \sqsubseteq S'
+\infer{\valid{c_1 : A_1, \ldots, c_k : A_k}{\execC{P_0}{c_0}, \ldots, \execC{P_k}{c_k}}{c_0}{A_0}}
+ { \typeS{\cdot}{\Delta_i}{P_i}{c_i}{A_i}
+ & (c_i : A_i) \not\in \Delta_i
+ & \Delta_0, \ldots, \Delta_k = (c_1 : A_1, \ldots, c_k : A_k)
  }
 \]
 
-\section{Intersection Types}
-
-\begin{mathpar}
-	\infer[\intersect\intro]{\typeSJ{P}{c}{S_1 \intersect S_2}}
-	 { \typeSJ{P}{c}{S_1}
-	 & \typeSJ{P}{c}{S_2}
-	 }
-	\\
-	\and \infer[\intersect\elim_1]{\typeSJ{P}{c}{S_1}}
-	 { \typeSJ{P}{c}{S_1 \intersect S_2}}
-	\and \infer[\intersect\elim_2]{\typeSJ{P}{c}{S_2}}
-	 { \typeSJ{P}{c}{S_1 \intersect S_2}}
-\end{mathpar}
-
-
-\section{Datatypes}
-
-Are $\otimes$ and $\&$ generative?
-
-\section{Type Preservation}
-\begin{thm}
-If $\valid{\Sigma}{\Omega}{c_0}{\terminate}$ and $(\Sigma \mid \Omega) \steps (\Sigma' \mid \Omega')$%
-\footnote{We carry around $\Sigma$ which is a ''signature of channels``. Shouldn't this be limited to static semantics?} then $\valid{\Sigma'}{\Omega'}{c_0}{\terminate}.$%
-\footnote{The theorem in the paper uses $\steps^*.$ Is there a reason one step is not enough?}
+\begin{thm}[Type Preservation]
+If $\valid{\Sigma_1}{\Omega_1}{c_0}{\terminate}$ and $\steps{\Sigma_1}{\Omega_1}{\Sigma_2}{\Omega_2}$ then $\valid{\Sigma_2}{\Omega_2}{c_0}{\terminate}.$
 \end{thm}
 \begin{proof}
-Define $\pred{(\Sigma_1 \mid \Omega_1) \steps (\Sigma_2 \mid \Omega_2), \valid{\Sigma_1}{\Omega_1}{c_0}{\terminate}}$ as $\valid{\Sigma_2}{\Omega_2}{c_0}{\terminate}.$ We proceed by lexicographic induction:
+We proceed by lexicographic induction on the derivation of $\stepArrow$ first, and then the total size of types in $\Omega$:
 
 \begin{itemize}
 	\item Case for $\wedge R$: We have
+	\[ \Sigma_1 = \Sigma_1', c_m : S_m, c_n : S_n \]
+	\[ \Sigma_2 = \Sigma_2', c_m : S_m', c_n : S_n' \]
 	\[\Omega_1 = \Omega_1', \exec{(\tseq{\tout{c_m}{V}}{P})}{c_m}{S_m}, \exec{(\tseq{\tin{x}{c_m}}{Q_x})}{c_n}{S_n})\]
 	\[ \Omega_2 = \Omega_2', \exec{P}{c_m}{S_m'}, \exec{Q_V)}{c_n}{S_n'}) \]
 	
 	assuming $\val V.$
 	
-	By inversion, either $S_m = A \intersect B,$ or $S_m = \tau \wedge A$ where $V : \tau$ and $\typeProc{P}{c_m}{A}.$ In the former case, we case on the derivation of $A \intersect B.$
+	By inversion, either $S_m = A \intersect B,$ or $S_m = \tau \wedge A$ where $V : \tau$ and $\typeProc{P}{c_m}{A}.$ In the former case, we can prove $\exec{(\tseq{\tout{c_m}{V}}{P})}{c_m}{A}$ and $c_m : A$ by $\intersect\elim_1.$ This implies $\valid{\replace{A}{S_m}{\Sigma_1}}{\replace{A}{S_m}{\Omega_1}}{c_0}{\terminate}.$
 	
-	\begin{itemize}
-		\item ()
-		\item
-	\end{itemize} 
+	To prove stepping, I need to know the form of $S_m'.$ Do I have to claim we can ``normalize'' any type as $S_m = A_1 \intersect \ldots \intersect A_k$ where $A_i$ have the same (right) form?
 	
+	By induction, $\valid{\replace{A}{S_m}{\Sigma_2}}{\replace{A}{S_m}{\Omega_2}}{c_0}{\terminate}.$ The same holds for $B.$ We can then prove $\valid{\Sigma_2}{\Omega_2}{c_0}{\terminate}$ using $\intersect\intro.$
+	
+	Otherwise, either $S_n = A \intersect B$ and this is the same as above, or $S_n = D.$ This case is covered by the original proof.
+	
+	\item \ldots
 \end{itemize}
 \end{proof}
 
-\section{Progress}
+\begin{thm}[Progress]
+If $\valid{\Sigma}{\Omega}{c_0}{\terminate}$ then either $\Omega = \state{\cdot}{\execC{(\close{c_0})}{c_0}}$ or $\steps{\Sigma}{\Omega}{\Sigma'}{\Omega'}$ for some $\Sigma'$ and $\Omega'.$
+\end{thm}
+
+\begin{proof}
+True since this is a conservative extension: you cannot type any processes that you couldn't type before.
+\end{proof}
 
 \end{document}
