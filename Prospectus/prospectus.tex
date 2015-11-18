@@ -1,0 +1,64 @@
+\documentclass[11pt,twoside]{article}
+
+\usepackage{latexsym}
+\usepackage{code}
+\usepackage{proof}
+\usepackage{fancyhdr}
+\usepackage{lecnotes}
+%\usepackage{fullpage}
+
+\def\mytitle{Refinement Types for Concurrent Programming}
+
+\lhead{\fancyplain{}{\bfseries \mytitle}}
+\chead{}
+\rhead{\fancyplain{}{\bfseries \thepage}}
+\lfoot{{\small\scshape Prospectus}}
+\cfoot{}
+\rfoot{{\small\scshape \today}}
+
+\title{\mytitle}
+\author{Josh Acay \\ \texttt{cacay@cmu.edu}
+		\and
+		\textbf{Thesis Advisor} \\ Frank Pfenning}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We propose to develop  a refinement system for SALL, a concurrent functional language based on session-typed message-passing, that allow the specification of behavioral properties of concurrent programs. We aim for a system that is expressive enough to specify linear capabilities and security protocols while retaining useful properties such as decidability of type inference.
+
+We plan to implement a prototype and demonstrate the usefulness of our system through examples. We hope that our system is able to enhance safety with minimal annotation burden on the programmer. Finally, we might adapt our system to an imperative language, and suggest future work for a lazy setting.
+\end{abstract}
+
+\section{Introduction}
+
+Refinement-type based approaches have been successfully used in verifying correctness of functional programs (\cite{Freeman91, Xi98, Rondon08, Vazou14}). This research extends refinement types to a concurrent setting that uses session types as protocols between different processes. This will enable programmers to specify and statically check behavioral properties of concurrent programs, improving safety in many applications. We also envision that our system can be used to verify correctness in security critical applications such as cryptographic protocols and web programming.
+
+\section{Background Reading}
+
+\cite{Griffith14un, Toninho13esop, Caires10concur} provide the background in session types and concurrency. \cite{Freeman91, Xi98, Rondon08} present different approaches to refinements for ML. We plan to base our system on these approaches. \cite{Franco14} and \cite{Gordon09} describe refinement types for concurrent languages based on $\pi$-calculus. This is similar in spirit to our work, but they consider a different system. \cite{Vazou14} considers refinements in a lazy setting. We might use a similar approach to extend our system to a lazy concurrent language.
+
+\section{Contribution}
+
+Refinement types for concurrent languages is not an entirely new idea (see \cite{Franco14, Gordon09} for example). However, most current systems are based on the $\pi$-calculus, whereas our approach is based on a Curry-Howard interpretation of substructural logic. Also, these proposals are generally limited in scope. The system presented in \cite{Franco14}, for example, does not support subtyping or polymorphism, and has a very limited  language of formulae.
+
+Our contributions will include richer refinements, intersections, strong behavioral
+subtyping, and a stronger theoretical basis. In addition, we plan to explore the non-trivial interactions between the underlying functional language and the concurrent extension (which are mutually defined), interactions that do not exist in other approaches.
+
+\section{Expected Outcome}
+
+We expect to have a formal specification of a refinement system for SALL types, and prove properties such as soundness and decidability of type inference/checking. We will consider the applicability of our system to security, and extensions to imperative languages such as Concurrent C0 and lazy languages such as Haskell. We plan to have a prototype implementation of a type checker in OCaml, and demonstrate its practicality by porting common libraries to our system.
+
+\section{Timeline}
+
+Our approach will be to first determine the requirements for the system: what is a session refinement, what kind of properties do we wish to express, how do session refinements and the functional (non-concurrent) language interact. Once we have designed a system, we plan to prove it sound (potentially formalizing the soundness proof in Celf or Agda). We will then implement a prototype preprocessor in OCaml for SALL, and port common libraries to prove their safety and security properties. We will analyze the effectiveness of the system in terms of expressibility and the burden on the programmer. Finally, we will consider extensions to imperative and/or lazy languages, and, if reasonable, implement  an extension for Haskell.
+
+\clearpage
+\section{References}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
