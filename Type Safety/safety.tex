@@ -360,6 +360,89 @@ Processes compute according to the following rules. The braces ($\braces{\ldots}
 \end{align*}
 
 
+\section{Restricted Typing Rules}
+
+The typing rules given above are natural in that they mirror the logical rules and match our expectations. However, attempting a proof of type preservation reveals that they are too liberal to use in practice since they lead to many cases and sub-cases. Instead, we restrict the places where non-structural rules can be applied in order to force a ``normal-form'' on typing derivations. We show that the new rules are sound and complete with respect to the old ones, and proceed with the limited rules form now on.
+
+The general idea is to restrict the uses of non-structural rules just before communicating on the relevant channels. We first define an auxiliary judgment $\primed{P}{c}$ intended mean that the next action of process $P$ will be to communicate along channel $c.$
+
+\begin{mathpar}
+  \infer{\primed{\tclose c}{c}}{}
+  \and\infer{\primed{ \twait c P }{c}}{}
+  \and\infer{\primed{ \tsend{c}{y}{P_y}{Q} }{c}}{}
+  \and\infer{\primed{ \trecv{x}{c}{R_x} }{c}}{}
+  \and\infer{\primed{ \tselect{c}{}{P} }{c}}{}
+  \and\infer{\primed{ \tcase c {\tbranches Q i} }{c}}{}
+\end{mathpar}
+
+The structural rules ($\terminate\Right, \terminate\Left, \tensor\Right, \tensor\Left, \internal\Right, \internal\Left, \lolli\Right, \lolli\Left, \external\Right, \external\Left$) remain unchanged. It turns out to be convenient if forwarding and cut are not primed on any channels, so we will need to handle those rules separately. The restricted typing judgment $\typesR{\ctx}{P}{c}{A}$ is given by the following rules:
+
+\begin{mathpar}
+  \infer[\irb{Sub}\Right]{\typesR{\ctx}{P}{c}{A'}}
+    { \typesR{\ctx}{P}{c}{A}
+    & \primed P c
+    & A \sub A'
+    }
+  \and \infer[\irb{Sub}\Left]{\typesR{\ctx, c : A}{P}{d}{B}}
+    {\typesR{\ctx, c : A'}{P}{d}{B}
+    & \primed P c
+    & A \sub A'
+    }
+\end{mathpar}
+
+
+\section{Bidirectional Type Checking}
+
+The previously given typing rules are logically justified and they are the rules we want. However, they have two problems in practice: (1) converting them to a type-checking algorithm is non-obvious, (2) non-structural rules prevent simple inversion lemmas which forces us to use nested-induction in the proofs of progress and preservation theorems, leading to many cases. TO remedy this situation, we give bidirectional algorithmic rules and prove soundness and completeness with respect to the previous system.
+
+\begin{mathpar}
+  % id and cut
+  \infer[\id]{ \syn {c : A} {\tfwd{d}{c}} {d} {A} }
+    {}
+  \and \infer[\cut]{ \typeS {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
+    { \typeS {\ctx} {P_c} {c} {A}
+    & \typeS {\ctx', c : A} {Q_c} {d} {D}
+    }
+  % Terminate
+  \and \infer[\terminate\Right]{\syn{\emptyCtx}{\tclose c}{c}{\terminate}}
+    {}
+  \and \infer[\terminate\Left]{\typeS{\ctx, c : \terminate}{\twait c P}{d}{A}}
+    {\typeSJ{P}{d}{A}}
+  % Tensor
+  \and \infer[\tensor\Right]{\typeS{\ctx, \ctx'}{\tsend{c}{d}{P_d}{Q}}{c}{A \tensor B}}
+    { \typeS{\ctx}{P}{d}{A}
+    & \typeS{\ctx'}{Q}{c}{B}
+    }
+  \and \infer[\tensor\Left]{ \typeS{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{E} }
+    { \typeS{\ctx, d : A, c : B}{P_d}{e}{E} }
+  % Internal choice
+  \and \infer[\internal\Right]{\typeSJ { \tselect{c}{i}{P} } {c} {\internals{A}{I}} }
+    { i \in I
+    & \typeSJ{P}{c}{A_i}
+    }
+  \and \infer[\internal\Left]{ \typeS { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {D} }
+   { I \subseteq J
+   & \typeS{\ctx, c : A_k}{P_k}{d}{D}~\text{for}~k\in I
+   }
+  % Implication
+  \and \infer[\lolli\Right]{ \typeS{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B} }
+    { \typeS{\ctx, d : A}{P_d}{c}{B} }
+  \and \infer[\lolli\Left]{\typeS{\ctx, \ctx', c : A \lolli B}{ \tsend{c}{d}{P_d}{Q} } {e}{E}}
+    { \typeS{\ctx}{P_d}{d}{A}
+    & \typeS{\ctx', c : B}{Q}{e}{E}
+    }
+  % External choice
+  \and \infer[\external\Right]{ \typeSJ { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}} }
+   { J \subseteq I
+   & \typeSJ{P_k}{c}{A_k}~\text{for}~k\in J
+   }
+  \and \infer[\external\Left]{\typeS{\ctx, c : \externals{A}{I}} { \tselect{c}{i}{P} } {d} {D}}
+    { i \in I
+    & \typeS{\ctx, c : A_i}{P}{d}{D}
+    }
+\end{mathpar}
+
+
 \section{Typing of Process Configurations}
 
 A process configuration is a list of processes. We define a new judgment $\provides{\Omega}{\ctx}$ to mean configuration $\Omega$ provides the channels in $\ctx.$ This judgment is inductively defined as follows:
