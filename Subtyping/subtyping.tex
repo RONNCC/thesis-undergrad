@@ -70,9 +70,14 @@
 
 %% Terms
 \newcommand\tout[2]{\_ \leftarrow \mathrm{output}\;#1\;#2}
+\newcommand\toutc[3]{\_ \leftarrow \mathrm{output}\;#1\;\parens{#2 \leftarrow #3}}
 \newcommand\tin[2]{#1 \leftarrow \mathrm{input}\;#2}
 \newcommand\tseq[2]{#1 ; #2}
 \newcommand\close[1]{\mathrm{close}\;#1}
+
+%% Typed Terms
+\newcommand\toutt[3]{\_ \leftarrow \mathrm{output}\;#1\;#2 : #3}
+\newcommand\tint[3]{#1 \leftarrow \mathrm{input}\;#2 : #3}
 
 
 %% Inference
@@ -90,11 +95,15 @@
 \newcommand\state[2]{(#1 \mathrel{;} #2)}
 \newcommand\stepArrow{\longrightarrow}
 \newcommand\steps[4]{\state{#1}{#2} \longrightarrow \state{#3}{#4}}
-\newcommand\exec[3]{\mathrm{exec}\;{#1}\;{#2}\;{#3}}
+\newcommand\exec[1]{\mathrm{exec}\;{#1}}
+\newcommand\execT[3]{\mathrm{exec}\;{#1}\;{#2}\;{#3}}
 \newcommand\execC[2]{\mathrm{exec}\;{#1} :: {#2}}
 \newcommand\valid[4]{\models \typeProc{\state{#1}{#2}}{#3}{#4}}
 
-\newcommand\combine[3]{\mathrm{combine}\;#1\;#2 \rightarrow #3}
+%\newcommand\combine[3]{\mathrm{combine}\;#1\;#2 \rightarrow #3}
+\newcommand\combine[3]{#1 \leftarrow #2 \Rightarrow #3}
+\newcommand\ground[1]{#1~\mathrm{ground}}
+\newcommand\mismatch[2]{\combine{#1}{#2}{\mathrm{err}}}
 
 %% Induction
 \newcommand\pred[1]{\mathcal{P}\parens*{#1}}
@@ -170,10 +179,55 @@ $\Psi$ types functional variables, $\Delta$ types linear channels:
 We first define the following auxiliary judgement:
 
 \begin{mathpar}
-\infer{\combine{}{}{}}
- {}
+\infer{\combine{A_1 \intersect A_2}{\alpha}{B_1 \intersect B_2}}
+ { \combine{A_1}{\alpha}{B_1}
+ & \combine{A_2}{\alpha}{B_2}
+ }
+\and
+\infer{\combine{A_1 \intersect A_2}{\alpha}{B_1}}
+ { \combine{A_1}{\alpha}{B_1}
+ & \mismatch{A_2}{\alpha}
+ }
+\and
+\infer{\combine{A_1 \intersect A_2}{\alpha}{B_2}}
+ { \mismatch{A_1}{\alpha}
+ &\combine{A_2}{\alpha}{B_2} 
+ }
+%%%
+%\\
+%\infer{\combine{A}{B_1 \intersect B_2}{C_1 \intersect C_2}}
+% { \combine{A}{B_1}{C_1}
+% & \combine{A}{B_2}{C_2}
+% }
+%\and
+%\infer{\combine{A}{B_1 \intersect B_2}{C_1}}
+% { \combine{A}{B_1}{C_1}
+% & \mismatch{A}{B_2}
+% }
+%\and
+%\infer{\combine{A}{B_1 \intersect B_2}{C_2}}
+% { \mismatch{A}{B_1}
+% & \combine{A}{B_2}{C_2}
+% }
+%%%
+\\
+\infer{\combine{\tau \imp A}{\tau'}{A}}{\tau \le \tau'}
+\and \infer{\combine{\tau \wedge A}{\tau'}{A}}{\tau \le \tau'}
+\and \infer{\combine{A_1 \lolli A_2}{A'}{A_2}}{A' \sqsubseteq A_1}
+\and \infer{\combine{A_1 \otimes A_2}{A'}{A_2}}{A_1 \sqsubseteq A'}
 \end{mathpar}
 
+We then define a typed operational semantics.
+
+\begin{itemize}
+\item Provider is $\otimes$:
+\begin{gather*}
+	\execT{\parens{\tseq {\toutc{c}{d}{P_d}} {Q} }}{c}{A}
+	\otimes \execT{\parens{\tseq {\tint{d}{c}{B}} {R_d} }}{e}{E} \\
+	\otimes\; \combine{A}{B}{A'}
+	\lolli \{ \exists d'. \execT{P_{d'}}{d'}{B} \otimes \execT{Q}{c}{A'} \otimes \execT{R_{d'}}{e}{E} \}
+\end{gather*}
+\end{itemize}
 
 \section{Metatheory}
 
@@ -190,9 +244,11 @@ We annotate each process $P$ with the channel $c$ along which $P$ offers its out
 If $\valid{\Sigma_1}{\Omega_1}{c_0}{\terminate}$ and $\steps{\Sigma_1}{\Omega_1}{\Sigma_2}{\Omega_2}$ then $\valid{\Sigma_2}{\Omega_2}{c_0}{\terminate}.$
 \end{thm}
 \begin{proof}
-We proceed by lexicographic induction on the derivation of $\stepArrow$ first, and then the total size of types in $\Omega$:
+We proceed by induction on the derivation of $\stepArrow.$
 
 \begin{itemize}
+	\item Case for $\otimes$:
+
 	\item Case for $\wedge R$: We have
 	\[ \Sigma_1 = \Sigma_1', c_m : S_m, c_n : S_n \]
 	\[ \Sigma_2 = \Sigma_2', c_m : S_m', c_n : S_n' \]
