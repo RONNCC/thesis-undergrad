@@ -1,0 +1,21 @@
+ltype Bits = +{eps : 1; zero : Bits; one : Bits};;
+
+lsort Std = +{eps : 1; }
+and   StdPos = +{one : Empty; zero : StdPos; one : StdPos};;
+
+lsort Empty = +{eps : 1};;
+
+eps : {Bits and Std};;
+zero : {(Bits <- Bits) and (Std <- Std)};;
+one : {(Bits <- Bits) and (Std <- Std)};;
+
+inc : {(Bits <- Bits) and and (Std <- Std)};;
+'c <- inc -< 'd =
+  case 'd of
+  | eps -> wait 'd;
+           'e <- eps;
+           'c <- one -< 'e
+  | zero -> 'c <- one -< 'd
+  | one -> 'e <- inc -< 'd;
+           'c <- zero -< 'e
+  ;;

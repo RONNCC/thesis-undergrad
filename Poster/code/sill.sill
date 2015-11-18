@@ -1,0 +1,27 @@
+ltype Bits = +{eps : 1; zero : Bits; one : Bits};;
+
+eps : {Bits};;
+'c <- eps =
+  'c.eps;
+  close 'c
+  ;;
+
+zero : {Bits <- Bits};;
+'c <- zero -< 'd =
+  'c.zero;
+  'c <- 'd
+  ;;
+
+one : {Bits <- Bits};;
+(* Similar to zero *)
+
+inc : {Bits <- Bits};;
+'c <- inc -< 'd =
+  case 'd of
+  | eps -> wait 'd;
+           'e <- eps;
+           'c <- one -< 'e
+  | zero -> 'c <- one -< 'd
+  | one -> 'e <- inc -< 'd;
+           'c <- zero -< 'e
+  ;;

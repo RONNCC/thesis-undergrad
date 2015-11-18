@@ -1,0 +1,84 @@
+(* Bitstrings *)
+(* Author: Josh Acay *)
+
+
+(* eps is the empty string, zero and one append a least significant bit *)
+ltype Bits = +{eps : 1; zero : Bits; one : Bits};;
+
+
+eps : {Bits};;
+'c <- eps =
+  'c.eps;
+  close 'c
+  ;;
+
+
+zero : {Bits <- Bits};;
+'c <- zero -< 'd =
+  'c.zero;
+  'c <- 'd
+  ;;
+
+
+one : {Bits <- Bits};;
+'c <- one -< 'd =
+  'c.one;
+  'c <- 'd
+  ;;
+
+
+inc : {Bits <- Bits};;
+'c <- inc -< 'd =
+  case 'd of
+  | eps -> wait 'd;
+           'e <- eps;
+           'c <- one -< 'e
+  | zero -> 'c <- one -< 'd
+  | one -> 'e <- inc -< 'd;
+           'c <- zero -< 'e
+  ;;
+
+
+val : {Int /\ Bits <- Bits};;
+'c <- val -< 'd =
+  case 'd of
+  | eps -> wait 'd;
+           send 'c 0;
+           'c <- eps
+  | zero -> 'e <- val -< 'd;
+            n <- recv 'e;
+            send 'c (2 * n);
+            'c <- zero -< 'e
+  | one -> 'e <- val -< 'd;
+            n <- recv 'e;
+            send 'c (2 * n + 1);
+            'c <- zero -< 'e
+  ;;
+
+
+dealloc : {1 <- Bits};;
+'c <- dealloc -< 'd =
+  case 'd of
+  | eps -> wait 'd;
+           close 'c
+  | zero -> 'c <- dealloc -< 'd
+  | one -> 'c <- dealloc -< 'd
+  ;;
+
+
+
+'top <-
+'c0 <- eps;
+'c1 <- inc -< 'c0;
+'c2 <- inc -< 'c1;
+'c3 <- inc -< 'c2;
+'c4 <- inc -< 'c3;
+'d <- val -< 'c4;
+n <- recv 'd;
+print n; print_str "\n";
+
+'d1 <- dealloc -< 'd;
+wait 'd1;
+close 'top;;
+
+(*inc : {} *)

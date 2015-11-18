@@ -1,0 +1,9 @@
+lsort Std = (* Bitstrings with no leading zeros *)
+
+eps : {Bits and Std};;
+
+zero : {(Bits <- Bits) and (Std <- Std)};;
+
+one : {(Bits <- Bits) and (Std <- Std)};;
+
+inc : {(Bits <- Bits) and and (Std <- Std)};;
