@@ -64,6 +64,8 @@
 \newcommand{\DD}{\mathcal{D}}
 \newcommand{\EE}{\mathcal{E}}
 \newcommand{\FF}{\mathcal{F}}
+
+\DeclareMathOperator\dom{dom}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -93,6 +95,7 @@
 
 \newcommand\tfwd[2]{#1 \leftarrow #2}
 \newcommand\tspawn[3]{#1 \leftarrow #2 \seq #3}
+\newcommand\tspawnType[4]{#1 \leftarrow #2 : #3 \seq #4}
 \newcommand\tclose[1]{\mathrm{close}\;#1}
 \newcommand\twait[2]{\mathrm{wait}\;#1 \seq #2}
 \newcommand\tsend[4]{\mathrm{send}\; #1 \; \parens{#2 \leftarrow #3} \seq #4}
@@ -101,6 +104,7 @@
 \newcommand\tselect[3]{#1 . \lab_{#2} \seq #3}
 
 \newcommand\monad[1]{\braces{#1}}
+
 
 %% Inference
 \newcommand\irb[1]{\texttt{#1}}
@@ -112,6 +116,7 @@
 
 
 %% Typing
+\newcommand{\remove}{\mathbin{/}}
 \newcommand{\emptyCtx}{\emptyset}
 \newcommand{\ctx}{\Psi}
 \newcommand{\config}{\Omega}
@@ -121,13 +126,12 @@
 \newcommand\typeS[4]{#1 \vdash \typeProc{#2}{#3}{#4}}
 \newcommand\typeSJ{\typeS{\ctx}}
 
-% Restricted typing
-\newcommand\primed[2]{\mathtt{primed}\;\parens{#1}\;\mathtt{on}\;{#2}}
-\newcommand\typesR[4]{#1 \Vdash \typeProc{#2}{#3}{#4}}
-
 % Bidirectional typing
-\newcommand\checks[4]{#1 \Vdash #2 :: #3 \Leftarrow #4}
-\newcommand\syn[4]{#1 \Vdash #2 :: #3 \Rightarrow #4}
+\newcommand\typeBi[4]{#1 \Vdash #2 :: \parens{#3 : #4}}
+\newcommand\typeBiJ{\typeBi{\ctx}}
+\newcommand{\typeList}{\alpha}
+\DeclareMathOperator\all{all}
+\DeclareMathOperator\any{any}
 
 \newcommand\stepArrow{\longrightarrow}
 \newcommand\steps[2]{#1 \stepArrow #2}
@@ -209,6 +213,17 @@ We make use of subtyping with the subsumption rules:
     {\typeS{\ctx, c : A'}{P}{d}{B} & A \sub A'}
 \end{mathpar}
 
+Subtyping extends to contexts in the obvious way: $\ctx \sub \ctx'$ if and only if $\ctx = (c_1 : A_1, \ldots, c_n : A_n),$ $\ctx' = (c_1 : A_1', \ldots, c_n : A_n'),$ and $A_i \sub A_i'$ for $1 \le i \le n.$
+
+We require the subtyping relation to be an equivalence, that is, it should satisfy reflexivity and transitivity. Since we want an algorithmic system, we do not want to add these as rules. Thus, we have the following admissibility theorem:
+
+\begin{theorem}
+  $\sub$ is an equivalence relation:
+  \begin{itemize}
+    \item $A \sub A$ for all types $A.$
+    \item $A \sub B$ and $B \sub C$ implies $A \sub C$ for all types $A, B, C.$
+  \end{itemize}
+\end{theorem}
 
 \section{Process Assignment}
 
@@ -239,6 +254,10 @@ We have the following rules to assign sessions to processes:
     { i \in I
     & \typeSJ{P}{c}{A_i}
     }
+  \and \parens*{\infer[\internal\Right]{\typeSJ { \tselect{c}{}{P} } {c} {\internal \braces{\lab : A}} }
+    { \typeSJ{P}{c}{A}
+    }
+  }
   \and \infer[\internal\Left]{ \typeS { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {D} }
    { I \subseteq J
    & \typeS{\ctx, c : A_k}{P_k}{d}{D}~\text{for}~k\in I
@@ -312,11 +331,11 @@ Unions are represented by the following syntactic construct:
 Unions are the dual of intersections, which means they correspond to logical disjunction. Unions express the property that a process behaves as either $A$ or $B.$ Being the dual to intersections, the right rules are derivable by subsumption.
 
 \begin{mathpar}
-  \parens*{\infer[\intersect\Right_1]{\typeSJ{P}{c}{A \union B}}
+  \parens*{\infer[\union\Right_1]{\typeSJ{P}{c}{A \union B}}
     {\typeSJ{P}{c}{A}}}
-  \and \parens*{\infer[\intersect\Right_2]{\typeSJ{P}{c}{A \union B}}
+  \and \parens*{\infer[\union\Right_2]{\typeSJ{P}{c}{A \union B}}
     {\typeSJ{P}{c}{B}}}
-  \and \infer[\intersect\Left]{\typeS{\ctx, c : A \union B}{P}{d}{D}}
+  \and \infer[\union\Left]{\typeS{\ctx, c : A \union B}{P}{d}{D}}
     {\typeS{\ctx, c : A}{P}{d}{D} & \typeS{\ctx, c : B}{P}{d}{D}}
 \end{mathpar}
 
@@ -332,6 +351,165 @@ Unions have the following (algorithmic) subtyping rules:
 
 We again leave out the distributivity rules.
 
+
+\section{Bidirectional Type Checking}
+
+The previously given typing rules are logically justified and they are the rules we want. However, they have two problems in practice: (1) converting them to a type-checking algorithm is non-obvious, (2) non-structural rules prevent simple inversion lemmas which forces us to use nested-induction in the proofs of progress and preservation theorems, leading to many cases. To remedy this situation, we give bidirectional algorithmic rules and prove soundness and completeness with respect to the previous system.
+
+\subsection{Type Assignment}
+
+There are four major changes in the bidirectional system: (1) the context becomes a multi-set mapping channels to multiple types, (2) the checked type becomes a set of types, so we have multiple types on the right, (3) the sub-typing is restricted to forwarding, (4) cut rule gets a type signature for the spawned process.
+
+Rules for intersection and union are as follows:
+
+\begin{mathpar}
+  % Intersection
+  \infer[\intersect\Right]{\typeBi \ctx P c {A \intersect B, \typeList}}
+    { \typeBi \ctx P c {A, \typeList}
+    & \typeBi \ctx P c {B, \typeList}
+    }
+  \and \infer[\intersect\Left]{\typeBi{\ctx, c : A \intersect B}{P}{d}{\typeList}}
+    {\typeBi{\ctx, c : A, c : B}{P}{d}{\typeList}}
+  % Union
+  \\
+  \infer[\union\Right]{\typeBi \ctx P c {A \union B, \typeList}}
+    {\typeBi \ctx P c {A, B, \typeList}}
+  \and \infer[\union\Left]{\typeBi{\ctx, c : A \union B} P d \typeList}
+    { \typeBi {\ctx, c : A} P d \typeList
+    & \typeBi {\ctx, c : B} P d \typeList
+    }
+\end{mathpar}
+
+\todo{$\intersect\Right$ and $\union\Left$ are tricky. Logically, they are fine, but might need subtyping rules or lemmas.}
+
+Structural rules are given below:
+
+\begin{mathpar}
+  % id and cut
+  \infer[\id]{ \typeBi {\ctx, c : A} {\tfwd d c} {d} {A', \typeList} }
+    { \ctx \remove c = \emptyset
+    & A \sub A'
+    }
+  \and \infer[\cut]{ \typeBi {\ctx, \ctx'} {\tspawnType c {P_c} A {Q_c}} {d} \typeList }
+    { \dom \ctx \cap \dom {\ctx'} = \emptyset
+    & \typeBi \ctx {P_c} {c} {A}
+    & \typeBi {\ctx', c : A} {Q_c} {d} {\typeList}
+    }
+  % Terminate
+  \\ \infer[\terminate\Right]{\typeBi{\emptyCtx}{\tclose c}{c}{\terminate, \typeList}}
+   {}
+  \and \infer[\terminate\Left]{\typeBi{\ctx, c : \terminate}{\twait c P} d \typeList}
+    { \typeBi {\ctx \remove c} P d \typeList}
+  % Tensor
+  \and \infer[\tensor\Right]{\typeBi{\ctx, \ctx'}{\tsend c d {P_d} Q }{c}{A \tensor B, \typeList}}
+    { \ctx \cap \ctx' = \emptyset
+    & \typeBi \ctx P d A
+    & \typeBi {\ctx'} Q c B
+    }
+  \and \infer[\tensor\Left]{ \typeBi{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{\typeList} }
+    { \typeBi{\ctx \remove c, d : A, c : B}{P_d}{e}{\typeList} }
+  % Internal choice
+  \and \infer[\internal\Right]{\typeBi \ctx { \tselect{c}{i}{P} } {c} {\internals{A}{I}, \typeList }}
+    { i \in I
+    & \typeBi \ctx {P}{c}{A_i}
+    }
+  \and \infer[\internal\Left]{ \typeBi { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {\typeList} }
+   { I \subseteq J
+   & \typeBi{\ctx \remove c, c : A_k}{P_k}{d}{\typeList}~\text{for}~k\in I
+   }
+  % Implication
+  \and \infer[\lolli\Right]{ \typeBi{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B, \typeList} }
+    { \typeBi{\ctx, d : A}{P_d}{c}{B} }
+  \and \infer[\lolli\Left]{\typeBi{\ctx, \ctx', c : A \lolli B}{ \tsend{c}{d}{P_d}{Q} } {e}{\typeList}}
+    { \ctx \cap \ctx' = \emptyset
+    & \typeBi{\ctx}{P_d}{d}{A}
+    & \typeBi{\ctx' \remove c, c : B}{Q}{e}{\typeList}
+    }
+  % External choice
+  \and \infer[\external\Right]{ \typeBi \ctx { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}, \typeList} }
+   { J \subseteq I
+   & \typeBi \ctx {P_k}{c}{A_k}~\text{for}~k\in J
+   }
+  \and \infer[\external\Left]{\typeBi{\ctx, c : \externals{A}{I}} { \tselect{c}{i}{P} } {d} {\typeList}}
+    { i \in I
+    & \typeBi{\ctx \remove c, c : A_i}{P}{d}{\typeList}
+    }
+\end{mathpar}
+
+
+\subsection{Properties}
+
+\begin{lemma}[Weakening]
+  The following are admissible:
+  \begin{itemize}
+    \item $\typeBi \ctx P c \typeList \implies \typeBi \ctx P c {A, \typeList}.$
+    \item $\typeBi \ctx P c \typeList \implies \typeBi {\ctx, d : A} P c \typeList$ if $d \in \dom \ctx.$
+  \end{itemize}
+\end{lemma}
+\begin{proof}
+  By induction on the typing derivation.
+\end{proof}
+
+\begin{lemma}[Contraction]
+  The following are admissible:
+  \begin{itemize}
+    \item $\typeBi \ctx P c {A, A, \typeList} \implies \typeBi \ctx P c {A, \typeList}.$
+    \item $\typeBi {\ctx, d : A, d : A} P c \typeList \implies \typeBi {\ctx, d : A} P c \typeList.$
+  \end{itemize}
+\end{lemma}
+\begin{proof}
+  By induction on the typing derivation.
+\end{proof}
+
+\begin{lemma}[Invertibility]
+  The following are admissible:
+  \begin{description}
+    \item[$(\intersect\Right)$] $\typeBi \ctx P c {A_1 \intersect A_2, \typeList} \iff \typeBi \ctx P c {A_1, \typeList} \text{ and } \typeBi \ctx P c {A_2, \typeList}.$
+    \item[$(\intersect\Left)$] $\typeBi {\ctx, d : A_1 \intersect A_2} P c \typeList \iff
+    \typeBi {\ctx, d : A_1, d : A_2} P c \typeList.$
+    \item[$(\union\Right)$] $\typeBi \ctx P c {A_1 \union A_2, \typeList} \iff \typeBi \ctx P c {A_1, A_2, \typeList}.$
+    \item[$(\union\Left)$] $\typeBi {\ctx, d : A_1 \union A_2} P c \typeList \iff
+    \typeBi {\ctx, d : A_1} P c \typeList
+    \text{ and } \typeBi {\ctx, d : A_2} P c \typeList.$
+  \end{description}
+\end{lemma}
+\begin{proof}
+  Backward direction is derivable by an application of $\intersect\Right,$ $\intersect\Left,$ $\union\Right,$ and $\union\Left$ respectively.
+
+  Forward direction is by induction on the typing derivation.
+\end{proof}
+
+\begin{lemma}[Subtyping]
+  \label{bi-sub}
+  If $\ctx' \le \ctx,$ $\typeList \le \typeList',$ and $\typeBi \ctx P c \typeList,$ then $\typeBi {\ctx'} P c {\typeList'}.$
+\end{lemma}
+\begin{proof}
+  By lexicographical induction on $\typeBi \ctx P c \typeList$ first, followed by $\ctx \le \ctx'$ and $\typeList \le \typeList'.$
+\end{proof}
+
+
+\subsection{Soundness and Completeness}
+
+We relate the two typing judgments by proving the soundness and completeness of the bidirectional system with respect to the declarative system.
+
+\begin{theorem}[Soundness]
+If $\typeBi \ctx P c \typeList,$ then $\typeS {\all{(\ctx)}} P c {\any{(\typeList)}}.$
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\typeBi \ctx P c \typeList.$ The only tricky parts are the proofs of the following lemmas required for $\intersect\Right$ and $\union\Left$:
+  \begin{itemize}
+    \item If $\typeS \ctx P c {A_1 \union B}$ and $\typeS \ctx P c {A_2 \union B},$ then $\typeS \ctx P c {(A_1 \intersect A_2) \union B}.$
+    \item If $\typeS {\ctx, c : A_1 \intersect B} P d C$ and $\typeS {\ctx, c : A_2 \intersect B} P d C,$ then $\typeS {\ctx, c : (A_1 \union A_2) \intersect B} P d C.$
+  \end{itemize}
+\end{proof}
+
+\begin{theorem}[Completeness]
+If $\typeS \ctx P c A,$ then $\typeBi \ctx P c A.$
+%If $\typeS \ctx P c A,$ then for all $\ctx'$ and $A'$ such that $\ctx' \sub \ctx$ and $A \sub A',$ $\typeBi {\ctx'} P c {A'}.$
+\end{theorem}
+\begin{proof}
+  By induction on the derivation of $\typeS \ctx P c A$ using \ref{bi-sub} for $\irb{Sub}\Right$ and $\irb{Sub}\Left.$
+\end{proof}
 
 \section{Operational Semantics}
 
@@ -358,58 +536,6 @@ Processes compute according to the following rules. The braces ($\braces{\ldots}
   \irb{external} \hspace{1em} & : \proc{c}{\tcase{c}{\tbranches P I}} \otimes \proc{d}{\tselect c i Q} \otimes i \in I \\
     & \hspace{2em} \lolli \monad{ \proc{c}{P_i} \otimes \proc{d}{Q} } \\
 \end{align*}
-
-
-\section{Bidirectional Type Checking}
-
-The previously given typing rules are logically justified and they are the rules we want. However, they have two problems in practice: (1) converting them to a type-checking algorithm is non-obvious, (2) non-structural rules prevent simple inversion lemmas which forces us to use nested-induction in the proofs of progress and preservation theorems, leading to many cases. TO remedy this situation, we give bidirectional algorithmic rules and prove soundness and completeness with respect to the previous system.
-
-\begin{mathpar}
-  % id and cut
-  \infer[\id]{ \syn {c : A} {\tfwd{d}{c}} {d} {A} }
-    {}
-  \and \infer[\cut]{ \typeS {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
-    { \typeS {\ctx} {P_c} {c} {A}
-    & \typeS {\ctx', c : A} {Q_c} {d} {D}
-    }
-  % Terminate
-  \and \infer[\terminate\Right]{\syn{\emptyCtx}{\tclose c}{c}{\terminate}}
-    {}
-  \and \infer[\terminate\Left]{\typeS{\ctx, c : \terminate}{\twait c P}{d}{A}}
-    {\typeSJ{P}{d}{A}}
-  % Tensor
-  \and \infer[\tensor\Right]{\typeS{\ctx, \ctx'}{\tsend{c}{d}{P_d}{Q}}{c}{A \tensor B}}
-    { \typeS{\ctx}{P}{d}{A}
-    & \typeS{\ctx'}{Q}{c}{B}
-    }
-  \and \infer[\tensor\Left]{ \typeS{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{E} }
-    { \typeS{\ctx, d : A, c : B}{P_d}{e}{E} }
-  % Internal choice
-  \and \infer[\internal\Right]{\typeSJ { \tselect{c}{i}{P} } {c} {\internals{A}{I}} }
-    { i \in I
-    & \typeSJ{P}{c}{A_i}
-    }
-  \and \infer[\internal\Left]{ \typeS { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {D} }
-   { I \subseteq J
-   & \typeS{\ctx, c : A_k}{P_k}{d}{D}~\text{for}~k\in I
-   }
-  % Implication
-  \and \infer[\lolli\Right]{ \typeS{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B} }
-    { \typeS{\ctx, d : A}{P_d}{c}{B} }
-  \and \infer[\lolli\Left]{\typeS{\ctx, \ctx', c : A \lolli B}{ \tsend{c}{d}{P_d}{Q} } {e}{E}}
-    { \typeS{\ctx}{P_d}{d}{A}
-    & \typeS{\ctx', c : B}{Q}{e}{E}
-    }
-  % External choice
-  \and \infer[\external\Right]{ \typeSJ { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}} }
-   { J \subseteq I
-   & \typeSJ{P_k}{c}{A_k}~\text{for}~k\in J
-   }
-  \and \infer[\external\Left]{\typeS{\ctx, c : \externals{A}{I}} { \tselect{c}{i}{P} } {d} {D}}
-    { i \in I
-    & \typeS{\ctx, c : A_i}{P}{d}{D}
-    }
-\end{mathpar}
 
 
 \section{Typing of Process Configurations}
@@ -569,6 +695,8 @@ If $\provides{\config}{\ctx}$ and $\steps{\config}{\config'}$ then $\provides{\c
   \item Prove normal form lemmas.
   \item Add recursive types.
   \item Distributivity.
+  \item Formalize symmetry and transitivity of $\union$ and $\intersect$ so we claim order doesn't matter (formalize what that means too).
+  \item Formalize distributivity of $\union$ on $\intersect$ (refer to notebook).
 \end{enumerate}
 
 \end{document}
