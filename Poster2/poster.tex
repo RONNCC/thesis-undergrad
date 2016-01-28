@@ -1,0 +1,395 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% baposter Landscape Poster
+% LaTeX Template
+% Version 1.0 (11/06/13)
+%
+% baposter Class Created by:
+% Brian Amberg (baposter@brian-amberg.de)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[landscape,a0paper,fontscale=0.290]{baposter} % Adjust the font scale/size here
+
+\usepackage{graphicx}     % Required for including images
+\graphicspath{{figures/}} % Directory in which figures are stored
+\usepackage{listings}
+
+\usepackage{amsmath} % For typesetting math
+\usepackage{amssymb} % Adds new symbols to be used in math mode
+\usepackage{amsthm, amsfonts, mathtools}
+\usepackage{proof}              % For inference rules
+\usepackage{mathpartir}         % Automatic rule layout
+
+\usepackage{booktabs} % Top and bottom rules for tables
+\usepackage{enumitem} % Used to reduce itemize/enumerate spacing
+\usepackage{palatino} % Use the Palatino font
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+
+\setlength{\columnsep}{1.5em} % Slightly increase the space between columns
+\setlength{\columnseprule}{0mm} % No horizontal rule between columns
+
+\usepackage{tikz} % Required for flow chart
+\usetikzlibrary{shapes,arrows} % Tikz libraries required for the flow chart in the template
+
+\newcommand{\compresslist}{% Define a command to reduce spacing within itemize/enumerate environments, this is used right after \begin{itemize} or \begin{enumerate}
+\setlength{\itemsep}{1pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+}
+
+%----------------------------------------------------------------------------------------
+% LISTINGS SETTINGS
+%----------------------------------------------------------------------------------------
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\footnotesize,        % the size of the fonts that are used for the code
+  texcsstyle=\color{yellow},
+  commentstyle=\color{green},      % comment style
+  keywordstyle=\bf\color{blue},    % keyword style
+  stringstyle=\color{mauve},       % string literal style
+  %
+  language=Haskell,                % the language of the code
+  deletekeywords={zero},           % if you want to delete keywords from the given language
+  otherkeywords={close, wait, send, recv, case, 1}, %-o, +, <-, ->},
+  %
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  frame=none,                      % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  numbers=none,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{gray},   % the style that is used for the line-numbers
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  tabsize=2,                       % sets default tabsize to 2 spaces
+}
+
+
+%----------------------------------------------------------------------------------------
+% MACROS
+%----------------------------------------------------------------------------------------
+
+%%%%%%%%%%%%% Theorem environments %%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%% Generic Macros %%%%%%%%%%%%%%%%
+
+%%% Paired delimiters
+\DeclarePairedDelimiter\parens{(}{)}             % parenthesis
+\DeclarePairedDelimiter\bracks{\lbrack}{\rbrack} % brackets
+\DeclarePairedDelimiter\braces{\lbrace}{\rbrace} % brackets
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}      % absolute value
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}     % double verts
+\DeclarePairedDelimiter\angled{\langle}{\rangle} % angle brackets
+\DeclarePairedDelimiterX\set[2]{\{}{\}}
+  {#1 \mathrel{}\mathclose{}\delimsize|\mathopen{}\mathrel{} #2}
+
+
+%%% Math
+\newcommand{\sq}{\text{\ttfamily{\char'15}}} % Single quote
+\newcommand{\qq}{\text{\ttfamily"}}          % Double quote
+\newcommand{\qquote}[1]{\qq #1\qq{}}         % Strings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%% Document specific macros %%%%%%%%%%%
+
+%% Types
+
+\newcommand\indexVar{x}
+
+\newcommand\sub{\le}
+\newcommand\lolli{\multimap}
+\newcommand\terminate{\mathbf{1}}
+\newcommand\tensor{\otimes}
+\newcommand\lab{lab}
+\newcommand\internal{\oplus}
+\newcommand\external{\&}
+\newcommand\internals[2]{\internal\braces{\lab_\indexVar : {#1}_\indexVar}_{\indexVar \in #2}}
+\newcommand\externals[2]{\external\braces{\lab_\indexVar : {#1}_\indexVar}_{\indexVar \in #2}}
+\newcommand\intersect{\mathbin{\sqcap}}
+\newcommand\union{\mathbin{\sqcup}}
+
+
+%% Terms
+\newcommand\seq{\;;\;}
+\newcommand\tbranch[2]{#1 \rightarrow #2}
+\newcommand\tbranches[2]{\braces{\lab_\indexVar \rightarrow {#1}_\indexVar}_{\indexVar \in #2}}
+
+\newcommand\tfwd[2]{#1 \leftarrow #2}
+\newcommand\tspawn[3]{#1 \leftarrow #2 \seq #3}
+\newcommand\tspawnType[4]{#1 \leftarrow #2 : #3 \seq #4}
+\newcommand\tclose[1]{\mathrm{close}\;#1}
+\newcommand\twait[2]{\mathrm{wait}\;#1 \seq #2}
+\newcommand\tsend[4]{\mathrm{send}\; #1 \; \parens{#2 \leftarrow #3} \seq #4}
+\newcommand\trecv[3]{#1 \leftarrow \mathrm{recv} \; #2 \seq #3}
+\newcommand\tcase[2]{\mathrm{case}\;#1\;\mathrm{of}\;#2}
+\newcommand\tselect[3]{#1 . \lab_{#2} \seq #3}
+
+\newcommand\monad[1]{\braces{#1}}
+
+
+%% Inference
+\newcommand\irb[1]{\texttt{#1}}
+\newcommand\Right{\irb{R}}
+\newcommand\Left{\irb{L}}
+\newcommand\Sub[1]{\text{Sub-}#1}
+\newcommand\id{\irb{id}}
+\newcommand\cut{\irb{cut}}
+
+
+%% Typing
+\newcommand{\remove}{\mathbin{/}}
+\newcommand{\emptyCtx}{\emptyset}
+\newcommand{\ctx}{\Psi}
+\newcommand{\config}{\Omega}
+
+% Original typing judgment
+\newcommand\typeProc[3]{#1 :: \parens{#2 : #3}}
+\newcommand\typeS[4]{#1 \vdash \typeProc{#2}{#3}{#4}}
+\newcommand\typeSJ{\typeS{\ctx}}
+
+% Bidirectional typing
+\newcommand\typeBi[4]{#1 \Vdash #2 :: \parens{#3 : #4}}
+\newcommand\typeBiJ{\typeBi{\ctx}}
+\newcommand{\typeList}{\alpha}
+\DeclareMathOperator\all{all}
+\DeclareMathOperator\any{any}
+
+\newcommand\stepArrow{\longrightarrow}
+\newcommand\steps[2]{#1 \stepArrow #2}
+\newcommand\stepsMany[2]{#1 \stepArrow^* #2}
+
+\newcommand\proc[2]{\irb{proc}_{#1}\parens{#2}}
+
+\newcommand\provides[2]{\models #1 :: \parens{#2}}
+\newcommand\poised[1]{#1\;\mathtt{poised}}
+\newcommand\valid[4]{\models \typeProc{\state{#1}{#2}}{#3}{#4}}
+
+%% Induction
+\newcommand\pred[1]{\mathcal{P}\parens*{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%----------------------------------------------------------------------------------------
+%	POSTER
+%----------------------------------------------------------------------------------------
+
+\definecolor{lightblue}{rgb}{0.145,0.6666,1} % Defines the color used for content box headers
+
+\definecolor{borderColor}{rgb}{0.8,0.243,0.243} % Defines the color used for content box headers
+
+\begin{document}
+
+\begin{poster}
+{
+columns=3,
+headerborder=closed, % Adds a border around the header of content boxes
+colspacing=1em, % Column spacing
+bgColorOne=white, % Background color for the gradient on the left side of the poster
+bgColorTwo=white, % Background color for the gradient on the right side of the poster
+borderColor=borderColor, % Border color
+headerColorOne=black, % Background color for the header in the content boxes (left side)
+headerColorTwo=borderColor, % Background color for the header in the content boxes (right side)
+headerFontColor=white, % Text color for the header text in the content boxes
+boxColorOne=white, % Background color of the content boxes
+textborder=roundedleft, % Format of the border around content boxes, can be: none, bars, coils, triangles, rectangle, rounded, roundedsmall, roundedright or faded
+eyecatcher=true, % Set to false for ignoring the left logo in the title and move the title left
+headerheight=0.1\textheight, % Height of the header
+headershape=roundedright, % Specify the rounded corner in the content box headers, can be: rectangle, small-rounded, roundedright, roundedleft or rounded
+headerfont=\Large\bf\textsc, % Large, bold and sans serif font in the headers of content boxes
+%textfont={\setlength{\parindent}{1.5em}}, % Uncomment for paragraph indentation
+linewidth=2pt % Width of the border lines around content boxes
+}
+%----------------------------------------------------------------------------------------
+% TITLE SECTION 
+%----------------------------------------------------------------------------------------
+%
+{\includegraphics[height=4em]{cmu_logo.jpg}} % First university/lab logo on the left
+{\bf\textsc{Refinements for Session-typed Concurrency}\vspace{0.5em}} % Poster title
+{\textsc{\{ By: Josh Acay \hspace{6pt} Advisor: Frank Pfenning \} \hspace{12pt} Carnegie Mellon University}} % Author names and institution
+{\includegraphics[height=4em]{scs_logo.png}} % Second university/lab logo on the right
+
+%----------------------------------------------------------------------------------------
+% INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Introduction}{name=introduction,column=0,row=0}{%
+%
+Session types regulate the communication behaviour along channels between concurrent processes in a typed setting with message-passing concurrency. Recently, a connection between session-types and linear logic have been presented (through the lens of the Curry-Howard correspondence), which gave rise to languages such as SILL \cite{Pfenning15}. Languages incorporating linear session-types enjoy many desirable properties such as global progress, absence of deadlock, and race freedom.
+
+However, vanilla session-types are not strong enough to describe more interesting behavioral properties of concurrent processes. Here, we present a refinement type system in the style of \cite{Freeman91}. Our system combines intersections and unions with equirecursive types, which is strong enough to specify and automatically verify many properties of concurrent programs. We have implemented a type-checker for our system.
+}
+
+%----------------------------------------------------------------------------------------
+% LANGUAGE
+%----------------------------------------------------------------------------------------
+
+\headerbox{Language}{name=language,column=0,below=introduction}{%
+%
+\setlength\tabcolsep{4pt}
+
+Session types are described by the following grammar:
+\begin{center}
+\begin{tabular}{l c l l}
+  $A, B, C$ & ::= & $\terminate$        & \footnotesize send \texttt{end} and terminate \\
+            & $|$ & $A \tensor B$       & \footnotesize send channel of type $A$ and continue as $B$ \\
+            & $|$ & $\internals{A}{I}$  & \footnotesize send $\lab_i$ and continue as $A_i$ \\
+            & $|$ & $A \lolli B$        & \footnotesize receive channel of type $A$ and continue as $B$ \\
+            & $|$ & $\externals{A}{I}$  & \footnotesize receive $\lab_i$ and continue as $A_i$ \\
+            %
+            & $|$   & $A \intersect B$    & \footnotesize act as both $A$ and $B$ \\
+            & $|$   & $A \union B$        & \footnotesize act as either $A$ or $B$
+\end{tabular}
+\end{center}
+
+Below is a summary of the process expressions, with the sending construct
+followed by the matching receiving construct.
+\begin{center}
+\begin{tabular}{l c l l}
+  $P, Q, R$ & ::= & $\tspawn{x}{P_x}{Q_x}$     & \footnotesize cut (spawn) \\
+            & $|$ & $\tfwd c d$                & \footnotesize id (forward) \\
+            & $|$ & $\tclose c \mid \twait c P$  & \footnotesize $\terminate$ \\
+            & $|$ & $\tsend{c}{y}{P_y}{Q} \mid \trecv{x}{c}{R_x}$ & \footnotesize $A \tensor B,$ $A \lolli B$ \\
+            & $|$ & $\tselect{c}{}{P} \mid \tcase c {\tbranches Q i}$  \\ && \footnotesize $\externals A I,$ $\internals A I$
+\end{tabular}
+\end{center}
+
+Note that intersections and unions have no matching constructs since they specify behavioral properties and not structure. Any well-typed program can be given an intersection or a union type. We have three main judgements:
+\begin{description}
+  \item[$\bracks{A \sub B}$] $A$ is a subtype of $B$
+  \item[$\bracks{\typeSJ P c A}$] Process $P$ offers along channel $c$ the session $A$ in the context $\ctx$
+  \item[$\bracks{\provides \config \ctx}$] Process configuration $\config$ provides all the channels in $\ctx$
+\end{description}
+}
+
+
+%----------------------------------------------------------------------------------------
+% INTERSECTIONS AND UNIONS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Intersections and Unions}{name=prop,column=1, row=0}{
+
+Typing rules for intersections and unions are given below.
+
+\subsection*{Intersections}
+\begin{mathpar}
+  \infer[\intersect\Right]{\typeSJ{P}{c}{A \intersect B}}
+    {\typeSJ{P}{c}{A} & \typeSJ{P}{c}{B}}
+  \and {\infer[\intersect\Left_1]{\typeS{\ctx, c : A \intersect B}{P}{d}{D}}
+    {\typeS{\ctx, c : A}{P}{d}{D}}}
+  \and {\infer[\intersect\Left_2]{\typeS{\ctx, c : A \intersect B}{P}{d}{D}}
+    {\typeS{\ctx, c : B}{P}{d}{D}}}
+\end{mathpar}
+
+
+\subsection*{Unions}
+\begin{mathpar}
+  {\infer[\union\Right_1]{\typeSJ{P}{c}{A \union B}}
+    {\typeSJ{P}{c}{A}}}
+  \and {\infer[\union\Right_2]{\typeSJ{P}{c}{A \union B}}
+    {\typeSJ{P}{c}{B}}}
+  \and \infer[\union\Left]{\typeS{\ctx, c : A \union B}{P}{d}{D}}
+    {\typeS{\ctx, c : A}{P}{d}{D} & \typeS{\ctx, c : B}{P}{d}{D}}
+\end{mathpar}
+
+}
+
+
+%----------------------------------------------------------------------------------------
+% EXAMPLE
+%----------------------------------------------------------------------------------------
+
+\headerbox{Example}{name=example,column=1,below=prop,bottomaligned=language}{%
+%
+We can define strings of bits using processes. Below, \texttt{Bits} is the type of bit strings. \texttt{emp} represents the empty string, and \texttt{zero} and \texttt{one} append the corresponding bit to the least significant position.
+
+\lstinputlisting{code/bitstring.sill}
+}
+
+
+%----------------------------------------------------------------------------------------
+% ALGORITHMIC
+%----------------------------------------------------------------------------------------
+
+\headerbox{Bidirectional Type Checking}{name=algorithmic,column=2,row=0}{%
+%
+\setlength{\parskip}{5pt plus 1pt}
+Due to the non-structural nature of intersections and unions, there is no obvious way to go from the declarative typing rules to a type-checking algorithm. We therefore designed an algorithmic system, on which the implementation is based.
+
+We write the algorithmic typing judgement as $ \typeBi \ctx P c \typeList$ where $\ctx$ is now a multimap from channels to types, and $\typeList$ is an unordered list of types. If $c : A \in \ctx$ and $c : B \in \ctx$, we get to assume $c$ provides both types, and we have to satisfy only one of the types in $\typeList$. Additionally, subtyping is handled exclusively at a forward (meaning subsumption cannot be applied freely). Whenever we see an intersection on the left, we
+break it up into two. We do the same for unions on the right.
+
+The two systems are related through the following soundness and completeness results:
+\begin{theorem}[Soundness]
+If $\typeBi \ctx P c \typeList,$ then $\typeS {\all{(\ctx)}} P c {\any{(\typeList)}}$.
+\end{theorem}
+\begin{theorem}[Completeness]
+If $\typeS \ctx P c A,$ then $\typeBi \ctx P c A$.
+\end{theorem}
+}
+
+%----------------------------------------------------------------------------------------
+%	RESULTS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Metatheory}{name=results,column=2,below=algorithmic}{%
+%
+We prove the standard progress and preservation theorems.
+
+\begin{theorem}[Progress]
+If $\provides{\config}{\ctx}$ then either
+\begin{enumerate}
+  \item $\steps{\config}{\config'}$ for some $\config'$, or
+  \item $\config$ is poised.
+\end{enumerate}
+Intuitively, a process configuration $\config$ is poised if every process in $\config$ is waiting on its client.
+\end{theorem}
+
+
+\begin{theorem}[Preservation]
+If $\provides{\config}{\ctx}$ and $\steps{\config}{\config'}$ then $\provides{\config'}{\ctx}.$
+\end{theorem}
+
+}
+
+
+%----------------------------------------------------------------------------------------
+% REFERENCES
+%----------------------------------------------------------------------------------------
+
+\headerbox{References}{name=references,column=2,below=results, bottomaligned=example}{
+
+\renewcommand{\section}[2]{\vskip 0.05em} % Get rid of the default "References" section title
+\nocite{*} % Insert publications even if they are not cited in the poster
+\small{ % Reduce the font size in this block
+\bibliographystyle{unsrt}
+\bibliography{references} % Use references.bib as the bibliography file
+}}
+
+%----------------------------------------------------------------------------------------
+
+\end{poster}
+
+\end{document}
