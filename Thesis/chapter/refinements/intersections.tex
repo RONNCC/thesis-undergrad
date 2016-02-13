@@ -1,0 +1,34 @@
+
+\section{Intersection Types}
+
+We extend the syntax of types with a new construct:
+\begin{center}
+\begin{tabular}{l c l l}
+  $A, B, C$ & ::= & \ldots                & everything from before \\
+            & $|$   & $A \intersect B$    & act as both $A$ and $B$ \\
+\end{tabular}
+\end{center}
+
+Process expressions remain unchanged. $A \intersect B$ means that a process satisfies both $A$ and $B.$ Intersections correspond to logical conjunction. The left rules are provided for reference only since they are derivable from the subtyping relation.
+
+\begin{mathpar}
+  \infer[\intersect\Right]{\typeDJ{P}{c}{A \intersect B}}
+    {\typeDJ{P}{c}{A} & \typeDJ{P}{c}{B}}
+  \and \parens*{\infer[\intersect\Left_1]{\typeD{\ctx, c : A \intersect B}{P}{d}{D}}
+    {\typeD{\ctx, c : A}{P}{d}{D}}}
+  \and \parens*{\infer[\intersect\Left_2]{\typeD{\ctx, c : A \intersect B}{P}{d}{D}}
+    {\typeD{\ctx, c : B}{P}{d}{D}}}
+\end{mathpar}
+
+We have the following (algorithmic) subtyping rules for intersections:
+
+\begin{mathpar}
+  \infer[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+    {A \sub B_1 \and A \sub B_2}
+  \and \infer[\Sub{\intersect}\Left_1]{A_1 \intersect A_2 \sub B}
+    {A_1 \sub B}
+  \and \infer[\Sub{\intersect}\Left_2]{A_1 \intersect A_2 \sub B}
+    {A_2 \sub B}
+\end{mathpar}
+
+Intersections also have a distributivity rule for each construct in the system. We will leave these out for now, and later add them by proving they are admissible. This way, they do not affect the preservation and progress theorems.

@@ -1,0 +1,38 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macro/generic}
+  [2016/01/29 version 1.0.0 Generic Macros]
+
+\RequirePackage{mathtools}
+
+%%% Paired delimiters
+\DeclarePairedDelimiter\parens{(}{)}             % parenthesis
+\DeclarePairedDelimiter\bracks{\lbrack}{\rbrack} % brackets
+\DeclarePairedDelimiter\braces{\lbrace}{\rbrace} % brackets
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}      % absolute value
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}     % double verts
+\DeclarePairedDelimiter\angled{\langle}{\rangle} % angle brackets
+\DeclarePairedDelimiterX\setdef[2]{\{}{\}}
+  {#1 \mathrel{}\mathclose{}\delimsize|\mathopen{}\mathrel{} #2}
+
+
+%%% Quotation marks for code
+\newcommand{\sq}{\text{\ttfamily{\char'15}}} % Single quote
+\newcommand{\qq}{\text{\ttfamily"}}          % Double quote
+\newcommand{\qquote}[1]{\qq #1\qq{}}         % Strings
+
+
+%%% Logic
+\newcommand{\DD}{\mathcal{D}}
+\newcommand{\EE}{\mathcal{E}}
+\newcommand{\FF}{\mathcal{F}}
+
+\newcommand\defined{\mathrel{\triangleq}}
+
+
+%%% Math
+\DeclareMathOperator\dom{dom}
+
+
+%%% Induction
+\newcommand\pred[1]{\mathcal{P}\parens*{#1}}
+

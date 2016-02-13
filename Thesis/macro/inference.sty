@@ -1,0 +1,32 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macro/inference}
+  [2016/01/29 version 1.0.0 Inference Rules]
+
+\RequirePackage{environ}
+\RequirePackage{cleveref}
+
+\newcommand\irb[1]{\texttt{#1}}
+\newcommand\Right{\irb{R}}
+\newcommand\Left{\irb{L}}
+\newcommand\Sub[1]{\sub\text{-}{#1}}
+\newcommand\id{\irb{id}}
+\newcommand\cut{\irb{cut}}
+
+\crefname{rules}{Figure}{Figures}
+
+\NewEnviron{rules}[2][]{%
+  \ifx\\#1\\%
+  \else
+    \label[rules]{#1}%
+  \fi
+  \begin{figure}[!ht]
+    \centering
+    \begin{mathpar}
+      \BODY
+    \end{mathpar}
+    \caption{#2}
+  \end{figure}
+  }
+
+\newcommand\subst[3]{\bracks{{#1}/{#2}}{#3}}
+

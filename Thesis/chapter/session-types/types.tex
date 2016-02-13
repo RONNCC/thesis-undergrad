@@ -1,0 +1,16 @@
+
+\section{Linear Propositions as Session Types}
+
+The syntax and intended meanings of session types are as follows:
+
+\begin{center}
+\begin{tabular}{l c l l}
+  $A, B, C$ & ::= & $\terminate$        & send \texttt{end} and terminate \\
+            & $|$ & $A \tensor B$       & send channel of type $A$ and continue as $B$ \\
+            & $|$ & $\internals{A}{I}$  & send $\lab_i$ and continue as $A_i$ \\
+            & $|$ & $\tau \sendVal B$   & send value of type $\tau$ and continue as $B$ \\
+            & $|$ & $A \lolli B$        & receive channel of type $A$ and continue as $B$ \\
+            & $|$ & $\externals{A}{I}$  & receive $\lab_i$ and continue as $A_i$ \\
+            & $|$ & $\tau \recvVal B$   & receive value of type $\tau$ and continue as $B$
+\end{tabular}
+\end{center}

@@ -23,6 +23,7 @@
 \usepackage{proof}              % For inference rules
 \usepackage{mathpartir}         % Automatic rule layout
 \usepackage{syntax}             % BNF grammar
+\usepackage{cleveref}           % Better references
 
 \usepackage{todonotes}
 
@@ -45,14 +46,21 @@
 %	Macros
 %-------------------------------------------------------------------------------
 
-%\usepackage{Macros/theorem}
+\newcommand\indexVar{x}
+\newcommand\lab{lab}
+
+\usepackage{macro/generic}
+\usepackage[index=\indexVar,label=\lab]{macro/types}
+\usepackage[index=\indexVar,label=\lab]{macro/terms}
+\usepackage{macro/inference}
+\usepackage{macro/typing}
 
 
 %-------------------------------------------------------------------------------
 %	Title
 %-------------------------------------------------------------------------------
 
-\title{Intersections and Unions for Session Typed Concurrency}
+\title{Refinements for Session Typed Concurrency}
 \authors{\texorpdfstring{\href{cacay@cmu.edu}{Josh Acay}} {Josh Acay} }
 \addresses{\groupname\\\deptname\\\univname}  % Do not change this here, instead these must be set in the "thesis.cls" file.
 \date{\today}
@@ -90,10 +98,15 @@
 
 \null\vfill
 % Now comes the "Funny Quote", written in italics
-``\todo{Write a funny quote here.}''
+\todo{Pick one of these.}
+``\textit{The purely functional approach is like money: you throw it at things and they get better.}''
+
+``\textit{Purely functional ideas are like money: you throw them at stuff and it gets better.}''
+
+``\textit{Purely functional ideas are like money: you throw them at stuff to make it better.}''
 
 \begin{flushright}
-If the quote is taken from someone, their name goes here
+    The Dalai Lama \todo{Can I legally lie about attributions?}
 \end{flushright}
 
 \vfill\vfill\vfill\vfill\vfill\vfill\null{}
@@ -156,6 +169,8 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \lhead{\emph{List of Tables}}  % Set the left side page header to "List of Tables"
 \listoftables  % Write out the List of Tables
 
+\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+
 
 %-------------------------------------------------------------------------------
 %	Dedication
@@ -166,7 +181,15 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \pagestyle{empty}  % Page style needs to be empty for this page
 \dedicatory{For/Dedicated to/To my\ldots}
 
-\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+% \addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+
+
+%-------------------------------------------------------------------------------
+%	Todo List
+%-------------------------------------------------------------------------------
+
+\todototoc{}
+\listoftodos{}
 
 
 %-------------------------------------------------------------------------------
@@ -178,7 +201,35 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \pagestyle{fancy}  % Return the page headers back to the "fancy" style
 \lhead{\fancyplain{}{\rightmark}} % Set the left side page header to the chapter name
 
-\include{chapter/chapter1} % Introduction
+\include{chapter/introduction}
+
+\include{chapter/background}
+% \input{chapter/background/domains}
+% \input{chapter/background/metric-spaces}
+% \input{chapter/background/ideals}
+% \input{chapter/background/ideal-semantics}
+% \input{chapter/background/tree-grammars}
+% \input{chapter/background/tree-automata}
+
+\include{chapter/session-types}
+\input{chapter/session-types/types}
+\input{chapter/session-types/processes}
+\input{chapter/session-types/subtyping}
+\input{chapter/session-types/configurations}
+\input{chapter/session-types/operational-semantics}
+
+\include{chapter/refinements}
+\input{chapter/refinements/intersections}
+\input{chapter/refinements/unions}
+\input{chapter/refinements/encoding-choice}
+\input{chapter/refinements/compiling-choice}
+\input{chapter/refinements/subtyping}
+\input{chapter/refinements/safety}
+
+\include{chapter/algorithmic}
+\input{chapter/algorithmic/subtyping}
+
+\include{chapter/conclusion}
 
 \addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
 

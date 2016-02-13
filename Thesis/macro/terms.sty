@@ -1,0 +1,43 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macro/terms}
+  [2016/01/29 version 1.0.0 Terms]
+
+\RequirePackage{kvoptions}
+
+\SetupKeyvalOptions{%
+  prefix=macro@terms@
+}
+
+\DeclareStringOption[x]{index}
+\DeclareStringOption[lab]{label}
+\ProcessKeyvalOptions*
+
+
+\newcommand\seq{\;;\;}
+
+\newcommand\tfwd[2]{#1 \leftarrow #2}
+\newcommand\tspawn[3]{#1 \leftarrow #2 \seq #3}
+\newcommand\tspawnType[4]{#1 \leftarrow #2 : #3 \seq #4}
+
+\newcommand\tclose[1]{\mathrm{close}\;#1}
+\newcommand\twait[2]{\mathrm{wait}\;#1 \seq #2}
+\newcommand\tcloseLab[2]{\mathrm{close}\;{#1}\;\mathrm{with}\;{#2}}
+\newcommand\twaitLab[2]{\mathrm{wait}\;{#1}\;\mathrm{on}\;{#2}}
+
+\newcommand\tsend[4]{\mathrm{send}\; #1 \; \parens{#2 \leftarrow #3} \seq #4}
+\newcommand\tsendChannle[3]{\mathrm{send}\; #1 \; {#2} \seq #3}
+\newcommand\trecv[3]{#1 \leftarrow \mathrm{recv} \; #2 \seq #3}
+\newcommand\tsendVal[3]{\mathrm{send}\; #1 \; {#2} \seq {#3}}
+\newcommand\trecvVal[3]{#1 \leftarrow \mathrm{recv} \; #2 \seq #3}
+
+\newcommand\tcase[2]{\mathrm{case}\;#1\;\mathrm{of}\;#2}
+\newcommand\tselect[3]{{#1} . \lab_{#2} \seq {#3}}
+
+\newcommand\tbranch[2]{#1 \rightarrow #2}
+\newcommand\tbranches[2]{\braces
+  { \macro@terms@label_\macro@terms@index
+  \rightarrow {#1}_\macro@terms@index}_{\macro@terms@index \in #2}
+  }
+
+
+\newcommand\monad[1]{\braces{#1}}

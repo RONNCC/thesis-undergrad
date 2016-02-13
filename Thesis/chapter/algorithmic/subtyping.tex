@@ -1,0 +1,14 @@
+
+\section{Subtyping}
+
+\begin{mathpar}
+  \infer[\Sub{\terminate}]{\terminate \sub \terminate}{}
+  \and \infer[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
+    {A \sub A' & B \sub B'}
+  \and \infer[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
+    {I \subseteq J \and A_k \sub A'_k~\text{for}~k \in J}
+  \and \infer[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
+    {A' \sub A & B \sub B'}
+  \and \infer[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
+    {J \subseteq I \and A_k \sub A'_k~\text{for}~k \in J}
+\end{mathpar}

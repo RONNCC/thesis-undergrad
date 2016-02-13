@@ -1,0 +1,75 @@
+
+\section{Process Expressions}
+
+Below is a summary of the process expressions, with the sending construct
+followed by the matching receiving construct.
+
+\begin{center}
+\begin{tabular}{l c l l}
+  $P, Q, R$ & ::= & $\tspawn{x}{P_x}{Q_x}$     & cut (spawn) \\
+            & $|$ & $\tfwd c d$                & id (forward) \\
+            & $|$ & $\tclose c \mid \twait c P$  & $\terminate$ \\
+            & $|$ & $\tsend{c}{y}{P_y}{Q} \mid \trecv{x}{c}{R_x}$ & $A \tensor B,$ $A \lolli B$ \\
+            & $|$ & $\tselect{c}{}{P} \mid \tcase c {\tbranches Q i}$  & $\externals A I,$ $\internals A I$ \\
+            & $|$ & $\tsendVal{c}{M}{Q} \mid \trecvVal{n}{c}{R_n}$ & $A \sendVal B,$ $A \recvVal B$
+\end{tabular}
+\end{center}
+
+
+\subsection{Process Assignment}
+
+We assign sessions to processes using the rules in \cref{session-assignment}.
+
+\begin{rules}[session-assignment]{Process assignment}
+  % id and cut
+  \infer[\id]{ \typeD {c : A} {\tfwd{d}{c}} {d} {A} }
+    {}
+  \and \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
+    { \typeD {\ctx} {P_c} {c} {A}
+    & \typeD {\ctx', c : A} {Q_c} {d} {D}
+    }
+  % Terminate
+  \and \infer[\terminate\Right]{\typeD{\emptyCtx}{\tclose c}{c}{\terminate}}
+    {}
+  \and \infer[\terminate\Left]{\typeD{\ctx, c : \terminate}{\twait c P}{d}{A}}
+    {\typeDJ{P}{d}{A}}
+  % Tensor
+  \and \infer[\tensor\Right]{\typeD{\ctx, \ctx'}{\tsend{c}{d}{P_d}{Q}}{c}{A \tensor B}}
+    { \typeD{\ctx}{P}{d}{A}
+    & \typeD{\ctx'}{Q}{c}{B}
+    }
+  \and \infer[\tensor\Left]{ \typeD{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{E} }
+    { \typeD{\ctx, d : A, c : B}{P_d}{e}{E} }
+  % Internal choice
+  \and \infer[\internal\Right]{\typeDJ { \tselect{c}{i}{P} } {c} {\internals{A}{I}} }
+    { i \in I
+    & \typeDJ{P}{c}{A_i}
+    }
+  \and \parens*{\infer[\internal\Right]{\typeDJ { \tselect{c}{}{P} } {c} {\internal \braces{\lab : A}} }
+    { \typeDJ{P}{c}{A}
+    }
+  }
+  \and \infer[\internal\Left]{ \typeD { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {D} }
+   { I \subseteq J
+   & \typeD{\ctx, c : A_k}{P_k}{d}{D}~\text{for}~k\in I
+   }
+  % Implication
+  \and \infer[\lolli\Right]{ \typeD{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B} }
+    { \typeD{\ctx, d : A}{P_d}{c}{B} }
+  \and \infer[\lolli\Left]{\typeD{\ctx, \ctx', c : A \lolli B}{ \tsend{c}{d}{P_d}{Q} } {e}{E}}
+    { \typeD{\ctx}{P_d}{d}{A}
+    & \typeD{\ctx', c : B}{Q}{e}{E}
+    }
+  % External choice
+  \and \infer[\external\Right]{ \typeDJ { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}} }
+   { J \subseteq I
+   & \typeDJ{P_k}{c}{A_k}~\text{for}~k\in J
+   }
+  \and \infer[\external\Left]{\typeD{\ctx, c : \externals{A}{I}} { \tselect{c}{i}{P} } {d} {D}}
+    { i \in I
+    & \typeD{\ctx, c : A_i}{P}{d}{D}
+    }
+\end{rules}
+
+\todo{Note that we can simplify $\internal\Right,$ $\internal\Left,$ $\external\Right,$ $\external\Left$ using subtyping.}
+
