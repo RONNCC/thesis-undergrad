@@ -1,6 +1,63 @@
 
 \section{Process Configurations}
+\label{chapter/session-types/configurations}
 
-\subsection{Configuration Trees}
+So far, we have only considered processes in isolation. In a concurrent setting, we need to be able to talk about multiple processes and the interactions between them. In this section, we introduce process configurations, which are simply sets of processes where each process is labelled with the channel along which it provides. We use the notation $\proc c P$ for labelling the process $P$, and require that all labels in a configuration are distinct. That is, a process configuration $\set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is valid if and only if $c_1, \ldots, c_n$ are all distinct. Note that we do not require channels that occur within $P_i$ to be distinct, this is handled by the typing judgement given next.
 
-\subsection{Linear Contexts}
+\begin{definition}[Process Configuration]
+  $\config = \set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is called a process configuration if $c_1, \ldots, c_n$ are all distinct.
+\end{definition}
+
+With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure (where the root nodes has a phantom outgoing edge) on a process configuration. This observation suggests the typing rules in \cref{configuration-typing}, which mimic the structure of a multi-way tree, for a process configuration.
+
+\begin{rules}[configuration-typing]{Configuration Typing}
+  \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
+   { \typeRecD \ctx \emptyset P c A
+   & \providesCtx \config \ctx
+   }
+
+   \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
+    { \provides {\config_i} {c_i} {A_i} ~\text{for}~ i \in \set{1, \ldots, n}
+    & i = 0 \vee i > 1
+    }
+\end{rules}
+
+This definition is well-founded since the size of the configuration gets strictly smaller. The rules only expose the types of the roots since this is the only information we need when typing the next level. At the top level, we will usually start with one process with type $\terminate$, which will spawn off providers as needed using $\cut$. Since we do not care about the specific type at the top level, we say a process configuration $\config$ is well typed if $\providesCtx \config \ctx$ for some $\ctx$. Finally, note that the rules do not allow cyclic uses of channel names, and that the left of the turnstile is empty since configurations must be closed.
+
+
+\begin{definition}[Domain and Free Variables]
+We define
+\[\dom {\set{\proc {c_1} {P_1}, \ldots, \proc {c_n} {P_n}}} = \set{c_1, \ldots, c_n}\]
+and
+\[\free {\parens \config} = \bigcup_{\proc c P \in \config}{\free { \parens P }} .\]
+
+Note that $\dom {\parens \config} \subseteq \free {\parens \config}$ since each channel must be provided and the provided channel is considered free in the process providing it.
+\end{definition}
+
+Type equality interacts with configuration typing as expected:
+\begin{lemma}
+  \label{typeeq-configuration}
+  If $\providesCtx \config \ctx$ and $\ctx \typeeq \ctx'$ then $\providesCtx \config {\ctx'}$.
+\end{lemma}
+\begin{proof}
+  Case for multiple channels follows immediately by induction. Single channel case is by inversion and $\rec\Right$.
+\end{proof}
+
+Substitution is extended to configurations in the obvious way (making sure to rename process labels where needed) and has the following property:
+\begin{lemma}[Channel Substition in Contexts]
+  \label{channel-substitution-configuration}
+  If $\providesCtx \config \ctx$ and $\tvector c \cap \free {\parens \config} = \emptyset$ then $\providesCtx {\subst {\tvector c} {\tvector d} \config} {\subst {\tvector c} {\tvector d} \ctx}$.
+\end{lemma}
+\begin{proof}
+  Follows from \cref{channel-substitution} by a trivial induction on $\providesCtx \config \ctx$.
+\end{proof}
+
+The following inversion lemma will come in handy:
+\begin{lemma}[Inversion of Configuration Typing]
+  \label{inversion-configuration}
+  If $\providesCtx \config \ctx$ and $\proc c P \in \config$, then there exist $\config_1, \config_2$ such that $\config = \config_1, \config_2, \proc c P$ and $\provides {\config_2, \proc c P} c A$ for some $A$. In addition, for any $\config_2'$ and $P'$ such that $\provides {\config_2', \proc c {P'}} c A$, $\providesCtx {\config_1, \config_2', \proc c {P'}} \ctx$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation. \todo{Do the configuration inversion proof.}
+\end{proof}
+

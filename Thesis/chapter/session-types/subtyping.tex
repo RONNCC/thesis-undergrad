@@ -29,7 +29,7 @@ Subtyping extends to contexts in the obvious way: $\ctx \sub \ctx'$ if and only 
 We require the subtyping relation to be a preorder, that is, it should satisfy reflexivity and transitivity. Since we want an algorithmic system, we do not want to add these as rules. Thus, we have the following admissibility theorem:
 
 \begin{theorem}
-  $\sub$ is an equivalence relation:
+  $\sub$ is a preorder:
   \begin{itemize}
     \item $A \sub A$ for all types $A.$
     \item $A \sub B$ and $B \sub C$ implies $A \sub C$ for all types $A, B, C.$

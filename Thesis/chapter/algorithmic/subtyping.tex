@@ -1,14 +1,153 @@
 
-\section{Subtyping}
+\section{Co-recursive Subtyping}
 
-\begin{mathpar}
-  \infer[\Sub{\terminate}]{\terminate \sub \terminate}{}
-  \and \infer[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
-    {A \sub A' & B \sub B'}
-  \and \infer[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
-    {I \subseteq J \and A_k \sub A'_k~\text{for}~k \in J}
-  \and \infer[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
-    {A' \sub A & B \sub B'}
-  \and \infer[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
-    {J \subseteq I \and A_k \sub A'_k~\text{for}~k \in J}
-\end{mathpar}
+\begin{rules}[algorithmic-subtyping]{Algorithmic rules for subtyping}
+  \infer[\SubA{\terminate}]{\typeList, \terminate \subA \typeListB, \terminate}{}
+  \and \infer[\SubA\tensor]{\typeList, A \tensor B \subA \typeListB, A' \tensor B'}
+    {A \subA A' & B \subA B'}
+  \and \infer[\SubA\internal]{\typeList, \internalSing{\lab}{A} \subA \typeListB, \internalSing{\lab}{A'}}
+    {A \subA A'}
+  \and \infer[\SubA\lolli]{\typeList, A \lolli B \subA \typeListB, A' \lolli B'}
+    {A' \subA A & B \subA B'}
+  \and \infer[\SubA\external]{\typeList, \externalSing{\lab}{A} \subA \typeListB, \externalSing{\lab}{A'}}
+    {A \subA A'}
+
+  \\ \infer[\SubA{\intersect}\Right]{\typeList \subA \typeListB, A_1 \intersect A_2}
+    {\typeList \subA \typeListB, A_1 \and \typeList, A \subA \typeListB, A_2}
+  \and \infer[\SubA{\intersect}\Left]{\typeList, A_1 \intersect A_2 \subA \typeListB}
+    {\typeList, A_1, A_2 \subA \typeListB}
+
+  \\ \infer[\SubA{\union}\Right]{\typeList \subA \typeListB, A_1 \union A_2}
+    {\typeList \subA \typeListB, A_1, A_2}
+  \and \infer[\SubA{\union}\Left]{\typeList, A_1 \union A_2 \subA \typeListB}
+    {\typeList, A_1 \subA \typeListB, B & \typeList, A_2 \subA \typeListB}
+
+  \\ \infer[\SubA{\mu\Right}]{\typeList \subA \typeListB, \recursive t A}
+     {\typeList \subA \typeListB, \subst {\recursive t A} t A}
+  \and \infer[\SubA{\mu\Left}]{\typeList, \recursive t A \subA \typeListB}
+     {\typeList, \subst {\recursive t A} t A \subA \typeListB}
+\end{rules}
+
+
+\subsection{Properties}
+
+\begin{lemma}[Weakening]
+  For all $\typeList, \typeListB, \typeList', \typeListB'$, $\typeList \subA \typeListB \implies \typeList, \typeList' \subA \typeListB, \typeListB'$.
+\end{lemma}
+\begin{proof}
+  By a straightforward coinduction on the derivation of $\typeList \subA \typeListB$.
+  \todo{Maybe do this?}
+\end{proof}
+
+\begin{lemma}[Invertibility]
+  The following are admissible:
+  \begin{description}
+    \item[$(\SubA{\intersect\Right})$] $\typeList \subA \typeListB, A_1 \intersect A_2 \iff  \typeList \subA \typeListB, A_1 \text{ and } \typeList \subA \typeListB, A_2$.
+    \item[$(\SubA{\intersect\Left})$] $\typeList, A_1 \intersect A_2 \subA \typeListB \iff \typeList, A_1, A_2 \subA \typeListB$.
+
+    \item[$(\SubA{\union\Right})$] $\typeList \subA \typeListB, A_1 \union A_2 \iff \typeList \subA \typeListB, A_1, A_2$.
+    \item[$(\SubA{\union\Left})$] $\typeList, A_1 \union A_2 \subA \typeListB \iff  \typeList, A_1 \subA \typeListB \text{ and } \typeList, A_2 \subA \typeListB$.
+  \end{description}
+\end{lemma}
+\begin{proof}
+  Right to left follows immediately by an application of $\Sub{\intersect\Right}$, $\Sub{\intersect\Left}$, $\Sub{\union\Right}$, or $\Sub{\union\Left}$ respectively.
+
+  For the other direction, we proceed with coinduction on the derivation of the subtyping judgement.
+  \begin{itemize}
+    \item Cases for $\SubA\terminate$, $\SubA\tensor$, $\SubA\internal$, $\SubA\lolli$, and $\SubA\external$ are trivial since they only dependend on $\typeList$ and $\typeListB$.
+  \end{itemize}
+  \todo{Prove left to right.}
+\end{proof}
+
+
+\subsection{Equivalence to the Declarative Subtyping Relation}
+
+\begin{theorem}[Soundness of Algorithmic Subtyping]
+    If $\typeList \subA \typeListB$ then $\all{(\typeList)} \sub \any{(\typeListB)}$.
+\end{theorem}
+\begin{proof}
+    Define $\pred{\typeList \subA \typeListB} \defined \all{(\typeList)} \sub \any{(\typeListB)}$, and assume $\typeList \subA \typeListB$. We proceed by coinduction on the derivation of the subtyping judgement.
+    \begin{itemize}
+      % Structural
+
+      %% 1
+      \item $\pred{\infer[\SubA{\terminate}]{\typeList, \terminate \subA \typeListB, \terminate}{}} = $
+      \[ \infer[\Sub{\union\Right_2}]{\all{(\typeList)} \intersect \terminate \sub \any{(\typeListB)} \union \terminate}
+          { \infer[\Sub{\intersect\Left_2}]{\all{(\typeList)} \intersect \terminate \sub \terminate}
+             {\infer[\Sub{\terminate}]{\terminate \sub \terminate} {}}
+          }
+      \]
+
+      %% Tensor
+      \item $\pred{\infer[\SubA{\tensor}]{\typeList, A \tensor B \subA \typeListB, A' \tensor B'}
+          {H_1 : A \subA A' & H_2 : B \subA B'}} = $
+      \[ \infer[\Sub{\union\Right_2}]{\all{(\typeList)} \intersect A \tensor B \sub \any{(\typeListB)} \union A' \tensor B'}
+          { \infer[\Sub{\intersect\Left_2}]{\all{(\typeList)} \intersect A \tensor B \sub A' \tensor B'}
+             { \infer[\Sub{\tensor}]{A \tensor B \sub A' \tensor B'}
+                { \deduce {A \sub A'} {\pred{H_1}}
+                & \deduce {B \sub B'} {\pred{H_2}}
+                }
+             }
+          }
+      \]
+
+      %% Internal
+      \item $\pred{\infer[\SubA{\internal}]{\typeList, \internalSing \lab A \subA \typeListB, \internalSing \lab {A'}}
+          {H : A \subA A'} } = $
+      \[ \infer[\Sub{\union\Right_2}]{\all{(\typeList)} \intersect \internalSing \lab A \sub \any{(\typeListB)} \union \internalSing \lab {A'}}
+          { \infer[\Sub{\intersect\Left_2}]{\all{(\typeList)} \intersect \internalSing \lab A \sub \internalSing \lab {A'}}
+             { \infer[\Sub{\internal}]{\internalSing \lab A \sub \internalSing \lab {A'}}
+                { \deduce {A \sub A'} {\pred H} }
+             }
+          }
+      \]
+
+      %% Lolli
+      \item $\pred{\infer[\SubA{\lolli}]{\typeList, A \lolli B \subA \typeListB, A' \lolli B'}
+          {H_1 : A' \subA A & H_2 : B \subA B'}} = $
+      \[ \infer[\Sub{\union\Right_2}]{\all{(\typeList)} \intersect A \lolli B \sub \any{(\typeListB)} \union A' \lolli B'}
+          { \infer[\Sub{\intersect\Left_2}]{\all{(\typeList)} \intersect A \lolli B \sub A' \lolli B'}
+             { \infer[\Sub{\lolli}]{A \lolli B \sub A' \lolli B'}
+                { \deduce {A' \sub A} {\pred{H_1}}
+                & \deduce {B \sub B'} {\pred{H_2}}
+                }
+             }
+          }
+      \]
+
+      %% External
+      \item $\pred{\infer[\SubA{\external}]{\typeList, \externalSing \lab A \subA \typeListB, \externalSing \lab {A'}}
+          {H : A \subA A'} } = $
+      \[ \infer[\Sub{\union\Right_2}]{\all{(\typeList)} \intersect \externalSing \lab A \sub \any{(\typeListB)} \union \externalSing \lab {A'}}
+          { \infer[\Sub{\intersect\Left_2}]{\all{(\typeList)} \intersect \externalSing \lab A \sub \externalSing \lab {A'}}
+             { \infer[\Sub{\external}]{\externalSing \lab A \sub \externalSing \lab {A'}}
+                { \deduce {A \sub A'} {\pred H} }
+             }
+          }
+      \]
+
+      % Intersection
+      \item \todo{Figure out distributivity to do this one.}
+      $\pred{\infer[\SubA{\intersect}\Right]{\typeList \subA \typeListB, A_1 \intersect A_2}
+             {H_1 : \typeList \subA \typeListB, A_1 & H_2 : \typeList \subA \typeListB, A_2}} = $
+      \[ \infer{\all{(\typeList)} \sub \any{(\typeListB)} \union (A_1 \intersect A_2)}
+          {
+          }
+      \]
+
+      \item $\pred{\infer[\SubA{\intersect}\Left]{\typeList, A_1 \intersect A_2 \subA \typeListB}
+             {H : \typeList, A_1, A_2 \subA \typeListB}} = $
+      \[ \infer{\all{(\typeList)} \sub \any{(\typeListB)} \union (A_1 \intersect A_2)}
+          {
+          }
+      \]
+
+    \end{itemize}
+\end{proof}
+
+\begin{theorem}[Completeness of Algorithmic Subtyping]
+    If $A \sub B$ then $A \subA B$.
+\end{theorem}
+
+
+\subsection{Decidability}

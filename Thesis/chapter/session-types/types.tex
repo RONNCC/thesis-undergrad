@@ -14,3 +14,5 @@ The syntax and intended meanings of session types are as follows:
             & $|$ & $\tau \recvVal B$   & receive value of type $\tau$ and continue as $B$
 \end{tabular}
 \end{center}
+
+$\terminate$ corresponds to processes that offer no interesting behaviour. The types $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\internals A I$ is called an internal choice, since the label is picked by the provider (we always look at things from the provider's perspective). Similarly, $\externals A I$ is an external choice since the choice is made by the provider. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique. Finally, $\tau \sendVal B$ and $\tau \recvVal B$ type processes that send and receive values in some underlying functional language. We will ignore these types and limit our focus to the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.

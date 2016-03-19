@@ -3,6 +3,7 @@
   [2016/01/29 version 1.0.0 Terms]
 
 \RequirePackage{kvoptions}
+\RequirePackage{macro/generic}
 
 \SetupKeyvalOptions{%
   prefix=macro@terms@
@@ -13,7 +14,7 @@
 \ProcessKeyvalOptions*
 
 
-\newcommand\seq{\;;\;}
+\newcommand\seq{\,;\,}
 
 \newcommand\tfwd[2]{#1 \leftarrow #2}
 \newcommand\tspawn[3]{#1 \leftarrow #2 \seq #3}
@@ -36,8 +37,14 @@
 \newcommand\tbranch[2]{#1 \rightarrow #2}
 \newcommand\tbranches[2]{\braces
   { \macro@terms@label_\macro@terms@index
-  \rightarrow {#1}_\macro@terms@index}_{\macro@terms@index \in #2}
+  \rightarrow #1_\macro@terms@index}_{\macro@terms@index \in #2}
   }
+
+\newcommand\tvector[1]{\bar{#1}}
+\newcommand\tapp[2]{{#1}~{#2}}
+\newcommand\tvar[2]{{#1}\parens{#2}}
+\newcommand\trec[3]{\mathrm{rec}\; {#1}\parens{#2} . {#3}}
 
 
 \newcommand\monad[1]{\braces{#1}}
+

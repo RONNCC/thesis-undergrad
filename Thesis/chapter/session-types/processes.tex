@@ -16,7 +16,7 @@ followed by the matching receiving construct.
 \end{center}
 
 
-\subsection{Process Assignment}
+\subsection{Type Assignment for Processes}
 
 We assign sessions to processes using the rules in \cref{session-assignment}.
 
@@ -72,4 +72,13 @@ We assign sessions to processes using the rules in \cref{session-assignment}.
 \end{rules}
 
 \todo{Note that we can simplify $\internal\Right,$ $\internal\Left,$ $\external\Right,$ $\external\Left$ using subtyping.}
+
+As usual, the specific channel names do not matter, that is, the rules respect alpha equivalence. \todo{Is this related to alpha-equivalence? We are renaming free channels not bound ones. What is the right word?} This is formalized by the fact that We can change free channel names while preserving typing as formalized below:
+\begin{lemma}[Channel Substitution]
+  \label{channel-substitution-pre}
+  If $\typeDJ P c A$ and $\tvector z \cap \free {\parens P} = \emptyset$ then $\typeD {\subst {\tvector z} {\tvector y} \ctx} {\subst {\tvector z} {\tvector y} P} {\subst {\tvector z} {\tvector y} c} A$.
+\end{lemma}
+
+We delay the proof until after we introduce recursive types since the typing-derivation will be changed slightly.
+
 

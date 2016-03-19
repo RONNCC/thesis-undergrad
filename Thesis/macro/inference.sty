@@ -8,23 +8,32 @@
 \newcommand\irb[1]{\texttt{#1}}
 \newcommand\Right{\irb{R}}
 \newcommand\Left{\irb{L}}
-\newcommand\Sub[1]{\sub\text{-}{#1}}
+
+\newcommand\Sub[1]{\sub{#1}}
+\newcommand\SubA[1]{\subA{#1}}
+\newcommand\TypeEq[1]{\typeeq{#1}}
+
 \newcommand\id{\irb{id}}
 \newcommand\cut{\irb{cut}}
+\newcommand\rec{\mu}
+\newcommand\procVar{\irb{var}}
+
+\newcommand\confOne{\irb{config}_1}
+\newcommand\confN{\irb{config}_n}
 
 \crefname{rules}{Figure}{Figures}
 
 \NewEnviron{rules}[2][]{%
-  \ifx\\#1\\%
-  \else
-    \label[rules]{#1}%
-  \fi
   \begin{figure}[!ht]
     \centering
     \begin{mathpar}
       \BODY
     \end{mathpar}
     \caption{#2}
+    \ifx\\#1\\%
+    \else
+      \label[rules]{#1}%
+    \fi
   \end{figure}
   }
 

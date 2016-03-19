@@ -1,0 +1,143 @@
+
+\section{Recursion}
+
+\subsection{Recursive Types}
+
+We extend the language of types with a new construct:
+\begin{center}
+\begin{tabular}{l c l l}
+  $A, B, C$ & ::= & \ldots               & everything from before \\
+            & $|$ & $t$                  & type variables \\
+            & $|$ & $\recursive{t}{A_t}$ & (equi-)recursive type
+\end{tabular}
+\end{center}
+
+We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions to go between the two types. This is sometimes called the equi-recursive approach as opposed to the iso-recursive approach since the recursive type and its unfolding are \emph{equated} rather than identified up to \emph{isomorphism} witnessed by term level construct like  $\mathtt{fold}$ and $\mathtt{unfold}$. Equi-recursive tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
+
+In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
+
+
+\subsubsection{Contractiveness}
+
+Intuitively, a recursive type $\recursive t A$ is contractive if all occurrences of $t$ in $A$ are under a \emph{structural} (i.e.\ not $\mu$) type constructor. For example, $\recursive t {\terminate \lolli t}$ and $\recursive t {t \tensor t}$ are contractive whereas $\recursive t t$ and $\recursive t {\recursive u t}$ are not.
+
+We formalize contractiveness using the notion of unguarded variables \cite{StoneS2005}. Unguarded variables of a type $A$, denoted $\unguarded{(A)}$, are defined inductively as follows:
+\begin{align*}
+  \unguarded{(\terminate)} &= \emptyset \\
+  \unguarded{(A \tensor B)} &= \emptyset \\
+  \unguarded{(\internals A I)} &= \emptyset \\
+  \unguarded{(A \lolli B)} &= \emptyset \\
+  \unguarded{(\externals A I)} &= \emptyset \\
+  \unguarded{(t)} &= \set{t} \\
+  \unguarded{(\recursive t A)} &= \unguarded{(A)} \setminus \set{t}
+\end{align*}
+
+A type is then said to be contractive if every occurrence of $\recursive t A$ satisfies $t \not\in \unguarded{(A)}$ as formalized in \cref{contractiveness}.
+
+\begin{rules}[contractiveness]{Contractiveness}
+  \infer{\contractive \terminate}{}
+  \and \infer{\contractive {A \tensor B}}{\contractive A & \contractive B}
+  \and \infer{\contractive {\internals A I}}{\contractive{A_x}~\text{for}~x \in I}
+  \and \infer{\contractive {A \lolli B}}{\contractive A & \contractive B}
+  \and \infer{\contractive {\externals A I}}{\contractive{A_x}~\text{for}~x \in I}
+  \and \infer{\contractive {\recursive t A}}{t \not\in \unguarded{(A)} & \contractive{A}}
+\end{rules}
+
+
+\subsubsection{Well-formed Types}
+
+Introduction of type variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. Fortunately, all such types can be eliminated by requiring all types to be closed. That is, the set of free variables of a type should be empty. Just like contractiveness, we will assume all types we consider are closed and will not explicitly restate this assumption. Every operation we need on types preserves this property%
+\footnote{We will only unfold a $\mu$ which clearly results in a closed type given a closed type. We never take a $\mu$ apart. We will break down other types such as $A \tensor B$, but that cannot result in an open type.}%
+, so this is not an issue.
+
+
+\subsection{Recursive Processes}
+
+We introduce a new form of process expression which we write $\trec {p} {\tvector c} P_p$. Here, $p$ is a process variable that intuitively stand for the whole expression and $\tvector c$ is an ordered list of channel names that is used to parametrize the expression over channel names. We use the notation $\tapp P {\tvector c}$ to denote specialization. Parametrization is useful in case we want to rename the provided or used channels. For instance, we will often want to spawn a copy of the overall expression: $\trec p c {\tspawn d {\tapp p d} P_d}$ where $P_d$ is some process that consumes $d$ and offers along $c$. The typing rules limit specialization to recursive processes and process variables.
+
+We also have to extend the typing context to keep track of process variables. Note that we cannot simply add this information to the existing context since that contexts tracks channel names which are different from processes. In addition, the channel context is linear, but there is no reason to limit recursive occurrences of a process to exactly one place. We write the new judgement as $\typeRecDJ P c A$, where $\recCtx$ stores the typing context for process variables. As usual, we assume variable names in $\recCtx$ are made unique through alpha renaming. Recursive processes are typed using the rules in \cref{recursive-process}. These are the only rules that modify the process variable context, all other rules simply pass it up unchanged.
+
+\begin{rules}[recursive-process]{Type assignment for recursive processes}
+  \infer[\rec]{\typeRecDJ {\tapp {\parens*{ \trec p {\tvector y} P}} {\tvector z}} c A}
+   { \typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c A
+   & \recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A
+   }
+
+   \and \infer[\procVar]{\typeRecD {\rho{\parens \ctx}} \recCtx {\tapp p {\tvector z}} {\rho{\parens c}} A}
+    {\typeDJ {\tvar p {\tvector y}} c A \in \recCtx
+    & \rho{(\vartheta)} = \subst {\tvector z} {\tvector y} \vartheta
+    }
+\end{rules}
+
+Note that in the definition of $\recCtx'$, $\typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A$ is not a typing judgement. Instead, $\recCtx$ should be thought of as nothing more than a map from variable names to four tuples containing parameter names, typing context, provided channel name, and provided type. It is necessary to store the context since channels are linear and channel types evolve over time, but the context needs to be the same at every occurrence of $p$.
+
+
+\subsection{Type Equality}
+
+We mentioned that we will identify a recursive type $\recursive t A$ with its unfolding $\subst {\recursive t A} t A$, but we have not yet formally introduced this to the theory. As things currently stand, it is not possible to type any process that requires an unfold. We address that problem by defining an equality relation $A \typeeq B$ between types and introduce the conversion rules given in \cref{type-conversion}.
+
+\begin{rules}[type-conversion]{Type conversion}
+  \infer[\typeeq\Right]{\typeRecDJ P c A}
+   { \typeRecDJ P c {A'}
+   & A' \typeeq A
+   }
+  \and \infer[\typeeq\Left]{\typeRecD {\ctx, c : A}  \recCtx P d B}
+   { \typeRecD {\ctx, c : A'}  \recCtx P d B
+   & A \typeeq A'
+   }
+\end{rules}
+
+Possibly the more interesting part is our definition of $\typeeq$. Intuitively, it is the unfolding rule $\recursive t A \typeeq \subst {\recursive t A} t A$ along with a congruence rule for each structural type constructor. However, we define $\typeeq$ \emph{coinductively} since a coinductive definition can safely equate more types \cite{StoneS2005} and since we are more interested in behaviour than structure as mentioned before. The rules for $\typeeq$ are given in \cref{type-equality}. We use double lines to mean rules should be interpreted coinductively.
+
+\begin{rules}[type-equality]{Equality of types}
+  \infer=[\TypeEq{\terminate}]{\terminate \typeeq \terminate}{}
+  \and \infer=[\TypeEq\tensor]{A \tensor B \typeeq A' \tensor B'}
+    {A \typeeq A' & B \typeeq B'}
+  \and \infer=[\TypeEq\internal]{\internals{A}{I} \typeeq \internals{A'}{I}}
+    {A_x \typeeq A_x'~\text{for}~x \in I}
+  \and \infer=[\TypeEq\lolli]{A \lolli B \typeeq A' \lolli B'}
+    {A' \typeeq A & B \typeeq B'}
+  \and \infer=[\TypeEq\external]{\externals{A}{I} \typeeq \externals{A'}{I}}
+    {A_x \typeeq A_x'~\text{for}~x \in I}
+
+  \and \infer=[\TypeEq\mu \Right]{A \typeeq \recursive t B}
+   { A \typeeq \subst {\recursive t B} t B}
+  \and \infer=[\TypeEq\mu \Left]{\recursive t A \typeeq B}
+   { \subst {\recursive t A} t A \typeeq B}
+\end{rules}
+
+We expect type equality to be an equivalence relation between types (i.e.\ it should be reflexive, symmetric, and transitive). In a coinductive setting, however, adding symmetry and/or transitivity explicitly will make all types equal! We have thus carefully constructed the rules so that these properties are admissible as proven next.
+
+
+\begin{theorem}
+  \label{eq-is-equivalence}
+  $\typeeq$ is an equivalence:
+  \begin{itemize}
+    \item $A \typeeq A$ for all types $A.$
+    \item $A \typeeq B$ implies $B \typeeq A$ for all types $A, B$.
+    \item $A \typeeq B$ and $B \typeeq C$ implies $A \typeeq C$ for all types $A, B, C$.
+  \end{itemize}
+\end{theorem}
+
+\begin{proof}
+  By coinduction. \todo{Prove that $\typeeq$ is an equivalence.}
+\end{proof}
+
+
+\subsection{Substitution}
+
+At this point, we have two forms of variables: one for channels and one for processes. We will of course be substituting for both as this is what variables are for! We give the following two results showing substitution is sound.
+
+\begin{lemma}[Channel Substitution]
+  \label{channel-substitution}
+  If $\typeRecD \ctx \emptyset P c A$ and $\tvector z \cap \free {\parens P} = \emptyset$ then $\typeRecD {\subst {\tvector z} {\tvector y} \ctx} \emptyset {\subst {\tvector z} {\tvector y} P} {\subst {\tvector z} {\tvector y} c} A$.
+  \todo{Does the process context need to be empty?}
+\end{lemma}
+\begin{proof}
+\todo{Do channel substitution proof.}
+\end{proof}
+
+\begin{lemma}[Process Substitution]
+\todo{Write process substitution lemma and prove it.}
+\end{lemma}
+

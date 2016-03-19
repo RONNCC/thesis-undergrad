@@ -7,10 +7,11 @@
 %%% Paired delimiters
 \DeclarePairedDelimiter\parens{(}{)}             % parenthesis
 \DeclarePairedDelimiter\bracks{\lbrack}{\rbrack} % brackets
-\DeclarePairedDelimiter\braces{\lbrace}{\rbrace} % brackets
+\DeclarePairedDelimiter\braces{\lbrace}{\rbrace} % braces
 \DeclarePairedDelimiter\abs{\lvert}{\rvert}      % absolute value
 \DeclarePairedDelimiter\norm{\lVert}{\rVert}     % double verts
 \DeclarePairedDelimiter\angled{\langle}{\rangle} % angle brackets
+\DeclarePairedDelimiter\set{\lbrace}{\rbrace}    % braces
 \DeclarePairedDelimiterX\setdef[2]{\{}{\}}
   {#1 \mathrel{}\mathclose{}\delimsize|\mathopen{}\mathrel{} #2}
 
@@ -19,6 +20,20 @@
 \newcommand{\sq}{\text{\ttfamily{\char'15}}} % Single quote
 \newcommand{\qq}{\text{\ttfamily"}}          % Double quote
 \newcommand{\qquote}[1]{\qq #1\qq{}}         % Strings
+
+
+%%% Theorem environments
+\theoremstyle{plain}
+\newtheorem{example}{Example}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{axiom}[theorem]{Axiom}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
 
 
 %%% Logic
@@ -34,5 +49,11 @@
 
 
 %%% Induction
+\newcommand\centerLine[1]{
+  \begingroup\setbox0=\hbox{#1}%
+  \parbox{\wd0}{\box0}\endgroup}
 \newcommand\pred[1]{\mathcal{P}\parens*{#1}}
+\newcommand\predC[1]{\pred{\centerLine{#1}}}
+\newcommand\predQ[1]{\mathcal{Q}\parens*{#1}}
+\newcommand\predQC[1]{\predQ{\centerLine{#1}}}
 

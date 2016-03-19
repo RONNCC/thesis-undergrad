@@ -1,4 +1,219 @@
 
 \section{Dynamic Semantics}
 
-\subsection{Progress and Preservation}
+\subsection{Reduction}
+
+We present reduction as multiset rewriting rules. The braces ($\braces{\ldots}$) indicate a contextual monad. \todo{What is a contextual monad?}
+
+\begin{align*}
+  % Id
+  \irb{id}     \hspace{1em} & : \proc{c}{\tfwd{c}{d}} \lolli \monad{c = d} \\
+  % Cut
+  \irb{cut}    \hspace{1em} & : \proc{c}{\tspawn{x}{P_x}{Q_x}}
+      \lolli \monad{\exists a. \proc{a}{P_a} \otimes \proc{c}{Q_a}} \\
+  % One
+  \irb{one} \hspace{1em} & : \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}}
+    \lolli \monad{\proc{d}{P}} \\
+  % Tensor
+  \irb{tensor} \hspace{1em} & : \proc{c}{\tsend{c}{x}{P_x}{Q}} \otimes \proc{e}{\trecv{x}{c}{R_x}} \\
+    & \hspace{2em} \lolli \monad{ \exists a. \proc{a}{P_{a}} \otimes \proc{c}{Q} \otimes \proc{e}{R_{a}} } \\
+  % Internal
+  \irb{internal} \hspace{1em} & : \proc{c}{\tselect{c}{i}{P}} \otimes \proc{d}{\tcase{c}{\tbranches Q I}} \otimes i \in I \\
+    & \hspace{2em} \lolli \monad{ \proc{c}{P} \otimes \proc{d}{Q_i} } \\
+  % Lolli
+  \irb{lolli} \hspace{1em} & : \proc{c}{\trecv{x}{c}{P_x}} \otimes \proc{d}{\tsend{c}{x}{Q_x}{R}} \\
+    & \hspace{2em} \lolli \monad{ \exists a. \proc{c}{P_{a}} \otimes \proc{a}{Q_a} \otimes \proc{d}{R} } \\
+  % External
+  \irb{external} \hspace{1em} & : \proc{c}{\tcase{c}{\tbranches P I}} \otimes \proc{d}{\tselect c i Q} \otimes i \in I \\
+    & \hspace{2em} \lolli \monad{ \proc{c}{P_i} \otimes \proc{d}{Q} } \\
+  % Recursive
+  \irb{rec} \hspace{1em} & : \proc{c}{\tapp {\parens{\trec p {\tvector y} P}} {\tvector z}}
+      \lolli \monad{ \proc c {\subst {\trec p {\tvector y} P} p {\subst {\tvector z} {\tvector y} P}} }
+\end{align*}
+
+We say that $\config$ reduces to or steps to $\config'$ if one application of the above rules transforms $\config$ into $\config'$, and write $\steps{\config}{\config'}$. We denote the reflexive transitive closure of $\stepArrow$ by $\stepManyArrow$.
+
+One important observation about reduction of typed configurations is that it is constrained to one subtree, where the tree structure is implicit in the typing judgement as discussed in \cref{chapter/session-types/configurations}. This observation leads to the following framing rule.
+
+\begin{definition}[Root of Reduction] We say that channel $c$ is the root of $\steps{\config}{\config'}$ if $\proc c P \in \config$ is rewritten by the reduction, and either it is the only process affected (rules $\irb{id}, \irb{cut}, \irb{rec}$), or it is the client.
+\end{definition}
+
+\begin{lemma}[Framing]
+  \label{framing}
+  If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then there exist $\config_1, \config_2, \config_2'$ such that $\config = (\config_1, \config_2)$, $\config' = (\config_1, \config_2')$, $\steps{\config_2}{\config_2'}$, and $\provides {\config_2} c A$ where $c$ is the root of $\steps{\config}{\config'}$. In addition, if $\provides {\config_2'} c A$, then $\providesCtx {\config'} \ctx$.
+\end{lemma}
+
+\begin{proof}
+  Assume $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ with root $c$.
+\end{proof}
+
+
+\subsection{Progress}
+
+In a conventional language \todo{Functional, value, or expression language? What is the word for not-process language?}, progress is usually stated as a well-typed expressions either take a reduction step or are values. We do not have values in a process calculus, but there is a corresponding notion we call being poised. Intuitively, a process is poised if it is waiting on its client. We introduce a new judgement $\poised{\proc c P}$ capturing this notion and define it in \cref{poised}. 
+
+\begin{rules}[poised]{Poised Processes}
+  \infer{\poised{\proc{c}{\tclose{c}}}}
+   {}
+  \and \infer{\poised{\proc{c}{\tsend{c}{d}{P_d}{Q}}}}
+   {}
+  \and \infer{\poised{\proc{c}{\trecv{x}{c}{Q_x}}}}
+   {}
+  \and \infer{\poised{\proc{c}{\tselect{c}{i}{P}}}}
+   {}
+  \and \infer{\poised{\proc{c}{\tcase{c}{\tbranches{Q}{I}}}}}
+   {}
+\end{rules}
+
+We say that a process configuration $\config$ is poised if every process in $\config$ is poised.  We will need the following inversion lemma about well-typed poised processes to handle type equality.
+
+\begin{lemma}[Inversion of Process Typing]
+\label{inversion-poised-eq}
+  If $\typeRecD \ctx \emptyset P c A$ and $\poised{\proc c P}$, then:
+  \begin{itemize}
+    \item If $A \typeeq \terminate$ then $P = \tclose c$.
+    \item If $A \typeeq A_1 \tensor A_2$ then $P = \tsend c d {Q_d} {P'}$.
+    \item If $A \typeeq \internals A I$ then $P = \tselect c x {P'}$ where $x \in I$.
+    \item If $A \typeeq A_1 \lolli A_2$ then $P = \trecv d c {P'}$.
+    \item If $A \typeeq \externals A I$ then $P = \tcase c {\tbranches {P'} J}$ where $I \subseteq J$.
+  \end{itemize}
+\end{lemma}
+
+\begin{proof}
+  By induction on the derivation of $\typeRecD \ctx \emptyset P c A$ followed by inversion on $\poised{\proc c P}$ or the equality judgement for impossible cases. \todo{Do the inversion proof.}
+\end{proof}
+
+We are now ready to state the progress theorem.
+
+\begin{theorem}[Progress]
+If $\providesCtx \config \ctx$ then either
+\begin{enumerate}
+  \item $\steps{\config}{\config'}$ for some $\config'$, or
+  \item $\config$ is poised.
+\end{enumerate}
+
+\end{theorem}
+\begin{proof}
+The proof is by induction on configuration typing followed by a nested induction on the typing derivation in the single channel case.
+
+\begin{itemize}
+  \item The case for multiple channels is simpler, so we will do that first. Assume $\config = \config_1, \ldots, \config_n$. By induction, either $\config_i$ is poised or it takes a step (where $i \in \set{1, \ldots, n}$). If any $\config_i$ takes a step then $\config$ takes a step. Otherwise, all $\config_i$ are poised, so $\config$ is poised.
+
+  \item For the single channel case, we know $\config = \config', \proc c P$. By inversion, $\typeRecD \ctx \emptyset P c A$ and $\providesCtx {\config'} \ctx$. By induction, either $\config'$ takes a step, in which case $\config$ takes a step and we are done, or $\config'$ is poised. Assume $\config'$ is poised.
+
+  Define $\pred{\typeRecD{\ctx'}{\emptyset}{P}{c}{A'}} :=$ if $\providesCtx {\config'} {\ctx'}$ then either $\proc c P$ is poised or $\config$ can take a step. We proceed by induction on the typing derivation.
+    \begin{description}
+      \item[Case $\id:$] $P$ has the form $\tfwd c d$ and $\config$ steps by $\irb{id}$.
+      \item[Case $\cut:$] $P$ has the form $\tspawn d {Q_d} {P'_d}$ and $\config$ steps by $\irb{cut}$.
+
+      \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] $\proc c P$ is poised.
+
+      \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] The proofs for all these cases follow the same structure, so we will only present $\terminate\Left$. We know $P = \twait d P'$ for some $P'$ and $d : \terminate \in \ctx'$. By inversion on $\providesCtx {\config'} {\ctx'}$, we get $\typeRecD {\ctx''} \emptyset Q d \terminate$ and $\proc d Q \in \config'$ for some $\ctx''$ and $Q$. $\proc d Q$ is poised since $\config'$ is poised by the outer induction hypothesis, so \cref{inversion-poised-eq} gives $Q = \tclose d$. Thus, $\config$ steps by $\irb{one}$.
+
+      \item[Case $\rec :$] $P$ has the form $\tapp {\parens{\trec t {\tvector y} P'}} {\tvector z}$ and $\config$ steps by $\irb{rec}$.
+
+      \item[Case $\typeeq\Right :$] Follows immediately by the induction hypothesis.
+      \item[Case $\typeeq\Left :$] $\ctx' = \ctx'', d : D$ and $\typeRecD{\ctx'', d : D'}{\emptyset}{P}{c}{A'}$ for some $D'$ where $D \typeeq D'$. $\ctx' \typeeq \ctx'', d : D'$, thus the result follows from \cref{typeeq-configuration} and the induction hypothesis.
+    \end{description}
+
+    Finally, we get either $\poised{\proc c P}$ or $\config$ steps from $\pred{\typeRecD \ctx \emptyset P c A}$ where $\ctx \typeeq \ctx$ by \cref{eq-is-equivalence}. In the former case, $\config$ is poised since $\config'$ is poised from before, and in the latter case we are immediately done.
+\end{itemize}
+\end{proof}
+
+\subsection{Type Preservation}
+
+Preservation is a bit more tedious to prove.
+
+\begin{theorem}[Preservation]
+If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
+\end{theorem}
+
+\begin{proof}
+  By \cref{framing}, it suffices to consider the subtree which types the root of reduction. So, assume $\steps{\config_1}{\config_2}$ and $\provides {\config_1} c A$ where $c$ is the root of $\steps{\config_1}{\config_2}$. We need to show $\provides {\config_2} c A$.
+
+  The proof is by simultaneous case analysis on $\steps{\config_1}{\config_2}$ and induction on the typing derivation of the root process%
+\footnote{This is similar to dependent pattern compilation: we can leave some cases out and group others together, but the compiler has to fill in missing cases with refutations and split combined cases through duplication. Unification is heavily involved in determining which cases can be left out.}, followed by induction on the typing derivation of the client in cases where there is communication. We need induction rather than simple inversion due to $\typeeq\Right$ and $\typeeq\Left$, which change types on the right and the left (respectively) without exposing the structure of the process.
+
+  By inversion, $\config_1 = \parens{\config_1^c, \proc c P}$, $\typeRecD \ctx \emptyset P c A$, and $\providesCtx {\config_1^c} \ctx$. Define $\pred{\typeRecD {\ctx_c} \emptyset P c {A'}} :=$ if $\providesCtx {\config_1^c} {\ctx_c}$ then $\provides {\config_2} c {A'}$. We proceed by induction.
+  %
+  \begin{itemize}
+    %% Base cases
+    \item $\predC{\infer[\id]{\typeRecD {d : A'} \emptyset {\tfwd c d} c {A'}}%
+            {\phantom{id}}} :$
+      \par Then, $\config_2 = \subst c d {\config_1^c}$. Note that $c$ cannot appear free in $\config_1^c$ (since $c \not\in \dom{\parens {\config_1^c}} \subseteq \free{\parens{\config_1^c}}$), so $\provides {\config_1^c} d {A'}$ implies $\provides {\config_2} c {A'}$ by \cref{channel-substitution-configuration}.
+
+    \item $\predC{\infer[\cut]{\typeRecD {\ctx_c, \ctx_c'} \emptyset {\tspawn d {P_d'} { Q_d }} c {A'}}%
+            { \DD : \typeRecD {\ctx_c} \emptyset {P_d'} d D
+            & \EE : \typeRecD {\ctx_c', d : D} \emptyset c {Q_d} {A'}
+            } } :$
+     \par Then, $\config_2 = \config_1^c, \proc a {P_a'}, \proc c {Q_a}$ where $d \not\in \free{\parens {\config_1}}$. By inversion on $\providesCtx {\config_1^c} {\parens{\ctx_c, \ctx_c'}}$, there are $\config_1^1, \config_1^2$ such that $\config_1^c = \parens{\config_1^1, \config_1^2}$, $\providesCtx {\config_1^1} {\ctx_c}$ and $\providesCtx {\config_1^2} {\ctx_c'}$. Using $\DD$ and \cref{channel-substitution}, we know $\provides {\config_1^1, \proc a {P_a'}} a D$. Then,  $\providesCtx {\config_1^2, \config_1^1, \proc a {P_a'}} {\parens{\ctx_c', a : D}}$. Thus, $\EE$ and \cref{channel-substitution} implies $\provides {\config_2} c {A'}$.
+
+      \item $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$ Impossible since $\proc c P$ is the client.
+
+      %% Nested Induction
+      \item $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$ In all cases, $\ctx_c = \ctx_c', d : D$ for some $D$. Inversion on $\providesCtx {\config_1^c} {\ctx_c}$ gives $\config_1^c = \config_1^{c'}, \config_1^d, \proc d Q$ such that $\typeRecD {\ctx'} \emptyset Q d D$, $\providesCtx {\config_1^d} {\ctx'}$, and $\providesCtx {\config_1^{c'}} {\ctx_c'}$.
+
+        Define $\predQ{\typeRecD {\ctx_d} \emptyset Q d {D'}} :=$ if $\providesCtx {\config_1^d} {\ctx_d}$ and $D' \typeeq D$ then $\provides {\config_2} c {A'}$. Note that $\predQ{\typeRecD {\ctx'} \emptyset Q d D}$ will give the final result once we prove $\mathcal{Q}$, which we do by induction.
+        \begin{itemize}
+          %%% Base cases
+          \item $\predQC{\infer[\terminate\Right]{\typeRecD {\emptyCtx} \emptyset {\tclose d} d \terminate}%
+            {} }$,
+            $\predC{\infer[\terminate\Left]{\typeRecD {\ctx_c', d : \terminate} \emptyset {\twait d {P'}} c {A'}}%
+              { \DD : \typeRecD {\ctx_c'} \emptyset {P'} c {A'}
+              } } :$
+
+            \par Then, $\config_2 = \config_1^{c'}, \config_1^d, \proc c {P'} = \config_1^{c'}, \proc c {P'}$ (last equality is by inversion on $\providesCtx {\config_1^d} {\emptyCtx}$). $\confOne$ on $\providesCtx {\config_1^{c'}} {\ctx_c'}$ and $\DD$ gives the desired result.
+
+          \item $\predQC{\infer[\tensor\Right]{\typeRecD {\ctx_d, \ctx_d'} \emptyset {\tsend d e {R_e} {Q'}} d {D_1' \tensor D_2'}}%
+            { \DD : \typeRecD {\ctx_d} \emptyset {R_e} e {D_1'}
+            & \EE : \typeRecD {\ctx_d'} \emptyset {Q'} d {D_2'}
+            } }$,
+            \par $\predC{\infer[\tensor\Left]{\typeRecD {\ctx_c', d : D_1 \tensor D_2} \emptyset {\trecv x d {P_x'}} c {A'}}%
+              { \FF : \typeRecD {\ctx_c', x : D_1, d : D_2} \emptyset {P_x'} c {A'}
+              } } :$
+            \par Then $\config_2 = \config_1^{c'}, \config_1^d, \proc a {R_a}, \proc d {Q'}, \proc c {P_a'}$ where $a \not\in \free {\parens{\config_1}}$. Inversion on $D_1' \tensor D_2' \typeeq D_1 \tensor D_2$ gives $D_1' \typeeq D_1$ and $D_2' \typeeq D_2$. There are $\config_1^1, \config_1^2$ such that $\providesCtx {\config_1^1} {\ctx_d}$ and $\providesCtx {\config_1^2} {\ctx_d'}$ by inversion on $\providesCtx {\config_1^d} {\parens{\ctx_d, \ctx_d'}}$.
+
+            $\confOne$ on $\providesCtx {\config_1^1} {\ctx_d}$ and $DD$ (using $\typeeq\Right$ and \cref{channel-substitution}) gives $\provides {\config_1^1, \proc a {R_a}} a {D_1}$. Similarly, $\confOne$ on $\providesCtx {\config_1^2} {\ctx_d'}$ and $\EE$ with $\typeeq\Right$ gives $\provides {\config_1^2, \proc d {Q'}} d {D_2}$. Finally, $\confOne$ using the previous two derivations, $\providesCtx {\config_1^{c'}} {\ctx_c'}$, and $\FF$ with \cref{channel-substitution} gives the desired result.
+
+          %%% Inductive Cases
+          \item $\predQC{\infer[\typeeq\Right]{\typeRecD {\ctx_d} \emptyset Q d {D'}}%
+            { \DD : \typeRecD {\ctx_d} \emptyset Q d {D''}
+            & \EE : D'' \typeeq D'
+            } } :$
+            \par $D'' \typeeq D$ by transitivity of $\typeeq$ (\cref{eq-is-equivalence}), so we can immediately apply induction on $DD$.
+
+          \item $\predQC{\infer[\typeeq\Right]{\typeRecD {\ctx_d, e : E} \emptyset Q d {D'}}%
+            { \DD : \typeRecD {\ctx_d, e : E'} \emptyset Q d {D'}
+            & \EE : E \typeeq E'
+            } } :$
+            $\ctx_d, e : E \typeeq \ctx_d, e : E'$ by definition using $EE$, so $\providesCtx {\config_1^d} {\parens{\ctx_d, e : E'}}$ by \cref{typeeq-configuration}. Thus, we can apply induction on $\DD$, which gives the desired result.
+
+          %%% Impossible cases
+          \item $\id, \cut, \terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Right, \rec :$ Not applicable since we know the form of $Q$ by the outer induction and inversion over $\steps{\config_1}{\config_2}$.
+        \end{itemize}
+
+    \item $\predC{\infer[\terminate\Left]{\typeRecD {\ctx_c, d : \terminate} \emptyset {\twait d {P'}} c {A'}}%
+            { \DD : \typeRecD {\ctx_c} \emptyset {P'} c {A'}
+            } } :$
+
+    \item $\predC{\infer[\rec]{\typeRecD {\ctx_c} \emptyset P c {A'}}%
+            { \DD : \typeRecD {\ctx_c} \emptyset P c {A''}
+            } } :$
+            \todo{Do rec.}
+
+    %% Induction Step
+    \item $\predC{\infer[\typeeq\Right]{\typeRecD {\ctx_c} \emptyset P c {A'}}%
+            { \DD : \typeRecD {\ctx_c} \emptyset P c {A''}
+            & \EE : A'' \typeeq A'
+            } } :$
+      \par Induction on $\DD$ gives $\provides {\config_2} c {A''}$. The result follows from \cref{typeeq-configuration} using $\EE$.
+
+    \item $\predC{\infer[\typeeq\Left]{\typeRecD {\ctx_c, d : D} \emptyset P c {A'}}%
+            { \DD : \typeRecD {\ctx_c, d : D'} \emptyset P c {A'}
+            & \EE : D \typeeq D'
+            } } :$
+      \par $D \typeeq D'$ implies $\ctx, d : D \typeeq \ctx, d : D'$ by definition. \Cref{typeeq-configuration} gives $\providesCtx {\config_1^c} {\parens{\ctx, d : D'}}$, which means we can apply induction on $\DD$ to get the desired result.
+  \end{itemize}
+
+  Finally, $\pred{\typeRecD \ctx \emptyset P c A}$ gives the desired result.
+\end{proof}
