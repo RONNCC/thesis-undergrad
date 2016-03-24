@@ -91,8 +91,8 @@ If $\providesCtx \config \ctx$ then either
   \item $\steps{\config}{\config'}$ for some $\config'$, or
   \item $\config$ is poised.
 \end{enumerate}
-
 \end{theorem}
+
 \begin{proof}
 The proof is by induction on configuration typing followed by a nested induction on the typing derivation in the single channel case.
 
@@ -174,6 +174,8 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
             \par Then $\config_2 = \config_1^{c'}, \config_1^d, \proc a {R_a}, \proc d {Q'}, \proc c {P_a'}$ where $a \not\in \free {\parens{\config_1}}$. Inversion on $D_1' \tensor D_2' \typeeq D_1 \tensor D_2$ gives $D_1' \typeeq D_1$ and $D_2' \typeeq D_2$. There are $\config_1^1, \config_1^2$ such that $\providesCtx {\config_1^1} {\ctx_d}$ and $\providesCtx {\config_1^2} {\ctx_d'}$ by inversion on $\providesCtx {\config_1^d} {\parens{\ctx_d, \ctx_d'}}$.
 
             $\confOne$ on $\providesCtx {\config_1^1} {\ctx_d}$ and $DD$ (using $\typeeq\Right$ and \cref{channel-substitution}) gives $\provides {\config_1^1, \proc a {R_a}} a {D_1}$. Similarly, $\confOne$ on $\providesCtx {\config_1^2} {\ctx_d'}$ and $\EE$ with $\typeeq\Right$ gives $\provides {\config_1^2, \proc d {Q'}} d {D_2}$. Finally, $\confOne$ using the previous two derivations, $\providesCtx {\config_1^{c'}} {\ctx_c'}$, and $\FF$ with \cref{channel-substitution} gives the desired result.
+
+          \item $\internal\Right, \lolli\Right, \external\Right :$ Similar to above. \todo{Probably a good idea to check these cases.}
 
           %%% Inductive Cases
           \item $\predQC{\infer[\typeeq\Right]{\typeRecD {\ctx_d} \emptyset Q d {D'}}%

@@ -1,91 +1,164 @@
 
-\section{Subtyping Revisited}
+\section{Subtyping}
 
-Intersection on union types admit many distributivity or distributivity-like subtyping rules. We mentioned the interaction between the structural types and intersections or unions in isolation in the preceding chapters. Things become even more complicated when we mix the two since we get get further sound but not derivable rules. To name a few: \todo{Find examples}
+Subtyping is a binary relation between types which captures the notion of being more specific or carrying more information. We say that a type $A$ is a subtype of $B$ if (a process offering the type) $A$ can safely be used in any context where we expect (a process offering the type) $B$. We write $A \sub B$ to mean $A$ is a subtype of $B$. Subtyping is said to be sound if whenever $A \sub B$, the previously mentioned substitution does not break type safety. This is usually requires (1) all terms of types $A$ and $B$ to have the same structure, and (2) the set of possible behaviors of terms with type $A$ to be a subset of the set of possible behaviors of terms with type $B$. Some systems, mainly the ones that use coercive subtyping \todo{References to coercive subtyping}, may not necessarily require condition (1). We will in this system though, since we do not want term level constructs that witness convertibility. Subtyping is complete if every time it is safe to use $A$ for $B$, we have $A \sub B$. It is usually very hard to design a complete subtyping relation that is also practical, and in fact, the relation we present will not be complete.
 
-It is difficult to come up with a system that uniformly admits all possible subtyping rules. The most general work we know is \cite{Damm94}, which gives a subtyping algorithm sound and complete with respect to the ideal semantics of types. However, their system is not complete in the presence of finite types (i.e. $\terminate$). Even if a similar approach could be made to work, we believe from practice such systems are too complicated for what we need, and too fragile in the presence of
-language extensions. We would rather work with a simple and robust subtyping relation. Therefore, we chose to ignore distributivity over structural rules entirely, and only admit the following two rules that concern property types:
-\begin{align}
-    (A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B \label{dist-intersect-union} \\
-    (A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)
-\end{align}
+Every refinement system requires a notion of subtyping to be practical. Subtyping is needed in order to propagate refinements and to forget them where necessary (e.g.\ when interfacing legacy code, or when the refinement system is not strong enough to track information etc.). For example, if we have a process providing $\pos$, we should be able to use it in a context that requires $\nat$ since $\pos$ is a more specific type. Otherwise, we would require explicit coercions to erase extra information which can easily become cumbersome, especially when we have multiple refinements on a type and we need a specific subset. \todo{Define $\nat, \pos$.}
 
-The reverse directions are derivable as usual:
-\[
-    \infer[\Sub{\intersect\Right}]{(A_1 \intersect A_2) \union B \sub (A_1 \union B) \intersect (A_2 \union B)}
-     { \infer[\Sub{\union\Left}]{(A_1 \intersect A_2) \union B \sub A_1 \union B}
-        { \infer[\Sub{\union\Right_1}]{A_1 \intersect A_2 \sub A_1 \union B}
-           { \infer[\Sub{\intersect\Left_1}]{A_1 \intersect A_2 \sub A_1}{} }
-        & \infer[\Sub{\union\Right_2}]{B \sub A_1 \union B} {}
-        }
-     & \deduce{(A_1 \intersect A_2) \union B \sub A_2 \union B} {\vdots}
-     }
-\]
-\[
-    \infer{(A_1 \intersect B) \union (A_2 \intersect B) \sub (A_1 \union A_2) \intersect B}
-     {}
-\]
-\todo{Do the rest of the proof.}
+As usual, we introduce subtyping to term typing using what are called subsumption rules, which are presented in \cref{subsumption}. The right rule says that if a process is to provide a type $A$, it can always provide a more specific type $A'$. Dually, the left rule says that if a process can properly handle a less specific type $A'$, then it does not hurt to make the type more specific.
 
-Addition of distributivity, however, requires a small change in how we handle subtyping for recursive types. Consider for example the following rewriting of \ref{dist-intersect-union}:
-\[
-    (\recursive{t}{A_1 \union B}) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B
-\]
-
-It is clearly the case that $\recursive{t}{A_1 \union B} \typeeq A_1 \union B$ by one unfolding, but the subtyping judgement above is not derivable. We know the only way to prove this judgement is by  using the distributivity rule we just mentioned (if there were another derivation, we would not need to add distributivity in the first place). However, the distributivity rule does not apply since the type on the left does not match the required form. The solution is to allow unfolding under intersection and union. We formalize this using type contexts.
-
-\begin{definition}[Type Context]
-  A type context is defined inductively according to the following grammar:
-  \[ E ::= \bullet \mid E \intersect A \mid A \intersect E \mid E \union A \mid A \union E \]
-  In words, a type context is a type with a single hole $\bullet$ in it. We write $E[A]$ for the type obtained by replacing $\bullet$ with $A$.
-\end{definition}
+\begin{rules}[subsumption]{Subsumption rules}
+  \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
+    {\typeRecDJ{P}{c}{A'} & A' \sub A}
+  \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
+    {\typeD{\ctx, c : A'} P d B & A \sub A'}
+\end{rules}
 
 
-\todo{We also need the rules to preserve transitivity.}
+\subsection{Subtyping Choice}
 
-The rules $\Sub{\mu\Left}$ and $\Sub{\mu\Right}$ are replaced with the following more general ones:
-\begin{mathpar}
-    \infer[\Sub{\mu\Right}]{A \sub E\bracks{\recursive t B}}
-     {A \sub E\bracks{\subst {\recursive t B} t B}}
-    \and \infer[\Sub{\mu\Left}]{E\bracks{\recursive t A} \sub B}
-     {E\bracks{\subst {\recursive t A} t A} \sub B}
-\end{mathpar}
+The first form of subtyping we have is width subtyping for internal and external choices. This is similar to width subtyping for record calculi and was introduced in this context by Toninho et al. \cite{ToninhoCP13}, and it made working with choice more convenient in their system \todo{Why really?}. The idea to width subtyping is simple: whenever we expect a choice between a set of options, it is sound to offer more options since we can safely ignore the ones we do not care about (external choice), and similarly, whenever we are prepared to handle a set branches, we are prepared to handle a subset of those branches (internal choice). This suggest the following subtyping rules for external and internal choice respectively: $\externals A I \sub \externals A J$ whenever $J \subseteq I$, and $\internals A I \sub \internals A J$ whenever $I \subseteq J$.
 
-The final subtyping system is summarized in \cref{refinement-subtyping}.
+The next natural step is to carry this (and any other forms of subtyping we may have) out recursively, that is, to allow the $A_\indexVar$ to be replaced by subtypes. This is sometimes called depth subtyping and yield the rules in \cref{subtyping-choice}. The rules are coinductive due to reasons that will be clear in \cref{subtyping-recursive-types}.
 
-\begin{rules}[refinement-subtyping]{Subtyping rules for refined session types}
-  \infer[\Sub{\terminate}]{\terminate \sub \terminate}{}
-  \and \infer[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
-    {A \sub A' & B \sub B'}
-  \and \infer[\Sub\internal]{\internalSing{\lab}{A} \sub \internalSing{\lab}{A'}}
-    {A \sub A'}
-  \and \infer[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
-    {A' \sub A & B \sub B'}
-  \and \infer[\Sub\external]{\externalSing{\lab}{A} \sub \externalSing{\lab}{A'}}
-    {A \sub A'}
+\begin{rules}[subtyping-choice]{Subtyping internal and external choices}
+  \infer=[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
+    {I \subseteq J & A_k \sub A'_k~\text{for}~k \in J}
+  \and \infer=[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
+    {J \subseteq I & A_k \sub A'_k~\text{for}~k \in J}
+\end{rules}
 
-  \\ \infer[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+Internal and external choices are the main tools we use to define data types. Width and depth subtyping is especially important for our refinement system since they allow removing branches altogether and constraining the remaining ones. Combined with recursive subtyping, this will let us define interesting behavioral properties.
+
+
+\subsection{Subtyping Recursive Types}
+\label{subtyping-recursive-types}
+
+A refinement system is not very useful unless we can refine recursive types, meaning we have to extend subtyping to recursive types. Just as we considered two recursive types equivalent whenever their infinite unfoldings were equivalent (refer to \cref{recursive-types}), we will consider a recursive type to be a subtype of another if their infinite unfoldings have this property. This is formalized using coinduction and one-step unfolding as before. The rules are given in \cref{subtyping-recursive}. Note that we only need to unfold on one side in these rules, so we place not restrictions on the other side. This is important if we want transitivity to be admissible.
+
+\begin{rules}[subtyping-recursive]{Subtyping recursive types}
+  \infer=[\Sub{\rec\Right}]{A \sub \recursive t B}
+    {A \sub \subst {\recursive t B} t B}
+  \and \infer=[\Sub{\rec\Left}]{\recursive t A \sub B}
+    {\subst {\recursive t A} t A \sub B}
+\end{rules}
+
+One advantage of subtyping is that it is strictly more general that type equivalence since we can define $A \typeeq B$ if and only if $A \sub B$ and $B \sub A$. This makes type equivalence a derived notion rather than a fundamental one, which simplifies the theory. In fact, the only reason for introducing type equivalence was to identify a recursive type and its unfolding, which will now be handled by subtyping. So, we will see that type equivalence usually does not even come up.
+
+Switching to coinduction means all other subtyping rules (including the ones in \cref{subtyping-recursive}) must be coinductive also. However, keep in mind that coinduction is only required for recursive types and no other part of the system. The rest only ``passes it along''.
+
+
+\subsection{Subtyping Intersections and Unions}
+
+The final central function of subtyping is propagating refinements. Intersection types enable assigning multiple types to the same term, however, not all of this extra information may be useful. Subtyping can drop unnecessary refinements. Similarly, union types are useful for forgetting information, which makes it possible to write more generic functions (by forgetting information on the left of $\lolli$ for example). Subtyping corresponds to specialization in this case.
+
+The usual subtyping rules for intersections and unions (\cite{DunfieldP03}) are provided in \cref{subtyping-property}. Like before, these rules are coinductive and are constructed to admit transitivity since we will not be able to add transitivity explicitly.
+
+\begin{rules}[subtyping-property]{Subtyping intersection and union types}
+  % Intersection
+  \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
     {A \sub B_1 \and A \sub B_2}
-  \and \infer[\Sub{\intersect}\Left_1]{A_1 \intersect A_2 \sub B}
+  \and \infer=[\Sub{\intersect}\Left_1]{A_1 \intersect A_2 \sub B}
     {A_1 \sub B}
-  \and \infer[\Sub{\intersect}\Left_2]{A_1 \intersect A_2 \sub B}
+  \and \infer=[\Sub{\intersect}\Left_2]{A_1 \intersect A_2 \sub B}
     {A_2 \sub B}
 
-  \\ \infer[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+  % Union
+  \\ \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
     {A \sub B_1}
-  \and \infer[\Sub{\union}\Right_2]{A \sub B_1 \union B_2}
+  \and \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
     {A \sub B_2}
-  \and \infer[\Sub{\union}\Left]{A_1 \union A_2 \sub B}
+  \and \infer=[\Sub{\union}\Left]{A_1 \union A_2 \sub B}
     {A_1 \sub B & A_2 \sub B}
-
-  \\ \infer[\Sub{\union\intersect}]{(A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B}
-    {}
-  \and \infer[\Sub{\intersect\union}]{(A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)}
-    {}
-
-  \\ \infer[\Sub{\mu\Right}]{A \sub E\bracks{\recursive t B}}
-     {A \sub E\bracks*{\subst {\recursive t B} t B}}
-  \and \infer[\Sub{\mu\Left}]{E\bracks{\recursive t A} \sub B}
-     {E\bracks*{\subst {\recursive t A} t A} \sub B}
 \end{rules}
+
+
+Subtyping is not directly related to the other constructs in the type system, so the rest of the rules are for confluence. The resulting system is presented in \cref{subtyping-first-system}. However, note that this is only a first attempt and not the final system we will be working with. The shortcoming of these rules are explained in \cref{distributivity}.
+
+\begin{rules}[subtyping-first-system]{Subtyping (first-attempt)}
+  % Base types
+  \infer=[\Sub{\terminate}]{\terminate \sub \terminate}{}
+  \and \infer=[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
+    {A \sub A' & B \sub B'}
+  \and \infer=[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
+    {I \subseteq J & A_k \sub A'_k~\text{for}~k \in J}
+  \and \infer=[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
+    {A' \sub A & B \sub B'}
+  \and \infer=[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
+    {J \subseteq I & A_k \sub A'_k~\text{for}~k \in J}
+
+  % Recursive types
+  \\ \infer=[\Sub{\rec\Right}]{A \sub \recursive t B}
+    {A \sub \subst {\recursive t B} t B}
+  \and \infer=[\Sub{\rec\Left}]{\recursive t A \sub B}
+    {\subst {\recursive t A} t A \sub B}
+
+  % Intersection
+  \\ \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+    {A \sub B_1 \and A \sub B_2}
+  \and \infer=[\Sub{\intersect}\Left_1]{A_1 \intersect A_2 \sub B}
+    {A_1 \sub B}
+  \and \infer=[\Sub{\intersect}\Left_2]{A_1 \intersect A_2 \sub B}
+    {A_2 \sub B}
+
+  % Union
+  \\ \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+    {A \sub B_1}
+  \and \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+    {A \sub B_2}
+  \and \infer=[\Sub{\union}\Left]{A_1 \union A_2 \sub B}
+    {A_1 \sub B & A_2 \sub B}
+\end{rules}
+
+\todo{Rename $k$ to $x$ in the above rules.}
+
+\subsection{Distributivity Laws}
+\label{distributivity}
+
+The subtyping relation we give in \cref{subtyping-first-system} is not complete with respect to, say, the ideal semantics of types (\cite{VouillonM04, Damm94}). This is because intersections and unions admit many distributivity-like rules over structural types and over each other. For example, it is not hard to see that $(A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2)$ would be sound using a propositional reading: if a process sends out a channel that satisfies $A_1$ then acts as $B_1$, \emph{and} the sent channel also satisfies $A_2$ in addition to the result satisfying $B_2$, then the channel satisfies both $A_1$ and $A_2$ and the result satisfies both $B_1$ and $B_2$. However, this judgement is not admissible in the given system: the only applicable rules are $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, both of which get stuck because we lose half the information we require for the rest of the derivation. The situation is perhaps exacerbated by the fact that we \emph{can} prove subtyping in the other direction, so these types are supposed to be equivalent. This means depending on where these types occur, we may fail to prove one side of a symmetric relation!
+
+The fix is not as simple as adding this rule as an extra axiom. For one, it is not trivial to rewrite this rule in order to preserve admissibility of transitivity. More importantly, this is not the only rule we would have to add. \cref{distributivity-examples} gives just \emph{some} of the many sound rules that are not admissible.
+
+\begin{rules}[distributivity-examples]{Sound but inadmissible subtyping rules}
+   % Intersection
+   (A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2) \\
+   \internals A I \intersect \internals B J \sub \internal\braces{\lab_x : A_x \intersect B_x}_{x \in I \cap J} \\
+   (A \lolli B_1) \intersect (A \lolli B_2) \sub A \lolli (B_1 \intersect B_2) \\
+   \externals A I \intersect \externals B J \sub \externals A I \cup \externals B J ~ (I \cap J = \emptyset)\\
+   % Union
+   (A_1 \union A_2) \tensor B \sub (A_1 \tensor B) \union (A_2 \tensor B) \\
+   \internals A I \cup \internals B J \sub \internals A I \union \internals B J ~ (I \cap J = \emptyset) \\
+   (A_1 \lolli B) \intersect (A_2 \lolli B) \sub (A_1 \union A_2) \lolli B \\
+   \external\braces{\lab_x : A_x \union B_x}_{x \in I \cap J} \sub \externals A I \union \externals B J \\
+   % Intersection and union
+   (A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B \\
+   (A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)
+\end{rules}
+
+This list is certainly not complete, and there are almost as many rules in this list as there are in the original system. Clearly, a blind axiomatic approach which adds all admissible rules is not practical and a more general treatment is in order. There has been some work in incorporating intersections and unions in a conventional type system that preserves completeness under certain conditions. The closest and most complete system we found was from Damm (\cite{Damm94, Damm94p2}). In \cite{Damm94}, he encodes types as regular tree expressions, and reformulates subtyping as regular tree grammar containment which was shown to be decidable. This results in a system that is sound and complete when all types are infinite (but $\terminate$ is a finite type). \cite{Damm94p2} extends this work such that the system is sound in the presence of finite types (although not necessarily complete).
+
+Their system is very close to what we would like to accomplish, however, we think it is too complicated for our purposes as it requires familiarity with ideal semantics of types (which in turn is based on domain theory and the theory metric spaces) and regular tree grammars. Even if a similar approach could be made to work, we find such systems to be fragile in the face of future extensions. We would rather work with a simple and robust subtyping relation that does not necessitate rethinking every details with every extension, so we make a design decision: we give up full completeness and instead design a system that admits the rules we are likely to encounter in practice.
+
+In the next \namecref{subtyping-multi}, we present a system that we think achieves the right tradeoff between simplicity and completeness.
+
+
+\subsection{Subtyping as Sequent Calculus with Multiple Conclusions}
+\label{subtyping-multi}
+
+
+
+
+\subsection{Properties}
+
+Subtyping extends to contexts in the obvious way: $\ctx \sub \ctx'$ if and only if $\ctx = (c_1 : A_1, \ldots, c_n : A_n)$, $\ctx' = (c_1 : A_1', \ldots, c_n : A_n')$, and $A_i \sub A_i'$ for $i \in \set{1, \ldots, n}$.
+
+We require the subtyping relation to be a preorder, that is, it should satisfy reflexivity and transitivity. Since we want an algorithmic system, we do not want to add these as rules. Thus, we have the following admissibility theorem:
+
+\begin{theorem}
+  $\sub$ is a preorder:
+  \begin{itemize}
+    \item $A \sub A$ for all types $A$.
+    \item $A \sub B$ and $B \sub C$ implies $A \sub C$ for all types $A, B, C$.
+  \end{itemize}
+\end{theorem}
 

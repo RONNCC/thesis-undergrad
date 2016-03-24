@@ -1,6 +1,9 @@
 ## Mac OS files
 .DS_Store
 
+## Agda
+*.agdai
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof

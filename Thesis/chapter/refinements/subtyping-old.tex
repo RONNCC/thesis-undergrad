@@ -1,0 +1,91 @@
+
+\section{Subtyping Revisited}
+
+Intersection on union types admit many distributivity or distributivity-like subtyping rules. We mentioned the interaction between the structural types and intersections or unions in isolation in the preceding chapters. Things become even more complicated when we mix the two since we get get further sound but not derivable rules. To name a few: \todo{Find examples}
+
+It is difficult to come up with a system that uniformly admits all possible subtyping rules. The most general work we know is \cite{Damm94}, which gives a subtyping algorithm sound and complete with respect to the ideal semantics of types. However, their system is not complete in the presence of finite types (i.e. $\terminate$). Even if a similar approach could be made to work, we believe from practice such systems are too complicated for what we need, and too fragile in the presence of
+language extensions. We would rather work with a simple and robust subtyping relation. Therefore, we chose to ignore distributivity over structural rules entirely, and only admit the following two rules that concern property types:
+\begin{align}
+    (A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B \label{dist-intersect-union} \\
+    (A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)
+\end{align}
+
+The reverse directions are derivable as usual:
+\[
+    \infer[\Sub{\intersect\Right}]{(A_1 \intersect A_2) \union B \sub (A_1 \union B) \intersect (A_2 \union B)}
+     { \infer[\Sub{\union\Left}]{(A_1 \intersect A_2) \union B \sub A_1 \union B}
+        { \infer[\Sub{\union\Right_1}]{A_1 \intersect A_2 \sub A_1 \union B}
+           { \infer[\Sub{\intersect\Left_1}]{A_1 \intersect A_2 \sub A_1}{} }
+        & \infer[\Sub{\union\Right_2}]{B \sub A_1 \union B} {}
+        }
+     & \deduce{(A_1 \intersect A_2) \union B \sub A_2 \union B} {\vdots}
+     }
+\]
+\[
+    \infer{(A_1 \intersect B) \union (A_2 \intersect B) \sub (A_1 \union A_2) \intersect B}
+     {}
+\]
+\todo{Do the rest of the proof.}
+
+Addition of distributivity, however, requires a small change in how we handle subtyping for recursive types. Consider for example the following rewriting of \ref{dist-intersect-union}:
+\[
+    (\recursive{t}{A_1 \union B}) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B
+\]
+
+It is clearly the case that $\recursive{t}{A_1 \union B} \typeeq A_1 \union B$ by one unfolding, but the subtyping judgement above is not derivable. We know the only way to prove this judgement is by  using the distributivity rule we just mentioned (if there were another derivation, we would not need to add distributivity in the first place). However, the distributivity rule does not apply since the type on the left does not match the required form. The solution is to allow unfolding under intersection and union. We formalize this using type contexts.
+
+\begin{definition}[Type Context]
+  A type context is defined inductively according to the following grammar:
+  \[ E ::= \bullet \mid E \intersect A \mid A \intersect E \mid E \union A \mid A \union E \]
+  In words, a type context is a type with a single hole $\bullet$ in it. We write $E[A]$ for the type obtained by replacing $\bullet$ with $A$.
+\end{definition}
+
+
+\todo{We also need the rules to preserve transitivity.}
+
+The rules $\Sub{\mu\Left}$ and $\Sub{\mu\Right}$ are replaced with the following more general ones:
+\begin{mathpar}
+    \infer[\Sub{\mu\Right}]{A \sub E\bracks{\recursive t B}}
+     {A \sub E\bracks{\subst {\recursive t B} t B}}
+    \and \infer[\Sub{\mu\Left}]{E\bracks{\recursive t A} \sub B}
+     {E\bracks{\subst {\recursive t A} t A} \sub B}
+\end{mathpar}
+
+The final subtyping system is summarized in \cref{refinement-subtyping}.
+
+\begin{rules}[refinement-subtyping]{Subtyping rules for refined session types}
+  \infer[\Sub{\terminate}]{\terminate \sub \terminate}{}
+  \and \infer[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
+    {A \sub A' & B \sub B'}
+  \and \infer[\Sub\internal]{\internalSing{\lab}{A} \sub \internalSing{\lab}{A'}}
+    {A \sub A'}
+  \and \infer[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
+    {A' \sub A & B \sub B'}
+  \and \infer[\Sub\external]{\externalSing{\lab}{A} \sub \externalSing{\lab}{A'}}
+    {A \sub A'}
+
+  \\ \infer[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+    {A \sub B_1 \and A \sub B_2}
+  \and \infer[\Sub{\intersect}\Left_1]{A_1 \intersect A_2 \sub B}
+    {A_1 \sub B}
+  \and \infer[\Sub{\intersect}\Left_2]{A_1 \intersect A_2 \sub B}
+    {A_2 \sub B}
+
+  \\ \infer[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+    {A \sub B_1}
+  \and \infer[\Sub{\union}\Right_2]{A \sub B_1 \union B_2}
+    {A \sub B_2}
+  \and \infer[\Sub{\union}\Left]{A_1 \union A_2 \sub B}
+    {A_1 \sub B & A_2 \sub B}
+
+  \\ \infer[\Sub{\union\intersect}]{(A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B}
+    {}
+  \and \infer[\Sub{\intersect\union}]{(A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)}
+    {}
+
+  \\ \infer[\Sub{\mu\Right}]{A \sub E\bracks{\recursive t B}}
+     {A \sub E\bracks*{\subst {\recursive t B} t B}}
+  \and \infer[\Sub{\mu\Left}]{E\bracks{\recursive t A} \sub B}
+     {E\bracks*{\subst {\recursive t A} t A} \sub B}
+\end{rules}
+
