@@ -1,0 +1,132 @@
+\documentclass[a4paper,USenglish]{lipics-v2016}
+% for section-numbered lemmas etc., use "numberwithinsect"
+
+\usepackage{microtype}%if unwanted, comment out or use option "draft"
+\usepackage{proof}
+\usepackage{mathpartir}
+
+\usepackage{todonotes}
+
+\usepackage{macro/generic}
+\usepackage{macro/language}
+
+
+
+
+\bibliographystyle{plainurl}
+
+% Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Refinements for Session-typed Concurrency\footnote{This work was partially supported by someone.}}
+%\titlerunning{Refinements for Session-typed Concurrency}
+
+\author[1]{Co\c{s}ku Acay}
+\author[2]{Frank Pfenning}
+\affil[1]{Carnegie Mellon University, Pittsburgh, PA 15213 \\
+  \texttt{cacay@cmu.edu}}
+\affil[2]{Carnegie Mellon University, Pittsburgh, PA 15213 \\
+  \texttt{fp@cs.cmu.edu}}
+\authorrunning{C. Acay and F. Pfenning} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
+
+\Copyright{Cosku Acay}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+\subjclass{D.3.2 Language Classifications}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation". 
+\keywords{Dummy keyword -- please provide 1--5 keywords}% mandatory: Please provide 1-5 keywords
+% Author macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\EventEditors{John Q. Open and Joan R. Acces}
+\EventNoEds{2}
+\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+\EventShortTitle{CVIT 2016}
+\EventAcronym{CVIT}
+\EventYear{2016}
+\EventDate{December 24--27, 2016}
+\EventLocation{Little Whinging, United Kingdom}
+\EventLogo{}
+\SeriesVolume{42}
+\ArticleNo{23}
+% Editor-only macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Prior work has exploited deep connection between linear sequent calculus and session-typed message-passing concurrent computation by introducing equirecursive types with a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. In the resulting system, we can represent internal and external choice by intersection and union, as first suggested by Padovani for a different system of session types.
+\todo{Better abstract.}
+\end{abstract}
+
+ \todo{Find best subjclass}
+ \todo{Pick keywords}
+ \todo{Are we sponsored by someone?}
+
+\section{Typesetting instructions -- please read carefully}
+Please comply with the following instructions when preparing your article for a LIPIcs proceedings volume. 
+\begin{itemize}
+\item Use further LaTeX packages only if required. Avoid usage of packages like \verb+enumitem+, \verb+enumerate+, \verb+cleverref+. Keep it simple, i.e. use as few additional packages as possible.
+\item Add custom made macros carefully and only those which are needed in the article (i.e., do not simply add your convolute of macros collected over the years).
+\item Fill out the \verb+\subjclass+ and \verb+\keywords+ macros. For the \verb+\subjclass+, please refer to the ACM classification at \url{http://www.acm.org/about/class/ccs98-html}.
+\item Take care of suitable linebreaks and pagebreaks. No overfull \verb+\hboxes+ should occur in the warnings log.
+\end{itemize}
+
+
+\section{Introduction}
+
+Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear prepositions are identified with session-types, which are assigned to channels and dictate the communication behaviour along them. Each channel is offered by a unique process and used by exactly one, which is where linearity comes in.
+
+In the base system, types directly correspond to certain types of behaviour. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural} types since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property} types since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties and union corresponds to one satisfying one or the other. When types are interpreted as sets, intersection and union are set theoretic intersection and union. \todo{Clean up this paragraph.}
+
+\todo{Some stuff.}
+
+Our contributions are as follows:
+\begin{itemize}
+  \item We introduce intersection and union types to a session-types concurrent calculus and prove standard type preservation and progress theorems.
+  \item We give a simple and sound subtyping relation in the presence of equirecursive types, intersections, and unions reminiscent of Gentzen's multiple conclusion logic \cite{Gentzen35, Girard87}.
+  \item We show how intersections and unions can be used as refinements of recursive types in the style of \cite{FreemanP91}.
+  \item We show that subtyping and type checking are decidable. \todo{Combine this above.}
+  \item We demonstrate how certain structural type constructs (i.e.\ internal and external choices) can be understood as singletons interacting with intersection and union.
+\end{itemize}
+
+\section{From Linear Logic to Session Types}
+
+\section{Refinement Types}
+
+  \subsection{Intersection Types}
+
+  \subsection{Union Types}
+
+  \subsection{Subtyping}
+
+\section{Progress and Type Preservation}
+
+\begin{theorem}[Progress]
+If $\providesCtx \config \ctx$ then either
+\begin{enumerate}
+  \item $\steps{\config}{\config'}$ for some $\config'$, or
+  \item $\config$ is poised.
+\end{enumerate}
+\end{theorem}
+
+
+\begin{theorem}[Preservation]
+If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
+\end{theorem}
+
+\section{Related Work}
+
+\section{Conclusion}
+
+
+\appendix
+
+
+%%
+%% Bibliography
+%%
+
+
+\bibliography{bibliography}
+
+
+
+\end{document}
