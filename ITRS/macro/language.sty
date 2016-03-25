@@ -9,7 +9,7 @@
 
 
 \SetupKeyvalOptions{
-  prefix=macro@types@
+  prefix=macro@language@
 }
 
 \DeclareStringOption[x]{index}
@@ -40,8 +40,8 @@
 \newcommand\internalSing[2]{\internal\braces{{#1} : {#2}}}
 \newcommand\externalSing[2]{\external\braces{{#1} : {#2}}}
 
-\newcommand\internals[2]{\internal\braces{\macro@types@label_\macro@types@index : {#1}_\macro@types@index}_{\macro@types@index \in #2}}
-\newcommand\externals[2]{\external\braces{\macro@types@label_\macro@types@index : {#1}_\macro@types@index}_{\macro@types@index \in #2}}
+\newcommand\internals[2]{\internal\braces{\macro@language@label_\macro@language@index : {#1}_\macro@language@index}_{\macro@language@index \in #2}}
+\newcommand\externals[2]{\external\braces{\macro@language@label_\macro@language@index : {#1}_\macro@language@index}_{\macro@language@index \in #2}}
 
 
 \newcommand\intersect{\mathbin{\sqcap}}
@@ -78,8 +78,8 @@
 
 \newcommand\tbranch[2]{#1 \rightarrow #2}
 \newcommand\tbranches[2]{\braces
-  { \macro@terms@label_\macro@terms@index
-  \rightarrow #1_\macro@terms@index}_{\macro@terms@index \in #2}
+  { \macro@language@label_\macro@language@index
+  \rightarrow #1_\macro@language@index}_{\macro@language@index \in #2}
   }
 
 \newcommand\tvector[1]{\bar{#1}}

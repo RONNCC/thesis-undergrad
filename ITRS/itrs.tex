@@ -7,8 +7,11 @@
 
 \usepackage{todonotes}
 
+\newcommand\indexVar{x}
+\newcommand\lab{lab}
+
 \usepackage{macro/generic}
-\usepackage{macro/language}
+\usepackage[index=\indexVar,label=\lab]{macro/language}
 
 
 
@@ -52,7 +55,7 @@
 \maketitle
 
 \begin{abstract}
-Prior work has exploited deep connection between linear sequent calculus and session-typed message-passing concurrent computation by introducing equirecursive types with a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. In the resulting system, we can represent internal and external choice by intersection and union, as first suggested by Padovani for a different system of session types.
+Prior work has explored the deep connection between linear sequent calculus and session-typed message-passing concurrent computation by combining equirecursive types with a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. In the resulting system, we can represent internal and external choice by intersection and union, as first suggested by Padovani for a different system of session types.
 \todo{Better abstract.}
 \end{abstract}
 
@@ -63,8 +66,6 @@ Prior work has exploited deep connection between linear sequent calculus and ses
 \section{Typesetting instructions -- please read carefully}
 Please comply with the following instructions when preparing your article for a LIPIcs proceedings volume. 
 \begin{itemize}
-\item Use further LaTeX packages only if required. Avoid usage of packages like \verb+enumitem+, \verb+enumerate+, \verb+cleverref+. Keep it simple, i.e. use as few additional packages as possible.
-\item Add custom made macros carefully and only those which are needed in the article (i.e., do not simply add your convolute of macros collected over the years).
 \item Fill out the \verb+\subjclass+ and \verb+\keywords+ macros. For the \verb+\subjclass+, please refer to the ACM classification at \url{http://www.acm.org/about/class/ccs98-html}.
 \item Take care of suitable linebreaks and pagebreaks. No overfull \verb+\hboxes+ should occur in the warnings log.
 \end{itemize}
@@ -72,24 +73,129 @@ Please comply with the following instructions when preparing your article for a 
 
 \section{Introduction}
 
-Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear prepositions are identified with session-types, which are assigned to channels and dictate the communication behaviour along them. Each channel is offered by a unique process and used by exactly one, which is where linearity comes in.
+Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are identified with session-types that are assigned to channels and dictate the communication behaviour along them. Each channel is offered by a unique process and used by exactly one, which is where linearity comes in. When the behaviour along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides along $c$ the type $A$.
 
-In the base system, types directly correspond to certain types of behaviour. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural} types since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property} types since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties and union corresponds to one satisfying one or the other. When types are interpreted as sets, intersection and union are set theoretic intersection and union. \todo{Clean up this paragraph.}
+In the base system, each type directly corresponds to process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural} types since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property} types since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other. When types are interpreted as sets, intersection and union are set theoretic intersection and union. \todo{I don't think I need the set theoretic interpretation, but there are many ways to think about intersections and unions. Which ones are important?}
 
-\todo{Some stuff.}
+Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviours, which we demonstrate with concrete examples and by analogy to \cite{FreemanP91}.
 
-Our contributions are as follows:
+Our contributions are summarized below:
 \begin{itemize}
-  \item We introduce intersection and union types to a session-types concurrent calculus and prove standard type preservation and progress theorems.
-  \item We give a simple and sound subtyping relation in the presence of equirecursive types, intersections, and unions reminiscent of Gentzen's multiple conclusion logic \cite{Gentzen35, Girard87}.
-  \item We show how intersections and unions can be used as refinements of recursive types in the style of \cite{FreemanP91}.
-  \item We show that subtyping and type checking are decidable. \todo{Combine this above.}
+  \item We introduce intersection and union types to a session-typed concurrent calculus and prove standard type preservation and progress theorems.
+  \item We give a simple and sound coinductive subtyping relation in the presence of equirecursive types, intersections, and unions reminiscent of Gentzen's multiple conclusion logic \cite{Gentzen35, Girard87}.
+  \item We show how intersections and unions can be used as refinements of recursive types in the style of \cite{FreemanP91} in a linear setting.
+  \item We show that subtyping and type checking are decidable by presenting an algorithmic system.
   \item We demonstrate how certain structural type constructs (i.e.\ internal and external choices) can be understood as singletons interacting with intersection and union.
 \end{itemize}
 
-\section{From Linear Logic to Session Types}
+\todo{Non contributions.}
+Some aspects that would be important in a full accounting of the system but are left out for the sake of conciseness are as follows:
+\begin{itemize}
+  \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13}.
+  \item We do not consider shared/unrestricted channels and believe they are a simple extension \cite{CairesP10}.
+  \item Asynchronous communication does not depend on the specifics of the type system and should be trivial \cite{CairesP10}.
+  \item Polymorphism and abstract types are not in the system. Depending on the specifics, polymorphism can be tricky in the presence of equirecursive types and requires some care. \todo{Citation.}
+\end{itemize}
 
-\section{Refinement Types}
+The rest of this paper is structured as follows. In section~\ref{base}, we formally introduce the base system and explore the correspondence between linear logic and session types more. Section~\ref{recursive} extends the base system with recursive types and a natural notion of coinductive subtyping. Section~\ref{refinements} is where our contribution starts. We add intersections and unions and modify the subtyping relation to handle distributivity cleanly. Section~\ref{metatheory} discusses the metatheory, section~\ref{algorithmic} gives an algorithmic system for type-checking, and finally, section~\ref{conclusion} concludes.
+
+
+\section{From Linear Logic to Session Types}
+\label{base}
+
+\subsection{Linear Propositions as Session Types}
+
+The syntax and intended meanings of session types are as follows:
+
+\begin{center}
+\begin{tabular}{l c l l}
+  $A, B, C$ & ::= & $\terminate$        & send \texttt{end} and terminate \\
+            & $|$ & $A \tensor B$       & send channel of type $A$ and continue as $B$ \\
+            & $|$ & $\internals{A}{I}$  & send $\lab_i$ and continue as $A_i$ \\
+            & $|$ & $\tau \sendVal B$   & send value of type $\tau$ and continue as $B$ \\
+            & $|$ & $A \lolli B$        & receive channel of type $A$ and continue as $B$ \\
+            & $|$ & $\externals{A}{I}$  & receive $\lab_i$ and continue as $A_i$ \\
+            & $|$ & $\tau \recvVal B$   & receive value of type $\tau$ and continue as $B$
+\end{tabular}
+\end{center} 
+$\terminate$ corresponds to processes that offer no interesting behaviour. The types $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\internals A I$ is called an internal choice, since the label is picked by the provider (we always look at things from the provider's perspective). Similarly, $\externals A I$ is an external choice since the choice is made by the provider. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique. Finally, $\tau \sendVal B$ and $\tau \recvVal B$ type processes that send and receive values in some underlying functional language. We will ignore these types and limit our focus to the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
+
+
+\subsection{Process Expressions}
+
+Below is a summary of the process expressions, with the sending construct
+followed by the matching receiving construct.
+
+\begin{center}
+\begin{tabular}{l c l l}
+  $P, Q, R$ & ::= & $\tspawn{x}{P_x}{Q_x}$     & cut (spawn) \\
+            & $|$ & $\tfwd c d$                & id (forward) \\
+            & $|$ & $\tclose c \mid \twait c P$  & $\terminate$ \\
+            & $|$ & $\tsend{c}{y}{P_y}{Q} \mid \trecv{x}{c}{R_x}$ & $A \tensor B,$ $A \lolli B$ \\
+            & $|$ & $\tselect{c}{}{P} \mid \tcase c {\tbranches Q i}$  & $\externals A I,$ $\internals A I$ \\
+            & $|$ & $\tsendVal{c}{M}{Q} \mid \trecvVal{n}{c}{R_n}$ & $A \sendVal B,$ $A \recvVal B$
+\end{tabular}
+\end{center}
+
+
+\subsection{Type Assignment for Processes}
+
+We assign sessions to processes using the rules in Figure~\ref{session-assignment}.
+
+\begin{rules}[session-assignment]{Type assignment for process expressions}
+  % id and cut
+  \infer[\id]{ \typeD {c : A} {\tfwd{d}{c}} {d} {A} }
+    {}
+  \and \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
+    { \typeD {\ctx} {P_c} {c} {A}
+    & \typeD {\ctx', c : A} {Q_c} {d} {D}
+    }
+  % Terminate
+  \and \infer[\terminate\Right]{\typeD{\emptyCtx}{\tclose c}{c}{\terminate}}
+    {}
+  \and \infer[\terminate\Left]{\typeD{\ctx, c : \terminate}{\twait c P}{d}{A}}
+    {\typeDJ{P}{d}{A}}
+  % Tensor
+  \and \infer[\tensor\Right]{\typeD{\ctx, \ctx'}{\tsend{c}{d}{P_d}{Q}}{c}{A \tensor B}}
+    { \typeD{\ctx}{P}{d}{A}
+    & \typeD{\ctx'}{Q}{c}{B}
+    }
+  \and \infer[\tensor\Left]{ \typeD{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{E} }
+    { \typeD{\ctx, d : A, c : B}{P_d}{e}{E} }
+  % Internal choice
+  \and \infer[\internal\Right]{\typeDJ { \tselect{c}{i}{P} } {c} {\internals{A}{I}} }
+    { i \in I
+    & \typeDJ{P}{c}{A_i}
+    }
+  \and \infer[\internal\Left]{ \typeD { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {D} }
+   { I \subseteq J
+   & \typeD{\ctx, c : A_k}{P_k}{d}{D}~\text{for}~k\in I
+   }
+  % Implication
+  \and \infer[\lolli\Right]{ \typeD{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B} }
+    { \typeD{\ctx, d : A}{P_d}{c}{B} }
+  \and \infer[\lolli\Left]{\typeD{\ctx, \ctx', c : A \lolli B}{ \tsend{c}{d}{P_d}{Q} } {e}{E}}
+    { \typeD{\ctx}{P_d}{d}{A}
+    & \typeD{\ctx', c : B}{Q}{e}{E}
+    }
+  % External choice
+  \and \infer[\external\Right]{ \typeDJ { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}} }
+   { J \subseteq I
+   & \typeDJ{P_k}{c}{A_k}~\text{for}~k\in J
+   }
+  \and \infer[\external\Left]{\typeD{\ctx, c : \externals{A}{I}} { \tselect{c}{i}{P} } {d} {D}}
+    { i \in I
+    & \typeD{\ctx, c : A_i}{P}{d}{D}
+    }
+\end{rules}
+
+
+\section{Recursive Types and Subtyping}
+\label{recursive}
+
+
+\section{Intersections and Unions}
+\label{refinements}
 
   \subsection{Intersection Types}
 
@@ -97,7 +203,9 @@ Our contributions are as follows:
 
   \subsection{Subtyping}
 
-\section{Progress and Type Preservation}
+
+\section{Metatheory}
+\label{metatheory}
 
 \begin{theorem}[Progress]
 If $\providesCtx \config \ctx$ then either
@@ -112,9 +220,13 @@ If $\providesCtx \config \ctx$ then either
 If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
 \end{theorem}
 
-\section{Related Work}
+
+\section{Algorithmic System}
+\label{algorithmic}
+
 
 \section{Conclusion}
+\label{conclusion}
 
 
 \appendix
