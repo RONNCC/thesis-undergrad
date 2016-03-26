@@ -17,7 +17,7 @@
 \bibliographystyle{plainurl}
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Refinements for Session-typed Concurrency\footnote{This work was partially supported by someone.}}
+\title{Refinements for Session-typed Concurrency\footnote{This research was supported in part by NSF grant CNS1423168.}}
 %\titlerunning{Refinements for Session-typed Concurrency}
 
 \author[1]{Co\c{s}ku Acay}
@@ -59,10 +59,8 @@ Prior work has explored the deep connection between linear sequent calculus and 
 
  \todo{Find best subjclass}
  \todo{Pick keywords}
- \todo{Are we sponsored by someone?}
 
 \section{Typesetting instructions -- please read carefully}
-Please comply with the following instructions when preparing your article for a LIPIcs proceedings volume. 
 \begin{itemize}
 \item Fill out the \verb+\subjclass+ and \verb+\keywords+ macros. For the \verb+\subjclass+, please refer to the ACM classification at \url{http://www.acm.org/about/class/ccs98-html}.
 \item Take care of suitable linebreaks and pagebreaks. No overfull \verb+\hboxes+ should occur in the warnings log.
@@ -86,7 +84,6 @@ Our contributions are summarized below:
   \item We demonstrate how certain structural type constructs (i.e.\ internal and external choices) can be understood as singletons interacting with intersection and union.
 \end{itemize}
 
-\todo{Non contributions.}
 Some aspects that would be important in a full accounting of the system but are left out for the sake of conciseness are as follows:
 \begin{itemize}
   \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13}.
@@ -114,7 +111,7 @@ $$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
     & \typeD {\ctx', c : A} {Q_c} {d} {D}
     }
 $$
-\todo{Mention the system is different from $\pi$ calculus?}.
+\todo{Mention the system is different from $\pi$ calculus?}
 
 Working out the isomorphism further and assigning a session type to each linear proposition gives the following interpretation:
 
@@ -172,7 +169,7 @@ This states a process level natural number is an internal choice of either zero 
     `c <- `d
 \end{lstlisting}
 
-\texttt{zero} simply sends the label \texttt{zero} and terminates, whereas \texttt{suc} appends a successor to the given process. Here is a slightly more complicated example that doubles the given natural:
+\texttt{zero} simply sends the label \texttt{zero} and terminates, whereas \texttt{suc} appends a successor to the given process. \todo{Explain or remove do notation}. Here is a slightly more complicated example that doubles the given natural:
 
 \begin{lstlisting}[language=krill, style=custom]
   double : Nat -o Nat
@@ -190,7 +187,7 @@ These are very simple examples, though we hope they offer some insight into the 
 
 \subsection{Type Assignment for Processes}
 
-The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms just as we did with $\cut$. The rules are given in Figure~\ref{session-assignment}. \todo{Talk more about these maybe?}
+The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms just as we did with $\cut$. The rules are given in Figure~\ref{session-assignment}. \todo{Talk more about these maybe?} \todo{Should they go into the Appendix.}
 
 \begin{rules}[session-assignment]{Type assignment for process expressions}
   % id and cut
@@ -240,8 +237,141 @@ The typing rules for other constructs are derived from linear logic by decoratin
 \end{rules}
 
 
+\subsection{Process Configurations}
+
+So far in the theory, we have only considered processes in isolation. In this section, we introduce process configurations in order to talk about the interactions between multiple processes. A process configuration is simply a set of processes where each process is labelled with the channel along which it provides. We use the notation $\proc c P$ for labelling the process $P$, and require that all labels in a configuration are distinct. That is, a process configuration $\set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is valid if and only if $c_1, \ldots, c_n$ are all distinct. Note that we do not require channels that occur within $P_i$ to be distinct, this is handled by the typing judgement given next.
+
+With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge (including the root nodes which have ``phantom'' edges) and any number of incoming edges that correspond to channels the process uses. This observation suggests the typing rules in Figure \ref{configuration-typing}, which mimic the structure of a multi-way tree, for a process configuration.
+
+\begin{rules}[configuration-typing]{Configuration Typing}
+  \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
+   { \typeRecD \ctx \emptyset P c A
+   & \providesCtx \config \ctx
+   }
+
+   \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
+    { \provides {\config_i} {c_i} {A_i} ~\text{for}~ i \in \set{1, \ldots, n}
+    & i = 0 \vee i > 1
+    }
+\end{rules}
+
+This definition is well-founded since the size of the configuration gets strictly smaller. The rules only expose the types of the roots since this is the only information we need when typing the next level. At the top level, we will usually start with one process with type $\terminate$, which will spawn off providers as needed using $\cut$. Since we do not care about the specific type at the top level, we say a process configuration $\config$ is well typed if $\providesCtx \config \ctx$ for some $\ctx$. Finally, note that the rules do not allow cyclic uses of channel names, and that the left of the turnstile is empty since configurations must be closed.
+
+
+\subsection{Operational Semantics}
+
+A process configuration evolves over time when a process takes a step (forwarding and cut step without communication) or when two matching processes communicate. For example, the processes configuration $\config, \proc c {\tclose c}, \proc d {\twait c P}$ can step to $\config, \proc d P$. We can express the rules guiding such transitions as \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{Cervesato06}. For example, the above rule is written as:
+$$ \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}} \lolli \monad{\proc{d}{P}}. $$
+Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. Instead, $\tensor$ should be interpreted as conjunctions, and $\lolli$ marks transition rules. So, $A \tensor B \tensor C \lolli D \tensor E$ would mean we could replace the resources $A, B, C$ together to get a $D, E$. The curly braces $\braces \ldots$ indicated a monad which essentially forces the rules to be interpreted as a multiset rewriting rule \todo{Citation}. The rest of the rules are given in Figure \ref{operational}.
+
+\begin{figure}[!ht]
+  \centering
+\begin{align*}
+  % Id
+  \irb{id}     \hspace{1em} & : \proc{c}{\tfwd{c}{d}} \lolli \monad{c = d} \\
+  % Cut
+  \irb{cut}    \hspace{1em} & : \proc{c}{\tspawn{x}{P_x}{Q_x}}
+      \lolli \monad{\exists a. \proc{a}{P_a} \otimes \proc{c}{Q_a}} \\
+  % One
+  \irb{one} \hspace{1em} & : \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}}
+    \lolli \monad{\proc{d}{P}} \\
+  % Tensor
+  \irb{tensor} \hspace{1em} & : \proc{c}{\tsend{c}{x}{P_x}{Q}} \otimes \proc{e}{\trecv{x}{c}{R_x}} \\
+    & \hspace{2em} \lolli \monad{ \exists a. \proc{a}{P_{a}} \otimes \proc{c}{Q} \otimes \proc{e}{R_{a}} } \\
+  % Internal
+  \irb{internal} \hspace{1em} & : \proc{c}{\tselect{c}{i}{P}} \otimes \proc{d}{\tcase{c}{\tbranches Q I}} \otimes i \in I \\
+    & \hspace{2em} \lolli \monad{ \proc{c}{P} \otimes \proc{d}{Q_i} } \\
+  % Lolli
+  \irb{lolli} \hspace{1em} & : \proc{c}{\trecv{x}{c}{P_x}} \otimes \proc{d}{\tsend{c}{x}{Q_x}{R}} \\
+    & \hspace{2em} \lolli \monad{ \exists a. \proc{c}{P_{a}} \otimes \proc{a}{Q_a} \otimes \proc{d}{R} } \\
+  % External
+  \irb{external} \hspace{1em} & : \proc{c}{\tcase{c}{\tbranches P I}} \otimes \proc{d}{\tselect c i Q} \otimes i \in I \\
+    & \hspace{2em} \lolli \monad{ \proc{c}{P_i} \otimes \proc{d}{Q} } \\
+\end{align*}
+\caption{Substructural operational semantics}
+\label{operational}
+\end{figure}
+
+
 \section{Recursive Types and Subtyping}
 \label{recursive}
+
+\todo{The whole section is copy-pasted from the thesis. Shorten and reword.}
+
+We extend the language of types with a new construct:
+\begin{center}
+\begin{tabular}{l c l l}
+  $A, B, C$ & ::= & \ldots               & everything from before \\
+            & $|$ & $t$                  & type variables \\
+            & $|$ & $\recursive{t}{A_t}$ & (equi)recursive type
+\end{tabular}
+\end{center}
+
+We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions to go between the two types. This is sometimes called the equirecursive approach as opposed to the isorecursive approach since the recursive type and its unfolding are \emph{equated} rather than identified up to \emph{isomorphism} witnessed by term level construct like  $\mathtt{fold}$ and $\mathtt{unfold}$. Equirecursive tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
+
+In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
+
+
+\subsubsection{Contractiveness}
+
+Intuitively, a recursive type $\recursive t A$ is contractive if all occurrences of $t$ in $A$ are under a \emph{structural} (i.e.\ not $\mu$) type constructor. For example, $\recursive t {\terminate \lolli t}$ and $\recursive t {t \tensor t}$ are contractive whereas $\recursive t t$ and $\recursive t {\recursive u t}$ are not.
+
+We formalize contractiveness using the notion of unguarded variables \cite{StoneS2005}. Unguarded variables of a type $A$, denoted $\unguarded{(A)}$, are defined inductively as follows:
+\begin{align*}
+  \unguarded{(\terminate)} &= \emptyset \\
+  \unguarded{(A \tensor B)} &= \emptyset \\
+  \unguarded{(\internals A I)} &= \emptyset \\
+  \unguarded{(A \lolli B)} &= \emptyset \\
+  \unguarded{(\externals A I)} &= \emptyset \\
+  \unguarded{(t)} &= \set{t} \\
+  \unguarded{(\recursive t A)} &= \unguarded{(A)} \setminus \set{t}
+\end{align*}
+
+A type is then said to be contractive if every occurrence of $\recursive t A$ satisfies $t \not\in \unguarded{(A)}$ as formalized in Figure \ref{contractiveness}. \todo{I think the figure is unnecessary in a paper.}
+
+\begin{rules}[contractiveness]{Contractiveness}
+  \infer{\contractive \terminate}{}
+  \and \infer{\contractive {A \tensor B}}{\contractive A & \contractive B}
+  \and \infer{\contractive {\internals A I}}{\contractive{A_x}~\text{for}~x \in I}
+  \and \infer{\contractive {A \lolli B}}{\contractive A & \contractive B}
+  \and \infer{\contractive {\externals A I}}{\contractive{A_x}~\text{for}~x \in I}
+  \and \infer{\contractive {\recursive t A}}{t \not\in \unguarded{(A)} & \contractive{A}}
+\end{rules}
+
+
+\subsubsection{Well-formed Types}
+
+\todo{Can be summarized in two sentences. Don't need a whole section with two paragraphs.}
+Introduction of type variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. Fortunately, all such types can be eliminated by requiring all types to be closed. That is, the set of free variables of a type should be empty. Just like contractiveness, we will assume all types we consider are closed and will not explicitly restate this assumption. Every operation we need on types preserves this property%
+\footnote{We will only unfold a $\mu$ which clearly results in a closed type given a closed type. We never take a $\mu$ apart. We will break down other types such as $A \tensor B$, but that cannot result in an open type.}%
+, so this is not an issue.
+
+
+\subsection{Recursive Processes}
+
+We introduce a new form of process expression which we write $\trec {p} {\tvector c} P_p$ which are modeled after the corecursive processes of \cite{Toninho14}. Here, $p$ is a process variable that intuitively stands for the whole expression and $\tvector c$ is an ordered list of channel names that is used to parametrize the expression over channel names. We use the notation $\tapp P {\tvector c}$ to denote specialization. Parametrization is useful in case we want to rename the provided or used channels. For instance, we will often want to spawn a copy of the overall expression: $\trec p c {\tspawn d {\tapp p d} P_d}$ where $P_d$ is some process that consumes $d$ and offers along $c$. The typing rules limit specialization to recursive processes and process variables.
+
+We also have to extend the typing context to keep track of process variables. Note that we cannot simply add this information to the existing context since that contexts tracks channel names which are different from processes. In addition, the channel context is linear, but there is no reason to limit recursive occurrences of a process to exactly one place. We write the new judgement as $\typeRecDJ P c A$, where $\recCtx$ stores the typing context for process variables. As usual, we assume variable names in $\recCtx$ are made unique through alpha renaming. Recursive processes are typed using the rules in Figure \ref{recursive-process}. These are the only rules that modify the process variable context, all other rules simply pass it up unchanged.
+
+\begin{rules}[recursive-process]{Type assignment for recursive processes}
+  \infer[\rec]{\typeRecDJ {\tapp {\parens*{ \trec p {\tvector y} P}} {\tvector z}} c A}
+   { \typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c A
+   & \recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A
+   }
+
+   \and \infer[\procVar]{\typeRecD {\rho{\parens \ctx}} \recCtx {\tapp p {\tvector z}} {\rho{\parens c}} A}
+    {\typeDJ {\tvar p {\tvector y}} c A \in \recCtx
+    & \rho{(\vartheta)} = \subst {\tvector z} {\tvector y} \vartheta
+    }
+\end{rules}
+
+Note that in the definition of $\recCtx'$, $\typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A$ is not a typing judgement. Instead, $\recCtx$ should be thought of as nothing more than a map from variable names to four tuples containing parameter names, typing context, provided channel name, and provided type. It is necessary to store the context since channels are linear and channel types evolve over time, but the context needs to be the same at every occurrence of $p$.
+
+
+\subsection{Subtyping}
+
+\todo{Talk about this.}
+
 
 
 \section{Intersections and Unions}
