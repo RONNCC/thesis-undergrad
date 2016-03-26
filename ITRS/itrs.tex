@@ -12,9 +12,7 @@
 
 \usepackage{macro/generic}
 \usepackage[index=\indexVar,label=\lab]{macro/language}
-
-
-
+\usepackage{macro/code}
 
 \bibliographystyle{plainurl}
 
@@ -73,7 +71,7 @@ Please comply with the following instructions when preparing your article for a 
 
 \section{Introduction}
 
-Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are identified with session-types that are assigned to channels and dictate the communication behaviour along them. Each channel is offered by a unique process and used by exactly one, which is where linearity comes in. When the behaviour along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides along $c$ the type $A$.
+Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are interpreted as session-types, proofs as processes, and cut elimination as communication. Session types are assigned to channels and prescribe the communication behaviour along them. Each channel is offered by a unique process and used by exactly one, which is where linearity comes in. When the behaviour along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides along $c$ the type $A$.
 
 In the base system, each type directly corresponds to process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural} types since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property} types since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other. When types are interpreted as sets, intersection and union are set theoretic intersection and union. \todo{I don't think I need the set theoretic interpretation, but there are many ways to think about intersections and unions. Which ones are important?}
 
@@ -102,10 +100,23 @@ The rest of this paper is structured as follows. In section~\ref{base}, we forma
 
 \section{From Linear Logic to Session Types}
 \label{base}
+We only give a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. In the intuitionistic setting, this is written as a linear hypothetical judgement:
+$$ A_1, \ldots, A_n \vdash A $$
+where $A_1$ through $A_n$ are the hypothesis that must be used exactly once in the proof of $A$. The order of hypothesis is irrelevant, so they are treated as a (multi) set. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut elimination as communication. For this correspondence, hypothesis are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This leads to the following judgement:
+$$ \typeD {c_1 : A_1, \ldots, c_n : A_n} P c A$$
+which should be interpreted as ``$P$ offers along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ with the corresponding types''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct.
 
-\subsection{Linear Propositions as Session Types}
+Each process offers along a specific channel, and in the linear setting, each channel must be used exactly in one place. Processes cannot rename channels, which suggests that channel names act as unique process identifiers.
 
-The syntax and intended meanings of session types are as follows:
+Within this framework, the $\cut$ rule corresponds to a form of process composition where the main process (client) spawns off a helper process (provider) which it can communicate with from then on:
+$$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
+    { \typeD {\ctx} {P_c} {c} {A}
+    & \typeD {\ctx', c : A} {Q_c} {d} {D}
+    }
+$$
+\todo{Mention the system is different from $\pi$ calculus?}.
+
+Working out the isomorphism further and assigning a session type to each linear proposition gives the following interpretation:
 
 \begin{center}
 \begin{tabular}{l c l l}
@@ -117,14 +128,16 @@ The syntax and intended meanings of session types are as follows:
             & $|$ & $\externals{A}{I}$  & receive $\lab_i$ and continue as $A_i$ \\
             & $|$ & $\tau \recvVal B$   & receive value of type $\tau$ and continue as $B$
 \end{tabular}
-\end{center} 
-$\terminate$ corresponds to processes that offer no interesting behaviour. The types $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\internals A I$ is called an internal choice, since the label is picked by the provider (we always look at things from the provider's perspective). Similarly, $\externals A I$ is an external choice since the choice is made by the provider. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique. Finally, $\tau \sendVal B$ and $\tau \recvVal B$ type processes that send and receive values in some underlying functional language. We will ignore these types and limit our focus to the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
+\end{center}
+
+The process with trivial behaviour is typed by $\terminate$. $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\tau \sendVal B$ and $\tau \recvVal B$ are similar, but values in some underlying functional language are exchanged rather than channels. We will ignore these types for the sake of conciseness and focus on the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
+
+Possibly the more interesting types are $\internals A I$ and $\externals A I$ which are generalizations of the binary additive disjunction ($\internal$) and conjunction ($\external$). $\internals A I$ is called an internal choice, since the label is picked by the provider (we always consider the world from the provider's perspective). In the same vein, $\externals A I$ is an external choice since the choice is made externally by the client. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique.
 
 
 \subsection{Process Expressions}
 
-Below is a summary of the process expressions, with the sending construct
-followed by the matching receiving construct.
+The proof terms, or processes, corresponding to these types are given below with the sending construct followed by the receiving construct. Depending on whether the communication happens along the provided channel or one of the used channels, we get either a type or its dual. \todo{This sentence sounds wack}.
 
 \begin{center}
 \begin{tabular}{l c l l}
@@ -137,10 +150,47 @@ followed by the matching receiving construct.
 \end{tabular}
 \end{center}
 
+An example program will give more intuition about the system. We will look at process level natural numbers, which will also be our running example in this paper. Note that we will use concrete syntax, but the mapping to abstract syntax presented above should be clear. Also, this example (and almost any interesting one) requires recursive types, which are introduced in the next section. However, it should be good enough to give some intuition.
+
+First, we define the interface:
+
+\begin{lstlisting}[language=krill, style=custom]
+  type Nat = +{zero : 1, succ : Nat}
+\end{lstlisting}
+
+This states a process level natural number is an internal choice of either zero or a successor of another natural. Next, we define two simple processes that implement the interface:
+
+\begin{lstlisting}[language=krill, style=custom]
+  zero : Nat
+  `c <- zero = do
+    `c.zero
+    close `c
+
+  succ : Nat -o Nat
+  `c <- succ `d = do
+    `c.succ
+    `c <- `d
+\end{lstlisting}
+
+\texttt{zero} simply sends the label \texttt{zero} and terminates, whereas \texttt{suc} appends a successor to the given process. Here is a slightly more complicated example that doubles the given natural:
+
+\begin{lstlisting}[language=krill, style=custom]
+  double : Nat -o Nat
+  `c <- double `d =
+    case `d of
+      zero -> do wait `d; `c.zero; close `c
+      succ -> do
+        `c.succ
+        `c.succ
+        `c <- double `d
+\end{lstlisting}
+
+These are very simple examples, though we hope they offer some insight into the system. We will expand on these example when we introduce intersections and unions, and give more interesting ones at the end once we have the whole system.
+
 
 \subsection{Type Assignment for Processes}
 
-We assign sessions to processes using the rules in Figure~\ref{session-assignment}.
+The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms just as we did with $\cut$. The rules are given in Figure~\ref{session-assignment}. \todo{Talk more about these maybe?}
 
 \begin{rules}[session-assignment]{Type assignment for process expressions}
   % id and cut
