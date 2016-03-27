@@ -17,7 +17,7 @@
 \bibliographystyle{plainurl}
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Refinements for Session-typed Concurrency\footnote{This research was supported in part by NSF grant CNS1423168.}}
+\title{Intersections and Unions of Session Types\footnote{This research was supported in part by NSF grant CNS1423168.}}
 %\titlerunning{Refinements for Session-typed Concurrency}
 
 \author[1]{Co\c{s}ku Acay}
@@ -53,43 +53,53 @@
 \maketitle
 
 \begin{abstract}
-Prior work has explored the deep connection between linear sequent calculus and session-typed message-passing concurrent computation by combining equirecursive types with a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. In the resulting system, we can represent internal and external choice by intersection and union, as first suggested by Padovani for a different system of session types.
-\todo{Better abstract.}
+  Prior work has extended the deep, logical connection between linear
+  sequent calculus and session-typed message-passing concurrent
+  computation with equirecursive types and a natural notion of
+  subtyping. In this paper we extend this further by intersection and
+  union types in order to express multiple behavioral properties of
+  processes in a single type. We prove session fidelity and absence of
+  deadlock and illustrate the expressive power of our system with some
+  simple examples. We observe that we can represent internal and
+  external choice by intersection and union, respectively, as first
+  suggested by Padovani for a different language of session types
+  motivated by operational rather than logical concerns.
 \end{abstract}
 
  \todo{Find best subjclass}
  \todo{Pick keywords}
 
-\section{Typesetting instructions -- please read carefully}
-\begin{itemize}
-\item Fill out the \verb+\subjclass+ and \verb+\keywords+ macros. For the \verb+\subjclass+, please refer to the ACM classification at \url{http://www.acm.org/about/class/ccs98-html}.
-\item Take care of suitable linebreaks and pagebreaks. No overfull \verb+\hboxes+ should occur in the warnings log.
-\end{itemize}
-
+% \section{Typesetting instructions -- please read carefully}
+% \begin{itemize}
+% \item Fill out the \verb+\subjclass+ and \verb+\keywords+ macros. For the \verb+\subjclass+, please refer to the ACM classification at \url{http://www.acm.org/about/class/ccs98-html}.
+% \item Take care of suitable linebreaks and pagebreaks. No overfull \verb+\hboxes+ should occur in the warnings log.
+% \end{itemize}
 
 \section{Introduction}
 
-Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are interpreted as session-types, proofs as processes, and cut elimination as communication. Session types are assigned to channels and prescribe the communication behaviour along them. Each channel is offered by a unique process and used by exactly one, which is where linearity comes in. When the behaviour along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides along $c$ the type $A$.
+Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are interpreted as session-types, proofs as processes, and cut elimination as communication. Session types are assigned to channels and prescribe the communication behavior along them. Each channel is offered by a unique process and used by exactly one, which is ensured by linearity. When the behaviour along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides a communcation of type $A$ along $c$.
 
-In the base system, each type directly corresponds to process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural} types since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property} types since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other. When types are interpreted as sets, intersection and union are set theoretic intersection and union. \todo{I don't think I need the set theoretic interpretation, but there are many ways to think about intersections and unions. Which ones are important?}
+In the base system, each type directly corresponds to a process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural types} since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property types} since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other. 
+% When types are interpreted as sets, intersection and union are set theoretic intersection and union. \todo{I don't think I need the set theoretic interpretation, but there are many ways to think about intersections and unions. Which ones are important?}
+\todo{Delete set-theoretic interpretation because it is tricky here due to the higher-order nature of types.  Better not to get into it---the behavioral characterization is what we want. -fp}
 
-Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviours, which we demonstrate with concrete examples and by analogy to \cite{FreemanP91}.
+Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type-safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviours, which we demonstrate with examples analogous to those in functional languages \cite{FreemanP91,Dunfield03fossacs}.
 
 Our contributions are summarized below:
 \begin{itemize}
-  \item We introduce intersection and union types to a session-typed concurrent calculus and prove standard type preservation and progress theorems.
-  \item We give a simple and sound coinductive subtyping relation in the presence of equirecursive types, intersections, and unions reminiscent of Gentzen's multiple conclusion logic \cite{Gentzen35, Girard87}.
-  \item We show how intersections and unions can be used as refinements of recursive types in the style of \cite{FreemanP91} in a linear setting.
+  \item We introduce intersection and union types to a session-typed concurrent calculus and prove session fidelity and deadlock freedom.
+  \item We give a simple and sound coinductive subtyping relation in the presence of equirecursive types, intersections, and unions reminiscent of Gentzen's multiple conclusion sequent calculus \cite{Gentzen35, Girard87}.
+  \item We show how intersections and unions can be used as refinements of recursive types in a linear setting.
   \item We show that subtyping and type checking are decidable by presenting an algorithmic system.
-  \item We demonstrate how certain structural type constructs (i.e.\ internal and external choices) can be understood as singletons interacting with intersection and union.
+  \item We demonstrate how internal and external choice can be understood as singletons interacting with intersection and union.
 \end{itemize}
 
 Some aspects that would be important in a full accounting of the system but are left out for the sake of conciseness are as follows:
 \begin{itemize}
-  \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13}.
-  \item We do not consider shared/unrestricted channels and believe they are a simple extension \cite{CairesP10}.
-  \item Asynchronous communication does not depend on the specifics of the type system and should be trivial \cite{CairesP10}.
-  \item Polymorphism and abstract types are not in the system. Depending on the specifics, polymorphism can be tricky in the presence of equirecursive types and requires some care. \todo{Citation.}
+  \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13,Toninho15phd,Griffith16phd}.
+  \item We do not consider shared channels and persistent processes, which should be a straightforward extension based on prior work. \cite{CairesP10,PfenningG15}
+  \item Our operational semantics is synchronous, but asynchronous communication~\cite{DeYoung12csl} is subject to the same type system~\cite{PfenningG15,Griffith16phd}.
+  \item Behavioral polymorphism~\cite{Caires13esop} and abstract types are not in the system. Their interaction with subtyping, intersections and unions is an interesting avenue for future work.
 \end{itemize}
 
 The rest of this paper is structured as follows. In section~\ref{base}, we formally introduce the base system and explore the correspondence between linear logic and session types more. Section~\ref{recursive} extends the base system with recursive types and a natural notion of coinductive subtyping. Section~\ref{refinements} is where our contribution starts. We add intersections and unions and modify the subtyping relation to handle distributivity cleanly. Section~\ref{metatheory} discusses the metatheory, section~\ref{algorithmic} gives an algorithmic system for type-checking, and finally, section~\ref{conclusion} concludes.
