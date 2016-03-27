@@ -34,7 +34,7 @@ Internal and external choices are the main tools we use to define data types. Wi
 \subsection{Subtyping Recursive Types}
 \label{subtyping-recursive-types}
 
-A refinement system is not very useful unless we can refine recursive types, meaning we have to extend subtyping to recursive types. Just as we considered two recursive types equivalent whenever their infinite unfoldings were equivalent (refer to \cref{recursive-types}), we will consider a recursive type to be a subtype of another if their infinite unfoldings have this property. This is formalized using coinduction and one-step unfolding as before. The rules are given in \cref{subtyping-recursive}. Note that we only need to unfold on one side in these rules, so we place not restrictions on the other side. This is important if we want transitivity to be admissible.
+A refinement system is not very useful unless we can refine recursive types, meaning we have to extend subtyping to recursive types. Just as we considered two recursive types equivalent whenever their infinite unfoldings were equivalent (refer to \cref{recursive-types}), we will consider a recursive type to be a subtype of another if their infinite unfoldings have this property. This is formalized using coinduction and one-step unfolding as before. The rules are given in \cref{subtyping-recursive}. Note that we only need to unfold on one side in these rules, so we place no restrictions on the other side. This is important if we want transitivity to be admissible.
 
 \begin{rules}[subtyping-recursive]{Subtyping recursive types}
   \infer=[\Sub{\rec\Right}]{A \sub \recursive t B}

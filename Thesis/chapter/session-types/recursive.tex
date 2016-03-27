@@ -9,11 +9,11 @@ We extend the language of types with a new construct:
 \begin{tabular}{l c l l}
   $A, B, C$ & ::= & \ldots               & everything from before \\
             & $|$ & $t$                  & type variables \\
-            & $|$ & $\recursive{t}{A_t}$ & (equi-)recursive type
+            & $|$ & $\recursive{t}{A_t}$ & (equi)recursive type
 \end{tabular}
 \end{center}
 
-We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions to go between the two types. This is sometimes called the equi-recursive approach as opposed to the iso-recursive approach since the recursive type and its unfolding are \emph{equated} rather than identified up to \emph{isomorphism} witnessed by term level construct like  $\mathtt{fold}$ and $\mathtt{unfold}$. Equi-recursive tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
+We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions to go between the two types. This is sometimes called the equirecursive approach as opposed to the isorecursive approach since the recursive type and its unfolding are \emph{equated} rather than identified up to \emph{isomorphism} witnessed by term level construct like  $\mathtt{fold}$ and $\mathtt{unfold}$. Equirecursive tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
 
 In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
 
