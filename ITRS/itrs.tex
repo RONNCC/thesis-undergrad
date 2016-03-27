@@ -167,17 +167,23 @@ First, we define the interface:
 
 This states a process level natural number is an internal choice of either zero or a successor of another natural. Next, we define two simple processes that implement the interface:
 
+\begin{minipage}{.48\textwidth}
 \begin{lstlisting}[language=krill, style=custom]
   zero : Nat
   `c <- zero = do
     `c.zero
     close `c
-
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{.48\textwidth}
+\begin{lstlisting}[language=krill, style=custom]
   succ : Nat -o Nat
   `c <- succ `d = do
     `c.succ
     `c <- `d
 \end{lstlisting}
+\end{minipage}
 
 \texttt{zero} simply sends the label \texttt{zero} and terminates, whereas \texttt{suc} appends a successor to the given process. \todo{Explain or remove do notation}. Here is a slightly more complicated example that doubles the given natural:
 
@@ -186,10 +192,7 @@ This states a process level natural number is an internal choice of either zero 
   `c <- double `d =
     case `d of
       zero -> do wait `d; `c.zero; close `c
-      succ -> do
-        `c.succ
-        `c.succ
-        `c <- double `d
+      succ -> do `c.succ; `c.succ; `c <- double `d
 \end{lstlisting}
 
 These are very simple examples, though we hope they offer some insight into the system. We will expand on these example when we introduce intersections and unions, and give more interesting ones at the end once we have the whole system.
@@ -303,10 +306,12 @@ Note that the rule is written using linear connectives, however, these should no
 \end{figure}
 
 
-\section{Recursive Types and Subtyping}
+\section{Recursion and Subtyping}
 \label{recursive}
 
-\todo{The whole section is copy-pasted from the thesis. Shorten and reword.}
+Any interesting program requires the use of recursion. In fact, we used it even in our first example from the previous section. Here, we formally develop the theory of equirecursive types and recursive processes. We will also introduce (the initial version of) the subtyping judgment which is needed to deal with type equivalences induced by equirecursive types.
+
+\subsection{Recursive Types}
 
 We extend the language of types with a new construct:
 \begin{center}
@@ -317,14 +322,16 @@ We extend the language of types with a new construct:
 \end{tabular}
 \end{center}
 
-We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions to go between the two types. This is sometimes called the equirecursive approach as opposed to the isorecursive approach since the recursive type and its unfolding are \emph{equated} rather than identified up to \emph{isomorphism} witnessed by term level construct like  $\mathtt{fold}$ and $\mathtt{unfold}$. Equirecursive tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
+Introduction of type variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. We will require all types to be closed to rule out such types. This check only needs to happen at the top level since unfolding (which is the only operation we do on recursive types) maintains well-formedness.
 
-In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
+We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions ($\mathtt{unfold}$ and $\mathtt{fold}$) to go between the two types. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
+
+In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ since no amount of unfolding can remove the $\mu$. To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
 
 
 \subsubsection{Contractiveness}
 
-Intuitively, a recursive type $\recursive t A$ is contractive if all occurrences of $t$ in $A$ are under a \emph{structural} (i.e.\ not $\mu$) type constructor. For example, $\recursive t {\terminate \lolli t}$ and $\recursive t {t \tensor t}$ are contractive whereas $\recursive t t$ and $\recursive t {\recursive u t}$ are not.
+Intuitively, a recursive type $\recursive t A$ is contractive if all occurrences of $t$ in $A$ are under a \emph{structural} type constructor. For example, $\recursive t {\terminate \lolli t}$ and $\recursive t {t \tensor t}$ are contractive whereas $\recursive t t$ and $\recursive t {\recursive u t}$ are not.
 
 We formalize contractiveness using the notion of unguarded variables \cite{StoneS2005}. Unguarded variables of a type $A$, denoted $\unguarded{(A)}$, are defined inductively as follows:
 \begin{align*}
@@ -337,31 +344,14 @@ We formalize contractiveness using the notion of unguarded variables \cite{Stone
   \unguarded{(\recursive t A)} &= \unguarded{(A)} \setminus \set{t}
 \end{align*}
 
-A type is then said to be contractive if every occurrence of $\recursive t A$ satisfies $t \not\in \unguarded{(A)}$ as formalized in Figure \ref{contractiveness}. \todo{I think the figure is unnecessary in a paper.}
-
-\begin{rules}[contractiveness]{Contractiveness}
-  \infer{\contractive \terminate}{}
-  \and \infer{\contractive {A \tensor B}}{\contractive A & \contractive B}
-  \and \infer{\contractive {\internals A I}}{\contractive{A_x}~\text{for}~x \in I}
-  \and \infer{\contractive {A \lolli B}}{\contractive A & \contractive B}
-  \and \infer{\contractive {\externals A I}}{\contractive{A_x}~\text{for}~x \in I}
-  \and \infer{\contractive {\recursive t A}}{t \not\in \unguarded{(A)} & \contractive{A}}
-\end{rules}
-
-
-\subsubsection{Well-formed Types}
-
-\todo{Can be summarized in two sentences. Don't need a whole section with two paragraphs.}
-Introduction of type variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. Fortunately, all such types can be eliminated by requiring all types to be closed. That is, the set of free variables of a type should be empty. Just like contractiveness, we will assume all types we consider are closed and will not explicitly restate this assumption. Every operation we need on types preserves this property%
-\footnote{We will only unfold a $\mu$ which clearly results in a closed type given a closed type. We never take a $\mu$ apart. We will break down other types such as $A \tensor B$, but that cannot result in an open type.}%
-, so this is not an issue.
+A type is then said to be contractive if every occurrence of $\recursive t A$ satisfies $t \not\in \unguarded{(A)}$.
 
 
 \subsection{Recursive Processes}
 
 We introduce a new form of process expression which we write $\trec {p} {\tvector c} P_p$ which are modeled after the corecursive processes of \cite{Toninho14}. Here, $p$ is a process variable that intuitively stands for the whole expression and $\tvector c$ is an ordered list of channel names that is used to parametrize the expression over channel names. We use the notation $\tapp P {\tvector c}$ to denote specialization. Parametrization is useful in case we want to rename the provided or used channels. For instance, we will often want to spawn a copy of the overall expression: $\trec p c {\tspawn d {\tapp p d} P_d}$ where $P_d$ is some process that consumes $d$ and offers along $c$. The typing rules limit specialization to recursive processes and process variables.
 
-We also have to extend the typing context to keep track of process variables. Note that we cannot simply add this information to the existing context since that contexts tracks channel names which are different from processes. In addition, the channel context is linear, but there is no reason to limit recursive occurrences of a process to exactly one place. We write the new judgement as $\typeRecDJ P c A$, where $\recCtx$ stores the typing context for process variables. As usual, we assume variable names in $\recCtx$ are made unique through alpha renaming. Recursive processes are typed using the rules in Figure \ref{recursive-process}. These are the only rules that modify the process variable context, all other rules simply pass it up unchanged.
+We also have to extend the typing context to keep track of process variables. Note that we cannot simply add this information to the existing context since that contexts tracks channel names which are different from processes. In addition, the channel context is linear, but there is no reason to limit recursive occurrences of a process to exactly one place. We write the new judgement as $\typeRecDJ P c A$, where $\recCtx$ stores the typing context for process variables. As usual, we assume variable names in $\recCtx$ are made unique through alpha renaming. Recursive processes are typed using the rules in Figure~\ref{recursive-process}. These are the only rules that modify the process variable context, all other rules simply pass it up unchanged.
 
 \begin{rules}[recursive-process]{Type assignment for recursive processes}
   \infer[\rec]{\typeRecDJ {\tapp {\parens*{ \trec p {\tvector y} P}} {\tvector z}} c A}
@@ -380,8 +370,38 @@ Note that in the definition of $\recCtx'$, $\typeD {\subst {\tvector y} {\tvecto
 
 \subsection{Subtyping}
 
-\todo{Talk about this.}
+Previously, we mentioned we would identify a recursive type and its unfolding, but we have not introduced any formal rules to actually implement this. One way of doing that would be to introduce a type equality judgement (written $A \typeeq B$) and add conversion rules. However, it turns out to be more practical to build this identification into a subtyping judgment (written $A \sub B$) since we already need subtyping for the refinement system (we can define $A \typeeq B$ if and only if $A \sub B$ and $B \sub A$). Subtyping, in turn, serves three purposes: (1) to identify a recursive type and its unfolding, (2) to propagate refinements and forget them as necessary (this will come later), and (3) to admit width and depth subtyping rules for $n$-ary choices which are customary in record-like calculi. The latter two goals overlap since data types are mainly constructed using $n$-ary choices and refinements are useful for describing properties of data types. Before we get into the specifics, let us look at how we make use of subtyping.
 
+As usual, we introduce subtyping into term typing using what are called subsumption rules, which are presented in Figure~\ref{subsumption}. The right rule says that if a process is to provide a type $A$, it can always provide a more specific type $A'$. Dually, the left rule says that if a process can properly handle a more general type $A'$, then it does not hurt to make the type more specific.
+
+\begin{rules}[subsumption]{Subsumption}
+  \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
+    {\typeRecDJ{P}{c}{A'} & A' \sub A}
+  \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
+    {\typeD{\ctx, c : A'} P d B & A \sub A'}
+\end{rules}
+
+Our subtyping relation is defined coinductively rather than inductively since this admits more subtypes without breaking soundness. Using coinduction means we cannot add reflexivity and transitivity explicitly (subtyping should be a preorder on types), thus we carefully construct the rules to make sure they are admissible. Our first attempt is given in Figure~\ref{subtyping-first-system}. When we add intersections and unions, we will have to modify the relation slightly to admit (some of the) distributivity laws. \todo{I had a lot more to say about subtyping but I'm already running out of space (see thesis). Is this enough? Should I refer to the thesis?}
+
+\begin{rules}[subtyping-first-system]{Subtyping (first-attempt)}
+  % Base types
+  \infer=[\Sub{\terminate}]{\terminate \sub \terminate}{}
+  \and \infer=[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
+    {A \sub A' & B \sub B'}
+  \and \infer=[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
+    {I \subseteq J & A_k \sub A'_k~\text{for}~k \in J}
+  \and \infer=[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
+    {A' \sub A & B \sub B'}
+  \and \infer=[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
+    {J \subseteq I & A_k \sub A'_k~\text{for}~k \in J}
+  % Recursive types
+  \\ \infer=[\Sub{\rec\Right}]{A \sub \recursive t B}
+    {A \sub \subst {\recursive t B} t B}
+  \and \infer=[\Sub{\rec\Left}]{\recursive t A \sub B}
+    {\subst {\recursive t A} t A \sub B}
+\end{rules}
+
+This concludes the discussion of the base system. In the next section, we introduce intersections, unions, and a multiple conclusion subtyping relation which constitute our main contributions.
 
 
 \section{Intersections and Unions}
