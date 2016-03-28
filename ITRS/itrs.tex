@@ -2,6 +2,7 @@
 % for section-numbered lemmas etc., use "numberwithinsect"
 
 \usepackage{microtype}%if unwanted, comment out or use option "draft"
+
 \usepackage{proof}
 \usepackage{mathpartir}
 
@@ -30,8 +31,8 @@
 
 \Copyright{Cosku Acay}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
 
-\subjclass{D.3.2 Language Classifications}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation".
-\keywords{Dummy keyword -- please provide 1--5 keywords}% mandatory: Please provide 1-5 keywords
+\subjclass{F.3.3 Studies of Program Constructs; Type Structure}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation".
+\keywords{concurrency, session types, linear logic, intersection types, union types}% mandatory: Please provide 1-5 keywords
 % Author macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,7 +57,7 @@
   Prior work has extended the deep, logical connection between linear
   sequent calculus and session-typed message-passing concurrent
   computation with equirecursive types and a natural notion of
-  subtyping. In this paper we extend this further by intersection and
+  subtyping. In this paper, we extend this further by intersection and
   union types in order to express multiple behavioral properties of
   processes in a single type. We prove session fidelity and absence of
   deadlock and illustrate the expressive power of our system with some
@@ -66,22 +67,14 @@
   motivated by operational rather than logical concerns.
 \end{abstract}
 
- \todo{Find best subjclass}
- \todo{Pick keywords}
-
-% \section{Typesetting instructions -- please read carefully}
-% \begin{itemize}
-% \item Fill out the \verb+\subjclass+ and \verb+\keywords+ macros. For the \verb+\subjclass+, please refer to the ACM classification at \url{http://www.acm.org/about/class/ccs98-html}.
-% \item Take care of suitable linebreaks and pagebreaks. No overfull \verb+\hboxes+ should occur in the warnings log.
-% \end{itemize}
 
 \section{Introduction}
 
-Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are interpreted as session-types, proofs as processes, and cut elimination as communication. Session types are assigned to channels and prescribe the communication behavior along them. Each channel is offered by a unique process and used by exactly one, which is ensured by linearity. When the behaviour along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides a communcation of type $A$ along $c$.
+Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are interpreted as session-types, proofs as processes, and cut elimination as communication. Session types are assigned to channels and prescribe the communication behavior along them. Each channel is offered by a unique process and used by exactly one, which is ensured by linearity. When the behavior along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides a communcation of type $A$ along $c$.
 
 In the base system, each type directly corresponds to a process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural types} since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property types} since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other.
 
-Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type-safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviours, which we demonstrate with examples analogous to those in functional languages \cite{FreemanP91,Dunfield03fossacs}.
+Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type-safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviors, which we demonstrate with examples analogous to those in functional languages \cite{FreemanP91,Dunfield03fossacs}.
 
 Our contributions are summarized below:
 \begin{itemize}
@@ -135,7 +128,7 @@ Working out the isomorphism further and assigning a session type to each linear 
 \end{tabular}
 \end{center}
 
-The process with trivial behaviour is typed by $\terminate$. $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\tau \sendVal B$ and $\tau \recvVal B$ are similar, but values in some underlying functional language are exchanged rather than channels. We will ignore these types for the sake of conciseness and focus on the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
+The process with trivial behavior is typed by $\terminate$. $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\tau \sendVal B$ and $\tau \recvVal B$ are similar, but values in some underlying functional language are exchanged rather than channels. We will ignore these types for the sake of conciseness and focus on the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
 
 Possibly the more interesting types are $\internals A I$ and $\externals A I$ which are generalizations of the binary additive disjunction ($\internal$) and conjunction ($\external$). $\internals A I$ is called an internal choice, since the label is picked by the provider (we always consider the world from the provider's perspective). In the same vein, $\externals A I$ is an external choice since the choice is made externally by the client. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique.
 
@@ -254,7 +247,7 @@ So far in the theory, we have only considered processes in isolation. In this se
 
 With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge (including the root nodes which have ``phantom'' edges) and any number of incoming edges that correspond to channels the process uses. This observation suggests the typing rules in Figure \ref{configuration-typing}, which mimic the structure of a multi-way tree, for a process configuration.
 
-\begin{rules}[configuration-typing]{Configuration Typing}
+\begin{rules}[configuration-typing]{Configuration typing}
   \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
    { \typeRecD \ctx \emptyset P c A
    & \providesCtx \config \ctx
@@ -379,7 +372,7 @@ As usual, we introduce subtyping into term typing using what are called subsumpt
     {\typeD{\ctx, c : A'} P d B & A \sub A'}
 \end{rules}
 
-Our subtyping relation is defined coinductively rather than inductively since this admits more subtypes without breaking soundness. Using coinduction means we cannot add reflexivity and transitivity explicitly (subtyping should be a preorder on types), thus we carefully construct the rules to make sure they are admissible. Our first attempt is given in Figure~\ref{subtyping-first-system}. When we add intersections and unions, we will have to modify the relation slightly to admit (some of the) distributivity laws. \todo{I had a lot more to say about subtyping but I'm already running out of space (see thesis). Is this enough? Should I refer to the thesis?}
+Our subtyping relation is defined coinductively rather than inductively since this admits more subtypes without breaking soundness. Using coinduction means we cannot add reflexivity and transitivity explicitly (subtyping should be a preorder on types), thus we carefully construct the rules to make sure they are admissible. This leads to the semi-algorithmic first attempt given in Figure~\ref{subtyping-first-system} (double lines indicate the rules should be interpreted coinductively). This is only a first attempt since we will have to switch to a related but different system when we add intersections and unions in order to admit (some of the) distributivity laws. \todo{I had a lot more to say about subtyping but I'm already running out of space (see thesis). Is this enough? Should I refer to the thesis?}
 
 \begin{rules}[subtyping-first-system]{Subtyping (first-attempt)}
   % Base types
@@ -405,11 +398,107 @@ This concludes the discussion of the base system. In the next section, we introd
 \section{Intersections and Unions}
 \label{refinements}
 
-  \subsection{Intersection Types}
+Recall our definition of process level naturals $\nat$. One can imagine cases where we would like to know more about the exact nature of the natural. For example, if we are using a natural to track the size of a list, we might want to ensure it is non-zero. Sometimes, it might be relevant to track whether we have an even or an odd number. The system we have described so far turns out to be strong enough to describe all these \emph{refinements} as illustrated below:
 
-  \subsection{Union Types}
+\begin{lstlisting}[language=krill, style=custom]
+  type Nat = +{zero : 1, succ : Nat}
 
-  \subsection{Subtyping}
+  type Pos = +{succ : Nat}
+  type Even = +{zero : 1, succ : Odd}
+  type Odd = +{succ : Even}
+\end{lstlisting}
+
+It is easy to see that $\pos$, $\even$, $\odd$ are all subtypes of $\nat$. We run into a problem when we try to implement the behavior described by these types, however. Consider the $\mathtt{suc}$ function, for example, which satisfies many properties: $\nat \lolli \nat$, $\pos \lolli \pos$, $\even \lolli \odd$, $\odd \lolli \even$ etc. Subtyping can be used to combine some of these (e.g.\ $\nat \lolli \pos$ for $\nat \lolli \nat$ and $\pos \lolli \pos$) but it is not strong enough. The usual solution is adding intersections to the type system.
+
+
+\subsection{Intersection Types}
+We denote the intersection of two types $A$ and $B$ as $A \intersect B$ (the more common $\wedge$ was used for value communication). A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign $\mathtt{suc}$ a type specifying all behavioral properties we care about:
+$$ \mathtt{suc} : (\nat \lolli \nat) \intersect (\nat \to \pos) \intersect (\even \lolli \odd) \intersect (\odd \lolli \even). $$
+
+Note that as is usual with intersections, multiple types are assigned to \emph{the same process}. Put differently, we cannot use two different processes or specify two different behaviors to satisfy the different branches of an intersection. This leads to the following typing rule on the right:
+$$
+  \infer[\intersect\Right]{\typeRecDJ{P}{c}{A \intersect B}}
+    {\typeRecDJ{P}{c}{A} & \typeRecDJ{P}{c}{B}}
+$$
+
+When we are using a channel on the left that offers an intersection of two types, we know it has to satisfy both properties so we get to pick the one we want:
+\begin{mathpar}
+  \infer[\intersect\Left_1]{\typeRecD{\ctx, c : A \intersect B}{\recCtx}{P}{d}{D}}
+    {\typeRecD{\ctx, c : A}{\recCtx}{P}{d}{D}}
+  \and \infer[\intersect\Left_2]{\typeRecD{\ctx, c : A \intersect B}{\recCtx}{P}{d}{D}}
+    {\typeRecD{\ctx, c : B}{\recCtx}{P}{d}{D}}
+\end{mathpar}
+
+The standard semi-algorithmic subtyping rules are given in below. It should be noted that the left rules are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add them to the final system. Also, we will have to modify the subtyping relation later in this section, so the subtyping rules are still a first attempt.
+
+\begin{mathpar}
+  \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+    {A \sub B_1 \and A \sub B_2}
+  \and \infer=[\Sub{\intersect\Left_1}]{A_1 \intersect A_2 \sub B}
+    {A_1 \sub B}
+  \and \infer=[\Sub{\intersect\Left_2}]{A_1 \intersect A_2 \sub B}
+    {A_2 \sub B}
+\end{mathpar}
+
+
+\subsection{Union Types}
+
+Unions are the dual of intersections and correspond to processes that satisfy one or the other property, and are written $A \union B$. We add unions because they are a natural extension to a  type system with intersections. We will also see how $n$-ary internal choice can be interpreted as
+the union of singleton choices. Without them, our interpretation would only be half-complete since we could interpret external choice (with intersections) but not internal choice.
+
+Being dual to intersections, the typing rules for unions mirror the typing rules for intersections: we have two right rules and one left rule, and this time the right rules are derivable from subtyping. The rules are given below:
+
+\begin{mathpar}
+  \infer[\union\Right_1]{\typeRecDJ{P}{c}{A \union B}}
+    {\typeRecDJ{P}{c}{A}}
+  \and \infer[\union\Right_2]{\typeRecDJ{P}{c}{A \union B}}
+    {\typeRecDJ{P}{c}{B}}
+  \and \infer[\union\Left]{\typeD{\ctx, c : A \union B}{\recCtx}{P}{d}{D}}
+    {\typeD{\ctx, c : A}{P}{d}{D} & \typeD{\ctx, c : B}{\recCtx}{P}{d}{D}}
+\end{mathpar}
+
+The right rules say the process has to offer either the left type or the right type respectively. The left rule says we need to be prepared to handle either type. We would like to note that we restore a symmetry in this system that has been long lost for functional languages. The natural left rule we give here for unions (natural since it mirrors the right rule for intersection as it should) has been shown to be unsound in functional languages with effects \todo{Find citation}. Reconciling unions with effects requires complicated concepts such as an evaluation context and tridirectional type-checking \todo{citation}. The reason is that the typing rule only checks the cases where \emph{all} occurrences of a variable have the first type or all have the second type, however, it could be the case that some have the first and others have the second in the presence of effects. This cannot be the case here because our language almost acts like a lazy purely-functional language, and more importantly, linearity assures each channel is used once \todo{Not exactly once but close enough. Maybe the reason is it acts like the channel is always in an evaluation context?}
+
+The usual subtyping rules are given below. These make the right rules derivable so they are not explicitly added to the system.
+
+\begin{mathpar}
+  \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
+    {A \sub B_1}
+  \and \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
+    {A \sub B_2}
+  \and \infer=[\Sub{\union\Left}]{A_1 \union A_2 \sub B}
+    {A_1 \sub B & A_2 \sub B}
+\end{mathpar}
+
+
+\subsection{Subtyping Revisited}
+
+\todo{The following motivator discussion \emph{needs} to shrink.}
+The subtyping relation we gave before is not complete with respect to, say, the ideal semantics of types \cite{VouillonM04, Damm94}. This is because intersections and unions admit many distributivity-like rules over structural types and over each other. For example, it is not hard to see that $(A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2)$ would be sound using a propositional reading: if a process sends out a channel that satisfies $A_1$ then acts as $B_1$, \emph{and} the sent channel also satisfies $A_2$ in addition to the result satisfying $B_2$, then the channel satisfies both $A_1$ and $A_2$ and the result satisfies both $B_1$ and $B_2$. However, this judgement is not admissible in the given system: the only applicable rules are $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, both of which get stuck because we lose half the information we require for the rest of the derivation. The situation is perhaps exacerbated by the fact that we \emph{can} prove subtyping in the other direction, so these types are supposed to be equivalent. This means depending on where these types occur, we may fail to prove one side of a symmetric relation!
+
+The fix is not as simple as adding this rule as an extra axiom. For one, it is not trivial to rewrite this rule in order to preserve admissibility of transitivity. More importantly, this is not the only rule we would have to add. Figure~\ref{distributivity-examples} gives just \emph{some} of the many sound rules that are not admissible.
+
+\begin{rules}[distributivity-examples]{Sound but inadmissible subtyping rules}
+   % Intersection
+   (A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2) \\
+   \internals A I \intersect \internals B J \sub \internal\braces{\lab_x : A_x \intersect B_x}_{x \in I \cap J} \\
+   (A \lolli B_1) \intersect (A \lolli B_2) \sub A \lolli (B_1 \intersect B_2) \\
+   \externals A I \intersect \externals B J \sub \externals A I \cup \externals B J ~ (I \cap J = \emptyset)\\
+   % Union
+   (A_1 \union A_2) \tensor B \sub (A_1 \tensor B) \union (A_2 \tensor B) \\
+   \internals A I \cup \internals B J \sub \internals A I \union \internals B J ~ (I \cap J = \emptyset) \\
+   (A_1 \lolli B) \intersect (A_2 \lolli B) \sub (A_1 \union A_2) \lolli B \\
+   \external\braces{\lab_x : A_x \union B_x}_{x \in I \cap J} \sub \externals A I \union \externals B J \\
+   % Intersection and union
+   (A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B \\
+   (A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)
+\end{rules}
+
+This list is certainly not complete, and there are almost as many rules in this list as there are in the original system. Clearly, a blind axiomatic approach which adds all admissible rules is not practical and a more general treatment is in order. There has been some work in incorporating intersections and unions in a conventional type system that preserves completeness under certain conditions. The closest and most complete system we found was from Damm (\cite{Damm94, Damm94p2}). In \cite{Damm94}, he encodes types as regular tree expressions, and reformulates subtyping as regular tree grammar containment which was shown to be decidable. This results in a system that is sound and complete when all types are infinite (but $\terminate$ is a finite type). \cite{Damm94p2} extends this work such that the system is sound in the presence of finite types (although not necessarily complete).
+
+Their system is very close to what we would like to accomplish, however, we think it is too complicated for our purposes as it requires familiarity with ideal semantics of types (which in turn is based on domain theory and the theory metric spaces) and regular tree grammars. Even if a similar approach could be made to work, we find such systems to be fragile in the face of future extensions. We would rather work with a simple and robust subtyping relation that does not necessitate rethinking every detail with every extension, so we make a design decision: we give up full completeness and instead design a system that admits the rules we are likely to encounter in practice.
+
+\todo{Rest}
 
 
 \section{Metatheory}
@@ -436,6 +525,9 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
 \section{Conclusion}
 \label{conclusion}
 
+Future work:
+Polymorphism, type inference, abstract types, top, bottom.
+
 
 \appendix
 
@@ -444,6 +536,7 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
 %% Bibliography
 %%
 
+\todo{Somehow shrink the citations. Maybe get rid of the urls.}
 
 \bibliography{bibliography}
 
