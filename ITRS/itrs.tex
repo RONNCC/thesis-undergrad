@@ -358,6 +358,11 @@ We also have to extend the typing context to keep track of process variables. No
 
 Note that in the definition of $\recCtx'$, $\typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A$ is not a typing judgement. Instead, $\recCtx$ should be thought of as nothing more than a map from variable names to four tuples containing parameter names, typing context, provided channel name, and provided type. It is necessary to store the context since channels are linear and channel types evolve over time, but the context needs to be the same at every occurrence of $p$.
 
+As for reduction, recursive processes simply unfold:
+$$ \irb{rec} : \proc{c}{\tapp {\parens{\trec p {\tvector y} P}} {\tvector z}}
+     \lolli \monad{ \proc c {\subst {\trec p {\tvector y} P} p {\subst {\tvector z} {\tvector y} P}} }
+$$
+
 
 \subsection{Subtyping}
 
@@ -441,7 +446,7 @@ The standard semi-algorithmic subtyping rules are given in below. It should be n
 \end{mathpar}
 
 Finally, we need to extend the definition of unguarded variables and contractiveness. Since $\intersect$ is not a structural type, it simply combines and propagates unguarded variables:
-$$ \unguarded{(A \intersect B)} &= \unguarded{(A)} \cup \unguarded{(B)}. $$
+$$ \unguarded{(A \intersect B)} = \unguarded{(A)} \cup \unguarded{(B)}. $$
 
 
 \subsection{Union Types}
@@ -474,7 +479,7 @@ The usual subtyping rules are given below. These make the right rules derivable 
 \end{mathpar}
 
 Unguarded variables of union is the same as intersection:
-$$ \unguarded{(A \union B)} &= \unguarded{(A)} \cup \unguarded{(B)}. $$
+$$ \unguarded{(A \union B)} = \unguarded{(A)} \cup \unguarded{(B)}. $$
 
 
 \subsection{Top and Bottom}
