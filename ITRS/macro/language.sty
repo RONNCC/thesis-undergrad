@@ -6,6 +6,7 @@
 \RequirePackage{environ}
 \RequirePackage{mathtools}
 \RequirePackage{mathpartir}
+\RequirePackage{stmaryrd}
 
 
 \SetupKeyvalOptions{
@@ -51,7 +52,7 @@
 
 % Relations
 \newcommand\sub{\le}
-\newcommand\subA{\le_A}
+\newcommand\subA{\Rightarrow}
 \newcommand\typeeq{\equiv}
 
 
@@ -94,6 +95,7 @@
 % Functions
 \DeclareMathOperator{\free}{free}
 \DeclareMathOperator{\unguarded}{UV}
+\newcommand{\erase}[1]{\left \llbracket {#1} \right \rrbracket}
 
 % Contractiveness
 \newcommand{\contractive}[1]{{#1}\;\mathtt{contractive}}

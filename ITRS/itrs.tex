@@ -440,6 +440,9 @@ The standard semi-algorithmic subtyping rules are given in below. It should be n
     {A_2 \sub B}
 \end{mathpar}
 
+Finally, we need to extend the definition of unguarded variables and contractiveness. Since $\intersect$ is not a structural type, it simply combines and propagates unguarded variables:
+$$ \unguarded{(A \intersect B)} &= \unguarded{(A)} \cup \unguarded{(B)}. $$
+
 
 \subsection{Union Types}
 
@@ -470,10 +473,63 @@ The usual subtyping rules are given below. These make the right rules derivable 
     {A_1 \sub B & A_2 \sub B}
 \end{mathpar}
 
+Unguarded variables of union is the same as intersection:
+$$ \unguarded{(A \union B)} &= \unguarded{(A)} \cup \unguarded{(B)}. $$
+
+
+\subsection{Top and Bottom}
+
+$\bot$ is the unit for internal choice and union. $\top$ is the unit for external choice and intersection.
+
 
 \subsection{Subtyping Revisited}
 
-\todo{The following motivator discussion \emph{needs} to shrink.}
+In line with our propositional interpretation of intersections and unions, one would naturally expect the usual properties of these to hold in our system. For example, unions should distribute over intersections and vice versa, that is, the following equalities should be admissible:
+\begin{mathpar}
+   (A_1 \union B) \intersect (A_2 \union B) \typeeq (A_1 \intersect A_2) \union B \\
+   (A_1 \union A_2) \intersect B \typeeq (A_1 \intersect B) \union (A_2 \intersect B)
+\end{mathpar}
+
+Going from right to left turns out to be easy, but we quickly run into a problem if we try to do the other direction: whether we break down the union on the right or the intersection on the left, we always lose half the information we need to carry out the rest of the proof.%
+\footnote{This issue does not come up in the other direction since intersection right and union left rules are invertible, that is, they preserve all information.}%
+We think the fact that the equality holds in the other direction only exacerbates the problem, since it means the way we write down types and where types happen to occur actually matters, which will inevitable lead to unintuitive type-checker errors.
+
+Our solution is doing the obvious: if the problem is losing half the information, well, we should just keep it around. This suggests a system where the single type on the left and on the type right are replaced with \emph{(multi)sets} of types. That is, instead of the judgment $A \le B$, we use a judgement of the form $A_1, \ldots, A_n \subA B_1, \ldots, B_n$, where the left of $\subA$ is interpreted as a conjunction (intersection) and the right is interpreted as a disjunction (union).\todo{Explain why it is conjunction and disjunction?} This results in a system reminiscent of \cite{Gentzen35, Girard87}. However, we take a slightly different approach since we are working with coinductive rules.
+
+The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keeping the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one type on the right with the same structure. Note that this is not an essential restriction. In fact, we predict that matching multiple types will give us distributivity of intersection and union over structural types, which is desirable. \todo{Give examples?} We have to be careful not to admit unsound judgements, and it makes the system more complicated, so we not explore that route in this paper. \todo{Interested readers are directed to the first author's thesis.} \todo{Split the rules into property and rest?}
+
+\begin{rules}[subtyping-multi]{Subtyping with multiple hypothesis and conclusions}
+  % Intersection
+  \infer=[\SubA{\intersect}\Right]{\typeList \subA \typeListB, A_1 \intersect A_2}
+    {\typeList \subA \typeListB, A_1 \and \typeList, A \subA \typeListB, A_2}
+  \and \infer=[\SubA{\intersect}\Left]{\typeList, A_1 \intersect A_2 \subA \typeListB}
+    {\typeList, A_1, A_2 \subA \typeListB}
+  % Union
+  \\ \infer=[\SubA{\union}\Right]{\typeList \subA \typeListB, A_1 \union A_2}
+    {\typeList \subA \typeListB, A_1, A_2}
+  \and \infer=[\SubA{\union}\Left]{\typeList, A_1 \union A_2 \subA \typeListB}
+    {\typeList, A_1 \subA \typeListB, B & \typeList, A_2 \subA \typeListB}
+  % Structural
+  \\ \infer=[\SubA{\terminate}]{\typeList, \terminate \subA \typeListB, \terminate}{}
+  \and \infer=[\SubA\tensor]{\typeList, A \tensor B \subA \typeListB, A' \tensor B'}
+    {A \subA A' & B \subA B'}
+  \and \infer=[\SubA\internal]{\typeList, \internalSing{\lab}{A} \subA \typeListB, \internalSing{\lab}{A'}}
+    {A \subA A'}
+  \and \infer=[\SubA\lolli]{\typeList, A \lolli B \subA \typeListB, A' \lolli B'}
+    {A' \subA A & B \subA B'}
+  \and \infer=[\SubA\external]{\typeList, \externalSing{\lab}{A} \subA \typeListB, \externalSing{\lab}{A'}}
+    {A \subA A'}
+  % Recursive
+  \\ \infer=[\SubA{\mu\Right}]{\typeList \subA \typeListB, \recursive t A}
+     {\typeList \subA \typeListB, \subst {\recursive t A} t A}
+  \and \infer=[\SubA{\mu\Left}]{\typeList, \recursive t A \subA \typeListB}
+     {\typeList, \subst {\recursive t A} t A \subA \typeListB}
+\end{rules}
+
+
+\subsection{Subtyping Extra Material}
+
+\todo{Decide if we want to use anything from this subsection.}
 The subtyping relation we gave before is not complete with respect to, say, the ideal semantics of types \cite{VouillonM04, Damm94}. This is because intersections and unions admit many distributivity-like rules over structural types and over each other. For example, it is not hard to see that $(A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2)$ would be sound using a propositional reading: if a process sends out a channel that satisfies $A_1$ then acts as $B_1$, \emph{and} the sent channel also satisfies $A_2$ in addition to the result satisfying $B_2$, then the channel satisfies both $A_1$ and $A_2$ and the result satisfies both $B_1$ and $B_2$. However, this judgement is not admissible in the given system: the only applicable rules are $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, both of which get stuck because we lose half the information we require for the rest of the derivation. The situation is perhaps exacerbated by the fact that we \emph{can} prove subtyping in the other direction, so these types are supposed to be equivalent. This means depending on where these types occur, we may fail to prove one side of a symmetric relation!
 
 The fix is not as simple as adding this rule as an extra axiom. For one, it is not trivial to rewrite this rule in order to preserve admissibility of transitivity. More importantly, this is not the only rule we would have to add. Figure~\ref{distributivity-examples} gives just \emph{some} of the many sound rules that are not admissible.
@@ -498,11 +554,24 @@ This list is certainly not complete, and there are almost as many rules in this 
 
 Their system is very close to what we would like to accomplish, however, we think it is too complicated for our purposes as it requires familiarity with ideal semantics of types (which in turn is based on domain theory and the theory metric spaces) and regular tree grammars. Even if a similar approach could be made to work, we find such systems to be fragile in the face of future extensions. We would rather work with a simple and robust subtyping relation that does not necessitate rethinking every detail with every extension, so we make a design decision: we give up full completeness and instead design a system that admits the rules we are likely to encounter in practice.
 
-\todo{Rest}
+
+\subsection{Refinement Example}
+\todo{We did promise.}
+
+
+\subsection{Reinterpreting Choice}
+
+\todo{Compile choice.}
+
+
 
 
 \section{Metatheory}
 \label{metatheory}
+
+\todo{Talk a little about this stuff.}
+
+\todo{See thesis for the proofs. Should we add them here, in the appendix, or just gloss over them?}
 
 \begin{theorem}[Progress]
 If $\providesCtx \config \ctx$ then either
@@ -520,6 +589,30 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
 
 \section{Algorithmic System}
 \label{algorithmic}
+
+To show that our system is practical, we would like to show that subtyping and type-checking are decidable. We do this by designing an algorithm that takes in a (sub)typing judgement and produces true if there is a derivation in the system and false otherwise. Note that everything in the judgement is considered an input, that is, the interface for the algorithms are $\typeList^+ \subA \typeListB^+$ and $\typeRecD {\ctx^+} {\recCtx^+} {P^+} {c^+} {A^+}$, respectively (where $^+$ indicates input and non-existent $^-$ indicates output). \todo{Probably don't need the last sentence.}
+
+
+\subsection{Algorithmic Subtyping}
+
+The subtyping judgement we gave is already mostly algorithmic (since we are working with coinductive rules), so we only have a couple loose-ends to tie up. The first is the question of which rule to apply when multiple are applicable. Unfortunately, we have to try all possibilities non-deterministically since anyone could work. One optimization we can do is to apply $\SubA{\intersect\Right}$, $\Sub{\intersect\Left}$, $\SubA{\union\Right}$, $\Sub{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these rules are invertible. At some point, we must hit all structural types due to our contractiveness restriction, at which point we non-deterministically pick a structure and continue. \todo{Citation?}
+
+The coinductive nature of typing means we can (and often will) have infinite derivations. This raises the question of how we can have a finite time algorithm. We use a slightly modified version of the algorithm given in \cite{GayH05}. The idea is simple: we maintain a context of previously seen subtyping checks and immediately terminate with success if we ever compare the same pair of sets of types again. Since every recursive step corresponds to a rule, the generated derivation must be productive. We know there cannot be an infinite chain due to the contractiveness restriction. A more formal treatment can be found in \cite{StoneS2005}.
+
+Now that we have an algorithm for subtyping, the next step is to come up with an algorithm for type checking.
+
+
+\subsection{Algorithmic Type-checking}
+
+Designing a type checking algorithm is quite simple for the base system where we only have structural types (no recursion or subtyping), since the form of the process determines a unique applicable typing rule. The $\cut$ rule causes a small problem since we do not have a type for the helper process to check against. This is solved by adding type annotations in spawning processes (but nowhere else) so that the new form is $\tspawnType c {P_c} A {Q_c}$. We define $\erase{P}$ to be $P$ with all type annotations erased.
+
+In the extended system with subtyping and property types, type-checking is a lot trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free (meaning it can be anything), and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
+
+The former problem is solved by switching to \emph{bidirectional type-checking} where we only need to check subtyping when we do a forward. This relies on the following crucial observation: if we are checking a process against a structural type, the subparts of $P$ must check against subparts of $A$. For example, if we are checking $\tsend c d {P_d} Q$ against $c : A \tensor B$, then $P_d$ must check against $d : A$ and $Q$ must check against $c : B$. Even if we could use subsumption, $\tsend c d {P_d} Q$ would still have to type-check against a type $c : A' \tensor B' \sub A \tensor B$ which would imply $A' \sub A$ and $B' \sub B$. \todo{Kinda messed this up. Better explanation.} To make sure we can always get down to structural types, we add unfolding rules on the right and on the left, and apply these eagerly along with rules for intersections and unions.
+
+\todo{Talk about soundness and completeness.}
+
+The final system is given in \todo{Rules for the final system}.
 
 
 \section{Conclusion}
