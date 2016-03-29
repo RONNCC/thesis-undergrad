@@ -566,9 +566,17 @@ Their system is very close to what we would like to accomplish, however, we thin
 
 \subsection{Reinterpreting Choice}
 
-\todo{Compile choice.}
+In this section, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. A comparison between the typing rules for intersections and external choice (respectively unions and internal choice) reveal striking similarities. The only difference, in fact, is that internal choice (respectively external choice) has process level constructs where as intersections (respectively unions) are implicit. \todo{I don't like the whole respectively stuff. Rewrite.}
 
+Consider the binary external choice $\external\braces{\irb{inl} : A, \irb{inr} : B}$ for example. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This suggests the following redefinition for $n$-ary external and internal choices:
+\begin{mathpar}
+  \externals A I \defined \bigintersect_{\indexVar \in I}{\external\braces{\lab_\indexVar : A_\indexVar}} \\
+  \internals A I \defined \bigunion_{\indexVar \in I}{\internal\braces{\lab_\indexVar : A_\indexVar}}
+\end{mathpar}
 
+When $I$ is empty, the intersection reduces to $\top$ and the union reduces to $\bot$. It can be checked that these definitions satisfy the typing and subtyping rules for external and internal choices.
+
+\todo{Talk about how this admits some distributivity laws by definition.}
 
 
 \section{Metatheory}
