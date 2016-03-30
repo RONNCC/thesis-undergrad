@@ -85,28 +85,16 @@ Our contributions are summarized below:
   \item We demonstrate how internal and external choice can be understood as singletons interacting with intersection and union.
 \end{itemize}
 
-Some aspects that would be important in a full accounting of the system but are left out for the sake of conciseness are as follows:
-\begin{itemize}
-  \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13,Toninho15phd,Griffith16phd}.
-  \item We do not consider shared channels and persistent processes, which should be a straightforward extension based on prior work. \cite{CairesP10,PfenningG15}
-  \item Our operational semantics is synchronous, but asynchronous communication~\cite{DeYoung12csl} is subject to the same type system~\cite{PfenningG15,Griffith16phd}.
-  \item Behavioral polymorphism~\cite{Caires13esop} and abstract types are not in the system. Their interaction with subtyping, intersections and unions is an interesting avenue for future work.
-\end{itemize}
-
-The rest of this paper is structured as follows. In section~\ref{base}, we formally introduce the base system and explore the correspondence between linear logic and session types more. Section~\ref{recursive} extends the base system with recursive types and a natural notion of coinductive subtyping. Section~\ref{refinements} is where our contribution starts. We add intersections and unions and modify the subtyping relation to handle distributivity cleanly. Section~\ref{metatheory} discusses the metatheory, section~\ref{algorithmic} gives an algorithmic system for type-checking, and finally, section~\ref{conclusion} concludes.
-
 
 \section{From Linear Logic to Session Types}
 \label{base}
-We only give a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. In the intuitionistic setting, this is written as a linear hypothetical judgement:
-$$ A_1, \ldots, A_n \vdash A $$
-where $A_1$ through $A_n$ are the hypothesis that must be used exactly once in the proof of $A$. The order of hypothesis is irrelevant, so they are treated as a (multi) set. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut elimination as communication. For this correspondence, hypothesis are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This leads to the following judgement:
+We only give a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut elimination as communication. For this correspondence, hypothesis are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This gives us the following form for typing judgements:
 $$ \typeD {c_1 : A_1, \ldots, c_n : A_n} P c A$$
-which should be interpreted as ``$P$ offers along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ with the corresponding types''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct.
+which should be interpreted as ``$P$ offers along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ (linearly) with the corresponding types''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct.
 
-Each process offers along a specific channel, and in the linear setting, each channel must be used exactly in one place. Processes cannot rename channels, which suggests that channel names act as unique process identifiers.
+Each process offers along a specific channel, and in the linear setting, each channel must be used exactly in one place. Processes cannot rename channels, which means we can treat channel names as unique process identifiers.
 
-Within this framework, the $\cut$ rule corresponds to a form of process composition where the main process (client) spawns off a helper process (provider) which it can communicate with from then on:
+Within this framework, the $\cut$ rule corresponds to a form of process composition where the main process (client) spawns off a helper process (provider) which it can communicate with from then on: \todo{Remove or move this paragraph.}
 $$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
     { \typeD {\ctx} {P_c} {c} {A}
     & \typeD {\ctx', c : A} {Q_c} {d} {D}
@@ -121,16 +109,12 @@ Working out the isomorphism further and assigning a session type to each linear 
   $A, B, C$ & ::= & $\terminate$        & send \texttt{end} and terminate \\
             & $|$ & $A \tensor B$       & send channel of type $A$ and continue as $B$ \\
             & $|$ & $\internals{A}{I}$  & send $\lab_i$ and continue as $A_i$ \\
-            & $|$ & $\tau \sendVal B$   & send value of type $\tau$ and continue as $B$ \\
             & $|$ & $A \lolli B$        & receive channel of type $A$ and continue as $B$ \\
-            & $|$ & $\externals{A}{I}$  & receive $\lab_i$ and continue as $A_i$ \\
-            & $|$ & $\tau \recvVal B$   & receive value of type $\tau$ and continue as $B$
+            & $|$ & $\externals{A}{I}$  & receive $\lab_i$ and continue as $A_i$
 \end{tabular}
 \end{center}
 
-The process with trivial behavior is typed by $\terminate$. $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\tau \sendVal B$ and $\tau \recvVal B$ are similar, but values in some underlying functional language are exchanged rather than channels. We will ignore these types for the sake of conciseness and focus on the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
-
-Possibly the more interesting types are $\internals A I$ and $\externals A I$ which are generalizations of the binary additive disjunction ($\internal$) and conjunction ($\external$). $\internals A I$ is called an internal choice, since the label is picked by the provider (we always consider the world from the provider's perspective). In the same vein, $\externals A I$ is an external choice since the choice is made externally by the client. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique.
+The types we care the most in this paper are $\internals A I$ and $\externals A I$ which are generalizations of the binary additive disjunction ($\internal$) and conjunction ($\external$). $\internals A I$ is called an internal choice, since the label is picked by the provider (we always consider the world from the provider's perspective). In the same vein, $\externals A I$ is an external choice since the choice is made externally by the client. In either case, $I$ is a \emph{finite}, the order of labels does not matter, and each label must be unique.
 
 
 \subsection{Process Expressions}
@@ -143,8 +127,7 @@ The proof terms, or processes, corresponding to these types are given below with
             & $|$ & $\tfwd c d$                & id (forward) \\
             & $|$ & $\tclose c \mid \twait c P$  & $\terminate$ \\
             & $|$ & $\tsend{c}{y}{P_y}{Q} \mid \trecv{x}{c}{R_x}$ & $A \tensor B,$ $A \lolli B$ \\
-            & $|$ & $\tselect{c}{}{P} \mid \tcase c {\tbranches Q i}$  & $\externals A I,$ $\internals A I$ \\
-            & $|$ & $\tsendVal{c}{M}{Q} \mid \trecvVal{n}{c}{R_n}$ & $A \sendVal B,$ $A \recvVal B$
+            & $|$ & $\tselect{c}{}{P} \mid \tcase c {\tbranches Q i}$  & $\externals A I,$ $\internals A I$
 \end{tabular}
 \end{center}
 
@@ -160,38 +143,38 @@ This states a process level natural number is an internal choice of either zero 
 
 \begin{minipage}{.48\textwidth}
 \begin{lstlisting}[language=krill, style=custom]
-  zero : Nat
-  `c <- zero = do
-    `c.zero
+  z : Nat
+  `c <- z =
+    `c.zero;
     close `c
 \end{lstlisting}
 \end{minipage}
 \hfill
 \begin{minipage}{.48\textwidth}
 \begin{lstlisting}[language=krill, style=custom]
-  succ : Nat -o Nat
-  `c <- succ `d = do
-    `c.succ
+  s : Nat -o Nat
+  `c <- s `d =
+    `c.succ;
     `c <- `d
 \end{lstlisting}
 \end{minipage}
 
-\texttt{zero} simply sends the label \texttt{zero} and terminates, whereas \texttt{suc} appends a successor to the given process. \todo{Explain or remove do notation}. Here is a slightly more complicated example that doubles the given natural:
+\texttt{z} simply sends the label \texttt{zero} and terminates, whereas \texttt{s} appends a successor to the given process. Here is a slightly more complicated example that uses recursion:
 
 \begin{lstlisting}[language=krill, style=custom]
   double : Nat -o Nat
   `c <- double `d =
     case `d of
-      zero -> do wait `d; `c.zero; close `c
-      succ -> do `c.succ; `c.succ; `c <- double `d
+      zero -> wait `d; `c.zero; close `c
+      succ -> `c.succ; `c.succ; `c <- double `d
 \end{lstlisting}
 
-These are very simple examples, though we hope they offer some insight into the system. We will expand on these example when we introduce intersections and unions, and give more interesting ones at the end once we have the whole system.
+These are very simple examples, though we hope they offer some insight into the system. We will expand on these example when we introduce intersections and unions, and give more interesting ones at the end once we have the whole system. \todo{Remove this if we don't have any examples.}
 
 
 \subsection{Type Assignment for Processes}
 
-The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms just as we did with $\cut$. The rules are given in Figure~\ref{session-assignment}. \todo{Talk more about these maybe?} \todo{Should they go into the Appendix.}
+The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms. The rules are given in Figure~\ref{session-assignment}. One thing to note is that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier (subtyping is discussed in section~\ref{original-subtyping}).
 
 \begin{rules}[session-assignment]{Type assignment for process expressions}
   % id and cut
@@ -255,7 +238,7 @@ With the above restriction, each process offers along a specific channel and eac
 
    \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
     { \provides {\config_i} {c_i} {A_i} ~\text{for}~ i \in \set{1, \ldots, n}
-    & i = 0 \vee i > 1
+    & n = 0 \vee n > 1
     }
 \end{rules}
 
@@ -264,37 +247,11 @@ This definition is well-founded since the size of the configuration gets strictl
 
 \subsection{Operational Semantics}
 
-A process configuration evolves over time when a process takes a step (forwarding and cut step without communication) or when two matching processes communicate. For example, the processes configuration $\config, \proc c {\tclose c}, \proc d {\twait c P}$ can step to $\config, \proc d P$. We can express the rules guiding such transitions as \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{Cervesato06}. For example, the above rule is written as:
-$$ \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}} \lolli \monad{\proc{d}{P}}. $$
-Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. Instead, $\tensor$ should be interpreted as conjunctions, and $\lolli$ marks transition rules. So, $A \tensor B \tensor C \lolli D \tensor E$ would mean we could replace the resources $A, B, C$ together to get a $D, E$. The curly braces $\braces \ldots$ indicated a monad which essentially forces the rules to be interpreted as a multiset rewriting rule \todo{Citation}. The rest of the rules are given in Figure \ref{operational}.
-
-\begin{figure}[!ht]
-  \centering
-\begin{align*}
-  % Id
-  \irb{id}     \hspace{1em} & : \proc{c}{\tfwd{c}{d}} \lolli \monad{c = d} \\
-  % Cut
-  \irb{cut}    \hspace{1em} & : \proc{c}{\tspawn{x}{P_x}{Q_x}}
-      \lolli \monad{\exists a. \proc{a}{P_a} \otimes \proc{c}{Q_a}} \\
-  % One
-  \irb{one} \hspace{1em} & : \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}}
-    \lolli \monad{\proc{d}{P}} \\
-  % Tensor
-  \irb{tensor} \hspace{1em} & : \proc{c}{\tsend{c}{x}{P_x}{Q}} \otimes \proc{e}{\trecv{x}{c}{R_x}} \\
-    & \hspace{2em} \lolli \monad{ \exists a. \proc{a}{P_{a}} \otimes \proc{c}{Q} \otimes \proc{e}{R_{a}} } \\
-  % Internal
-  \irb{internal} \hspace{1em} & : \proc{c}{\tselect{c}{i}{P}} \otimes \proc{d}{\tcase{c}{\tbranches Q I}} \otimes i \in I \\
-    & \hspace{2em} \lolli \monad{ \proc{c}{P} \otimes \proc{d}{Q_i} } \\
-  % Lolli
-  \irb{lolli} \hspace{1em} & : \proc{c}{\trecv{x}{c}{P_x}} \otimes \proc{d}{\tsend{c}{x}{Q_x}{R}} \\
-    & \hspace{2em} \lolli \monad{ \exists a. \proc{c}{P_{a}} \otimes \proc{a}{Q_a} \otimes \proc{d}{R} } \\
-  % External
-  \irb{external} \hspace{1em} & : \proc{c}{\tcase{c}{\tbranches P I}} \otimes \proc{d}{\tselect c i Q} \otimes i \in I \\
-    & \hspace{2em} \lolli \monad{ \proc{c}{P_i} \otimes \proc{d}{Q} } \\
-\end{align*}
-\caption{Substructural operational semantics}
-\label{operational}
-\end{figure}
+A process configuration evolves over time when a process takes a step (forwarding and cut step without communication) or when two matching processes communicate. For example, the processes configuration
+$ \config, \proc{c}{\tselect{c}{i}{P}}, \proc{d}{\tcase{c}{\tbranches Q I}} $
+can step to
+$ \proc{c}{P} \otimes \proc{d}{Q_i} $
+whenever $i \in I$. We get similar reduction rules for $\id$, $\cut$, and each structural rule. These are given in appendix~\ref{operational-semantics} due to space limitations.
 
 
 \section{Recursion and Subtyping}
@@ -304,98 +261,21 @@ Any interesting program requires the use of recursion. In fact, we used it even 
 
 \subsection{Recursive Types}
 
-We extend the language of types with a new construct:
-\begin{center}
-\begin{tabular}{l c l l}
-  $A, B, C$ & ::= & \ldots               & everything from before \\
-            & $|$ & $t$                  & type variables \\
-            & $|$ & $\recursive{t}{A_t}$ & (equi)recursive type
-\end{tabular}
-\end{center}
+We extend the language of types with variables and a new construct, $\recursive{t}{A_t}$, representing recursive types. We require all types at the top level to be closed, and make sure every rule we give preserves this property. Recursive types $\recursive{t}{A}$ are identified with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions ($\mathtt{unfold}$ and $\mathtt{fold}$) to go between the them. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
 
-Introduction of type variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. We will require all types to be closed to rule out such types. This check only needs to happen at the top level since unfolding (which is the only operation we do on recursive types) maintains well-formedness.
-
-We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions ($\mathtt{unfold}$ and $\mathtt{fold}$) to go between the two types. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
-
-In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ since no amount of unfolding can remove the $\mu$. To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
-
-
-\subsubsection{Contractiveness}
-
-Intuitively, a recursive type $\recursive t A$ is contractive if all occurrences of $t$ in $A$ are under a \emph{structural} type constructor. For example, $\recursive t {\terminate \lolli t}$ and $\recursive t {t \tensor t}$ are contractive whereas $\recursive t t$ and $\recursive t {\recursive u t}$ are not.
-
-We formalize contractiveness using the notion of unguarded variables \cite{StoneS2005}. Unguarded variables of a type $A$, denoted $\unguarded{(A)}$, are defined inductively as follows:
-\begin{align*}
-  \unguarded{(\terminate)} &= \emptyset \\
-  \unguarded{(A \tensor B)} &= \emptyset \\
-  \unguarded{(\internals A I)} &= \emptyset \\
-  \unguarded{(A \lolli B)} &= \emptyset \\
-  \unguarded{(\externals A I)} &= \emptyset \\
-  \unguarded{(t)} &= \set{t} \\
-  \unguarded{(\recursive t A)} &= \unguarded{(A)} \setminus \set{t}
-\end{align*}
-
-A type is then said to be contractive if every occurrence of $\recursive t A$ satisfies $t \not\in \unguarded{(A)}$.
+In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. For this to make sense, we assume that all types are contractive \cite{StoneS2005, GayH05}. Intuitively, this means all variables must occur under a \emph{structural} type.
 
 
 \subsection{Recursive Processes}
 
-We introduce a new form of process expression which we write $\trec {p} {\tvector c} P_p$ which are modeled after the corecursive processes of \cite{Toninho14}. Here, $p$ is a process variable that intuitively stands for the whole expression and $\tvector c$ is an ordered list of channel names that is used to parametrize the expression over channel names. We use the notation $\tapp P {\tvector c}$ to denote specialization. Parametrization is useful in case we want to rename the provided or used channels. For instance, we will often want to spawn a copy of the overall expression: $\trec p c {\tspawn d {\tapp p d} P_d}$ where $P_d$ is some process that consumes $d$ and offers along $c$. The typing rules limit specialization to recursive processes and process variables.
-
-We also have to extend the typing context to keep track of process variables. Note that we cannot simply add this information to the existing context since that contexts tracks channel names which are different from processes. In addition, the channel context is linear, but there is no reason to limit recursive occurrences of a process to exactly one place. We write the new judgement as $\typeRecDJ P c A$, where $\recCtx$ stores the typing context for process variables. As usual, we assume variable names in $\recCtx$ are made unique through alpha renaming. Recursive processes are typed using the rules in Figure~\ref{recursive-process}. These are the only rules that modify the process variable context, all other rules simply pass it up unchanged.
-
-\begin{rules}[recursive-process]{Type assignment for recursive processes}
-  \infer[\rec]{\typeRecDJ {\tapp {\parens*{ \trec p {\tvector y} P}} {\tvector z}} c A}
-   { \typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c A
-   & \recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A
-   }
-
-   \and \infer[\procVar]{\typeRecD {\rho{\parens \ctx}} \recCtx {\tapp p {\tvector z}} {\rho{\parens c}} A}
-    {\typeDJ {\tvar p {\tvector y}} c A \in \recCtx
-    & \rho{(\vartheta)} = \subst {\tvector z} {\tvector y} \vartheta
-    }
-\end{rules}
-
-Note that in the definition of $\recCtx'$, $\typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A$ is not a typing judgement. Instead, $\recCtx$ should be thought of as nothing more than a map from variable names to four tuples containing parameter names, typing context, provided channel name, and provided type. It is necessary to store the context since channels are linear and channel types evolve over time, but the context needs to be the same at every occurrence of $p$.
-
-As for reduction, recursive processes simply unfold:
-$$ \irb{rec} : \proc{c}{\tapp {\parens{\trec p {\tvector y} P}} {\tvector z}}
-     \lolli \monad{ \proc c {\subst {\trec p {\tvector y} P} p {\subst {\tvector z} {\tvector y} P}} }
-$$
+Term level recursion is achieved by a new form of process expression, $\trec {p} {\tvector c} P_p$, which is parametrized over channels $\tvector c$ to allow renaming. The development is fairly standard and is not as important in this paper. More detail can be found in \cite{Toninho14}. The only thing to note is that the typing judgement is extended with a new context $\recCtx$ to keep track of process variables. The new judgment is written $\typeRecDJ P c A$. Typing and reduction rules are given in appendix~\ref{optional-recursion}.
 
 
 \subsection{Subtyping}
+\label{original-subtyping}
 
-Previously, we mentioned we would identify a recursive type and its unfolding, but we have not introduced any formal rules to actually implement this. One way of doing that would be to introduce a type equality judgement (written $A \typeeq B$) and add conversion rules. However, it turns out to be more practical to build this identification into a subtyping judgment (written $A \sub B$) since we already need subtyping for the refinement system (we can define $A \typeeq B$ if and only if $A \sub B$ and $B \sub A$). Subtyping, in turn, serves three purposes: (1) to identify a recursive type and its unfolding, (2) to propagate refinements and forget them as necessary (this will come later), and (3) to admit width and depth subtyping rules for $n$-ary choices which are customary in record-like calculi. The latter two goals overlap since data types are mainly constructed using $n$-ary choices and refinements are useful for describing properties of data types. Before we get into the specifics, let us look at how we make use of subtyping.
+Someone \todo{Who? Toninho? I'm couldn't find subtyping in his paper.} add (coinductive) subtyping (denoted $A \sub B$) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like structures. Subtyping also doubles as a convenient way of identifying a recursive a type and its unfolding (without it, we would need a type equality judgement almost equally complicated but more restrictive). Subtyping is especially important for a refinement system since it is used to propagate refinements and forget them as necessary. We do not go into the details of their system since we will switch to a different relation in the next section anyway. Interested readers should checkout \todo{Citation}.
 
-As usual, we introduce subtyping into term typing using what are called subsumption rules, which are presented in Figure~\ref{subsumption}. The right rule says that if a process is to provide a type $A$, it can always provide a more specific type $A'$. Dually, the left rule says that if a process can properly handle a more general type $A'$, then it does not hurt to make the type more specific.
-
-\begin{rules}[subsumption]{Subsumption}
-  \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
-    {\typeRecDJ{P}{c}{A'} & A' \sub A}
-  \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
-    {\typeD{\ctx, c : A'} P d B & A \sub A'}
-\end{rules}
-
-Our subtyping relation is defined coinductively rather than inductively since this admits more subtypes without breaking soundness. Using coinduction means we cannot add reflexivity and transitivity explicitly (subtyping should be a preorder on types), thus we carefully construct the rules to make sure they are admissible. This leads to the semi-algorithmic first attempt given in Figure~\ref{subtyping-first-system} (double lines indicate the rules should be interpreted coinductively). This is only a first attempt since we will have to switch to a related but different system when we add intersections and unions in order to admit (some of the) distributivity laws. \todo{I had a lot more to say about subtyping but I'm already running out of space (see thesis). Is this enough? Should I refer to the thesis?}
-
-\begin{rules}[subtyping-first-system]{Subtyping (first-attempt)}
-  % Base types
-  \infer=[\Sub{\terminate}]{\terminate \sub \terminate}{}
-  \and \infer=[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
-    {A \sub A' & B \sub B'}
-  \and \infer=[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
-    {I \subseteq J & A_k \sub A'_k~\text{for}~k \in J}
-  \and \infer=[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
-    {A' \sub A & B \sub B'}
-  \and \infer=[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
-    {J \subseteq I & A_k \sub A'_k~\text{for}~k \in J}
-  % Recursive types
-  \\ \infer=[\Sub{\rec\Right}]{A \sub \recursive t B}
-    {A \sub \subst {\recursive t B} t B}
-  \and \infer=[\Sub{\rec\Left}]{\recursive t A \sub B}
-    {\subst {\recursive t A} t A \sub B}
-\end{rules}
 
 This concludes the discussion of the base system. In the next section, we introduce intersections, unions, and a multiple conclusion subtyping relation which constitute our main contributions.
 
@@ -418,7 +298,7 @@ It is easy to see that $\pos$, $\even$, $\odd$ are all subtypes of $\nat$. We ru
 
 \subsection{Intersection Types}
 We denote the intersection of two types $A$ and $B$ as $A \intersect B$ (the more common $\wedge$ was used for value communication). A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign $\mathtt{suc}$ a type specifying all behavioral properties we care about:
-$$ \mathtt{suc} : (\nat \lolli \nat) \intersect (\nat \to \pos) \intersect (\even \lolli \odd) \intersect (\odd \lolli \even). $$
+$$ \mathtt{s} : (\nat \lolli \nat) \intersect (\nat \lolli \pos) \intersect (\even \lolli \odd) \intersect (\odd \lolli \even). $$
 
 Note that as is usual with intersections, multiple types are assigned to \emph{the same process}. Put differently, we cannot use two different processes or specify two different behaviors to satisfy the different branches of an intersection. This leads to the following typing rule on the right:
 $$
@@ -434,7 +314,7 @@ When we are using a channel on the left that offers an intersection of two types
     {\typeRecD{\ctx, c : B}{\recCtx}{P}{d}{D}}
 \end{mathpar}
 
-The standard semi-algorithmic subtyping rules are given in below. It should be noted that the left rules are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add them to the final system. Also, we will have to modify the subtyping relation later in this section, so the subtyping rules are still a first attempt.
+The standard subtyping rules are given in below (double lines indicate rules should be interpreted coinductively). It should be noted that the left typing rules above are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add these to the final system. Also, we will have to modify the subtyping relation later in this section, so the subtyping rules are only first attempt.
 
 \begin{mathpar}
   \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
@@ -444,9 +324,6 @@ The standard semi-algorithmic subtyping rules are given in below. It should be n
   \and \infer=[\Sub{\intersect\Left_2}]{A_1 \intersect A_2 \sub B}
     {A_2 \sub B}
 \end{mathpar}
-
-Finally, we need to extend the definition of unguarded variables and contractiveness. Since $\intersect$ is not a structural type, it simply combines and propagates unguarded variables:
-$$ \unguarded{(A \intersect B)} = \unguarded{(A)} \cup \unguarded{(B)}. $$
 
 
 \subsection{Union Types}
@@ -478,13 +355,20 @@ The usual subtyping rules are given below. These make the right rules derivable 
     {A_1 \sub B & A_2 \sub B}
 \end{mathpar}
 
-Unguarded variables of union is the same as intersection:
-$$ \unguarded{(A \union B)} = \unguarded{(A)} \cup \unguarded{(B)}. $$
 
+Unions allow us to describe some interesting properties. For example, we can show that every natural is either even or odd:
+\begin{lstlisting}[language=krill, style=custom]
+  iso : Nat -o (Even or Odd)
+  `c <- iso `d =
+    case `d of
+      zero -> wait `d; `c.zero; close `c
+      succ -> `c.succ; `e <- iso `d; `c <- `e
+\end{lstlisting}
+We have to unfold and refold one level since our system cannot prove $Nat \sub Even \union Odd$.
 
 \subsection{Top and Bottom}
 
-$\bot$ is the unit for internal choice and union. $\top$ is the unit for external choice and intersection.
+$\bot$ is the unit for internal choice and union. $\top$ is the unit for external choice and intersection. \todo{Add more to this section or remove it.}
 
 
 \subsection{Subtyping Revisited}
@@ -530,34 +414,6 @@ The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\ty
   \and \infer=[\SubA{\mu\Left}]{\typeList, \recursive t A \subA \typeListB}
      {\typeList, \subst {\recursive t A} t A \subA \typeListB}
 \end{rules}
-
-
-\subsection{Subtyping Extra Material}
-
-\todo{Decide if we want to use anything from this subsection.}
-The subtyping relation we gave before is not complete with respect to, say, the ideal semantics of types \cite{VouillonM04, Damm94}. This is because intersections and unions admit many distributivity-like rules over structural types and over each other. For example, it is not hard to see that $(A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2)$ would be sound using a propositional reading: if a process sends out a channel that satisfies $A_1$ then acts as $B_1$, \emph{and} the sent channel also satisfies $A_2$ in addition to the result satisfying $B_2$, then the channel satisfies both $A_1$ and $A_2$ and the result satisfies both $B_1$ and $B_2$. However, this judgement is not admissible in the given system: the only applicable rules are $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, both of which get stuck because we lose half the information we require for the rest of the derivation. The situation is perhaps exacerbated by the fact that we \emph{can} prove subtyping in the other direction, so these types are supposed to be equivalent. This means depending on where these types occur, we may fail to prove one side of a symmetric relation!
-
-The fix is not as simple as adding this rule as an extra axiom. For one, it is not trivial to rewrite this rule in order to preserve admissibility of transitivity. More importantly, this is not the only rule we would have to add. Figure~\ref{distributivity-examples} gives just \emph{some} of the many sound rules that are not admissible.
-
-\begin{rules}[distributivity-examples]{Sound but inadmissible subtyping rules}
-   % Intersection
-   (A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2) \\
-   \internals A I \intersect \internals B J \sub \internal\braces{\lab_x : A_x \intersect B_x}_{x \in I \cap J} \\
-   (A \lolli B_1) \intersect (A \lolli B_2) \sub A \lolli (B_1 \intersect B_2) \\
-   \externals A I \intersect \externals B J \sub \externals A I \cup \externals B J ~ (I \cap J = \emptyset)\\
-   % Union
-   (A_1 \union A_2) \tensor B \sub (A_1 \tensor B) \union (A_2 \tensor B) \\
-   \internals A I \cup \internals B J \sub \internals A I \union \internals B J ~ (I \cap J = \emptyset) \\
-   (A_1 \lolli B) \intersect (A_2 \lolli B) \sub (A_1 \union A_2) \lolli B \\
-   \external\braces{\lab_x : A_x \union B_x}_{x \in I \cap J} \sub \externals A I \union \externals B J \\
-   % Intersection and union
-   (A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B \\
-   (A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)
-\end{rules}
-
-This list is certainly not complete, and there are almost as many rules in this list as there are in the original system. Clearly, a blind axiomatic approach which adds all admissible rules is not practical and a more general treatment is in order. There has been some work in incorporating intersections and unions in a conventional type system that preserves completeness under certain conditions. The closest and most complete system we found was from Damm (\cite{Damm94, Damm94p2}). In \cite{Damm94}, he encodes types as regular tree expressions, and reformulates subtyping as regular tree grammar containment which was shown to be decidable. This results in a system that is sound and complete when all types are infinite (but $\terminate$ is a finite type). \cite{Damm94p2} extends this work such that the system is sound in the presence of finite types (although not necessarily complete).
-
-Their system is very close to what we would like to accomplish, however, we think it is too complicated for our purposes as it requires familiarity with ideal semantics of types (which in turn is based on domain theory and the theory metric spaces) and regular tree grammars. Even if a similar approach could be made to work, we find such systems to be fragile in the face of future extensions. We would rather work with a simple and robust subtyping relation that does not necessitate rethinking every detail with every extension, so we make a design decision: we give up full completeness and instead design a system that admits the rules we are likely to encounter in practice.
 
 
 \subsection{Refinement Example}
@@ -631,11 +487,75 @@ The final system is given in \todo{Rules for the final system}.
 \section{Conclusion}
 \label{conclusion}
 
+Some aspects that would be important in a full accounting of the system but are left out for the sake of conciseness are as follows:
+\begin{itemize}
+  \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13,Toninho15phd,Griffith16phd}.
+  \item We do not consider shared channels and persistent processes, which should be a straightforward extension based on prior work. \cite{CairesP10,PfenningG15}
+  \item Our operational semantics is synchronous, but asynchronous communication~\cite{DeYoung12csl} is subject to the same type system~\cite{PfenningG15,Griffith16phd}.
+  \item Behavioral polymorphism~\cite{Caires13esop} and abstract types are not in the system. Their interaction with subtyping, intersections and unions is an interesting avenue for future work.
+\end{itemize}
+
+
 Future work:
 Polymorphism, type inference, abstract types, top, bottom.
 
 
 \appendix
+
+\section{Operational Semantics}
+\label{operational-semantics}
+
+We express reduction rules using \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{Cervesato06}. For example, the rule for $\terminate$ can be written as:
+$$ \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}} \lolli \monad{\proc{d}{P}}. $$
+Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. Instead, $\tensor$ should be interpreted as conjunctions, and $\lolli$ marks transition rules. So, $A \tensor B \tensor C \lolli D \tensor E$ would mean we could replace the resources $A, B, C$ together to get a $D, E$. The curly braces $\braces \ldots$ indicated a monad which essentially forces the rules to be interpreted as a multiset rewriting rule. The rest of the rules are given below:
+
+\begin{align*}
+  % Id
+  \irb{id}     \hspace{1em} & : \proc{c}{\tfwd{c}{d}} \lolli \monad{c = d} \\
+  % Cut
+  \irb{cut}    \hspace{1em} & : \proc{c}{\tspawn{x}{P_x}{Q_x}}
+      \lolli \monad{\exists a. \proc{a}{P_a} \otimes \proc{c}{Q_a}} \\
+  % One
+  \irb{one} \hspace{1em} & : \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}}
+    \lolli \monad{\proc{d}{P}} \\
+  % Tensor
+  \irb{tensor} \hspace{1em} & : \proc{c}{\tsend{c}{x}{P_x}{Q}} \otimes \proc{e}{\trecv{x}{c}{R_x}} \\
+    & \hspace{2em} \lolli \monad{ \exists a. \proc{a}{P_{a}} \otimes \proc{c}{Q} \otimes \proc{e}{R_{a}} } \\
+  % Internal
+  \irb{internal} \hspace{1em} & : \proc{c}{\tselect{c}{i}{P}} \otimes \proc{d}{\tcase{c}{\tbranches Q I}} \otimes i \in I \\
+    & \hspace{2em} \lolli \monad{ \proc{c}{P} \otimes \proc{d}{Q_i} } \\
+  % Lolli
+  \irb{lolli} \hspace{1em} & : \proc{c}{\trecv{x}{c}{P_x}} \otimes \proc{d}{\tsend{c}{x}{Q_x}{R}} \\
+    & \hspace{2em} \lolli \monad{ \exists a. \proc{c}{P_{a}} \otimes \proc{a}{Q_a} \otimes \proc{d}{R} } \\
+  % External
+  \irb{external} \hspace{1em} & : \proc{c}{\tcase{c}{\tbranches P I}} \otimes \proc{d}{\tselect c i Q} \otimes i \in I \\
+    & \hspace{2em} \lolli \monad{ \proc{c}{P_i} \otimes \proc{d}{Q} } \\
+\end{align*}
+
+
+\section{Typing and Reduction Rules for Recursive Processes}
+\label{optional-recursive}
+
+Typing rules for recursive processes are as follows: 
+
+\begin{mathpar}
+  \infer[\rec]{\typeRecDJ {\tapp {\parens*{ \trec p {\tvector y} P}} {\tvector z}} c A}
+   { \typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c A
+   & \recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A
+   }
+
+   \and \infer[\procVar]{\typeRecD {\rho{\parens \ctx}} \recCtx {\tapp p {\tvector z}} {\rho{\parens c}} A}
+    {\typeDJ {\tvar p {\tvector y}} c A \in \recCtx
+    & \rho{(\vartheta)} = \subst {\tvector z} {\tvector y} \vartheta
+    }
+\end{mathpar}
+
+Note that in the definition of $\recCtx'$, $\typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A$ is not a typing judgement. Instead, $\recCtx$ should be thought of as nothing more than a map from variable names to four tuples containing parameter names, typing context, provided channel name, and provided type. It is necessary to store the context since channels are linear and channel types evolve over time, but the context needs to be the same at every occurrence of $p$.
+
+As for reduction, recursive processes simply unfold:
+$$ \irb{rec} : \proc{c}{\tapp {\parens{\trec p {\tvector y} P}} {\tvector z}}
+     \lolli \monad{ \proc c {\subst {\trec p {\tvector y} P} p {\subst {\tvector z} {\tvector y} P}} }
+$$
 
 
 %%
