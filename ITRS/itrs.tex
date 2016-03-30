@@ -438,9 +438,9 @@ When $I$ is empty, the intersection reduces to $\top$ and the union reduces to $
 \section{Metatheory}
 \label{metatheory}
 
-\todo{Talk a little about this stuff.}
+Our main contribution is proving that the system with refinements is type safe. We do this by proving the standard progress and preservation theorems, renamed to deadlock freedom and session fidelity respectively within this context.
 
-\todo{See thesis for the proofs. Should we add them here, in the appendix, or just gloss over them?}
+In a functional setting, progress states a well-typed expression either takes a step or is a value. The corresponding notion of a value is a \emph{poised} configuration. A configuration is poised if every process in it is, and a process is poised if it is waiting to communicate with its client. With this is in, we can state the progress theorem:
 
 \begin{theorem}[Progress]
 If $\providesCtx \config \ctx$ then either
@@ -449,11 +449,18 @@ If $\providesCtx \config \ctx$ then either
   \item $\config$ is poised.
 \end{enumerate}
 \end{theorem}
+\begin{proof}
+  By induction on $\providesCtx \config \ctx$ followed by a nested induction on the typing of the root process for the $\confOne$ case. When two processes involved, we also need inversion on client's typing. The full proof will be published in first author's thesis. \todo{Should I say will be, or can be found in.}
+\end{proof}
 
 
+Preservation is easier to state, but more tricky to prove because it splits into many cases.
 \begin{theorem}[Preservation]
 If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
 \end{theorem}
+\begin{proof}
+  By inversion on $\steps{\config}{\config'}$, followed by induction on the typing judgement(s) of the involved processes.
+\end{proof}
 
 
 \section{Algorithmic System}
@@ -464,7 +471,7 @@ To show that our system is practical, we would like to show that subtyping and t
 
 \subsection{Algorithmic Subtyping}
 
-The subtyping judgement we gave is already mostly algorithmic (since we are working with coinductive rules), so we only have a couple loose-ends to tie up. The first is the question of which rule to apply when multiple are applicable. Unfortunately, we have to try all possibilities non-deterministically since anyone could work. One optimization we can do is to apply $\SubA{\intersect\Right}$, $\Sub{\intersect\Left}$, $\SubA{\union\Right}$, $\Sub{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these rules are invertible. At some point, we must hit all structural types due to our contractiveness restriction, at which point we non-deterministically pick a structure and continue. \todo{Citation?}
+The subtyping judgement we gave is already mostly algorithmic (since we are working with coinductive rules), so we only have a couple loose-ends to tie up. The first is deciding which rule to pick when multiple are applicable. We apply $\SubA{\intersect\Right}$, $\Sub{\intersect\Left}$, $\SubA{\union\Right}$, $\Sub{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these are invertible. At some point, we must hit all structural types due to our contractiveness restriction, at which point we non-deterministically pick a structural rule and continue. \todo{Citation?}
 
 The coinductive nature of typing means we can (and often will) have infinite derivations. This raises the question of how we can have a finite time algorithm. We use a slightly modified version of the algorithm given in \cite{GayH05}. The idea is simple: we maintain a context of previously seen subtyping checks and immediately terminate with success if we ever compare the same pair of sets of types again. Since every recursive step corresponds to a rule, the generated derivation must be productive. We know there cannot be an infinite chain due to the contractiveness restriction. A more formal treatment can be found in \cite{StoneS2005}.
 
