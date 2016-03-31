@@ -94,13 +94,6 @@ which should be interpreted as ``$P$ offers along the channel $c$ the session $A
 
 Each process offers along a specific channel, and in the linear setting, each channel must be used exactly in one place. Processes cannot rename channels, which means we can treat channel names as unique process identifiers.
 
-Within this framework, the $\cut$ rule corresponds to a form of process composition where the main process (client) spawns off a helper process (provider) which it can communicate with from then on: \todo{Remove or move this paragraph.}
-$$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
-    { \typeD {\ctx} {P_c} {c} {A}
-    & \typeD {\ctx', c : A} {Q_c} {d} {D}
-    }
-$$
-\todo{Mention the system is different from $\pi$ calculus?}
 
 Working out the isomorphism further and assigning a session type to each linear proposition gives the following interpretation:
 
@@ -118,9 +111,9 @@ The types we care the most in this paper are $\internals A I$ and $\externals A 
 
 
 \subsection{Process Expressions}
+\label{process-expressions}
 
-The proof terms, or processes, corresponding to these types are given below with the sending construct followed by the receiving construct. Depending on whether the communication happens along the provided channel or one of the used channels, we get either a type or its dual. \todo{This sentence sounds wack}.
-
+The processes (or proof terms) corresponding to these types are given below with the sending construct followed by the receiving construct.
 \begin{center}
 \begin{tabular}{l c l l}
   $P, Q, R$ & ::= & $\tspawn{x}{P_x}{Q_x}$     & cut (spawn) \\
@@ -169,7 +162,7 @@ This states a process level natural number is an internal choice of either zero 
       succ -> `c.succ; `c.succ; `c <- double `d
 \end{lstlisting}
 
-These are very simple examples, though we hope they offer some insight into the system. We will expand on these example when we introduce intersections and unions, and give more interesting ones at the end once we have the whole system. \todo{Remove this if we don't have any examples.}
+These are very simple examples, though we hope they offer some insight into the system. We will assign more interesting types to these processes after we introduce intersections and unions. We also have a more interesting example in appendix~\ref{optional-example}.
 
 
 \subsection{Type Assignment for Processes}
@@ -226,23 +219,20 @@ The typing rules for other constructs are derived from linear logic by decoratin
 
 \subsection{Process Configurations}
 
-So far in the theory, we have only considered processes in isolation. In this section, we introduce process configurations in order to talk about the interactions between multiple processes. A process configuration is simply a set of processes where each process is labelled with the channel along which it provides. We use the notation $\proc c P$ for labelling the process $P$, and require that all labels in a configuration are distinct. That is, a process configuration $\set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is valid if and only if $c_1, \ldots, c_n$ are all distinct. Note that we do not require channels that occur within $P_i$ to be distinct, this is handled by the typing judgement given next.
+So far in the theory, we have only considered processes in isolation. In this section, we introduce process configurations in order to talk about the interactions between multiple processes. A process configuration is simply a set of processes where each process is labelled with the channel along which it provides. We use the notation $\proc c P$ for labelling the process $P$, and require all labels in a configuration to be distinct.
 
-With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge (including the root nodes which have ``phantom'' edges) and any number of incoming edges that correspond to channels the process uses. This observation suggests the typing rules in Figure \ref{configuration-typing}, which mimic the structure of a multi-way tree, for a process configuration.
-
-\begin{rules}[configuration-typing]{Configuration typing}
+With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge (including the root nodes which have ``phantom'' edges) and any number of incoming edges that correspond to channels the process uses. This observation suggests the typing rules below, which mimic the structure of a multi-way tree. Note that the definition is well-founded since the size of the configuration gets strictly smaller.
+\begin{mathpar}
   \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
    { \typeRecD \ctx \emptyset P c A
    & \providesCtx \config \ctx
    }
-
-   \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
+  \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
     { \provides {\config_i} {c_i} {A_i} ~\text{for}~ i \in \set{1, \ldots, n}
     & n = 0 \vee n > 1
     }
-\end{rules}
+\end{mathpar}
 
-This definition is well-founded since the size of the configuration gets strictly smaller. The rules only expose the types of the roots since this is the only information we need when typing the next level. At the top level, we will usually start with one process with type $\terminate$, which will spawn off providers as needed using $\cut$. Since we do not care about the specific type at the top level, we say a process configuration $\config$ is well typed if $\providesCtx \config \ctx$ for some $\ctx$. Finally, note that the rules do not allow cyclic uses of channel names, and that the left of the turnstile is empty since configurations must be closed.
 
 
 \subsection{Operational Semantics}
@@ -250,20 +240,21 @@ This definition is well-founded since the size of the configuration gets strictl
 A process configuration evolves over time when a process takes a step (forwarding and cut step without communication) or when two matching processes communicate. For example, the processes configuration
 $ \config, \proc{c}{\tselect{c}{i}{P}}, \proc{d}{\tcase{c}{\tbranches Q I}} $
 can step to
-$ \proc{c}{P} \otimes \proc{d}{Q_i} $
-whenever $i \in I$. We get similar reduction rules for $\id$, $\cut$, and each structural rule. These are given in appendix~\ref{operational-semantics} due to space limitations.
+$ \config, \proc{c}{P} \otimes \proc{d}{Q_i} $
+whenever $i \in I$. We get similar reduction rules for $\id$, $\cut$, and each structural rule. These are provided in appendix~\ref{operational-semantics} due to space limitations.
 
 
 \section{Recursion and Subtyping}
 \label{recursive}
 
-Any interesting program requires the use of recursion. In fact, we used it even in our first example from the previous section. Here, we formally develop the theory of equirecursive types and recursive processes. We will also introduce (the initial version of) the subtyping judgment which is needed to deal with type equivalences induced by equirecursive types.
+Any interesting program requires the use of recursion. Here, we introduce equirecursive types and recursive processes. We will also mention (the initial version of) the subtyping judgment which is needed to deal with type equivalences induced by equirecursive types.
+
 
 \subsection{Recursive Types}
 
-We extend the language of types with variables and a new construct, $\recursive{t}{A_t}$, representing recursive types. We require all types at the top level to be closed, and make sure every rule we give preserves this property. Recursive types $\recursive{t}{A}$ are identified with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions ($\mathtt{unfold}$ and $\mathtt{fold}$) to go between the them. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
+We extend the language of types with variables and a new construct, $\recursive{t}{A_t}$, representing recursive types. We require all types at the top level to be closed, and make sure every rule we give preserves this property. Recursive types $\recursive{t}{A}$ are identified with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions ($\mathtt{unfold}$ and $\mathtt{fold}$) to go between them. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they reduce communication and make more sense in a concurrent setting where behavior is more important than term structure.
 
-In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. For this to make sense, we assume that all types are contractive \cite{StoneS2005, GayH05}. Intuitively, this means all variables must occur under a \emph{structural} type.
+In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. For this to make sense, we assume that all types are contractive \cite{StoneS2005, GayH05}. Intuitively, this means occurrences of variables must be under a \emph{structural} type.
 
 
 \subsection{Recursive Processes}
@@ -274,8 +265,7 @@ Term level recursion is achieved by a new form of process expression, $\trec {p}
 \subsection{Subtyping}
 \label{original-subtyping}
 
-Someone \todo{Who? Toninho? I'm couldn't find subtyping in his paper.} add (coinductive) subtyping (denoted $A \sub B$) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like structures. Subtyping also doubles as a convenient way of identifying a recursive a type and its unfolding (without it, we would need a type equality judgement almost equally complicated but more restrictive). Subtyping is especially important for a refinement system since it is used to propagate refinements and forget them as necessary. We do not go into the details of their system since we will switch to a different relation in the next section anyway. Interested readers should checkout \todo{Citation}.
-
+Gay and Hole \cite{GayH05} add coinductive subtyping (denoted $A \sub B$ in this paper) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like structures. Subtyping also doubles as a convenient way of identifying a recursive a type and its unfolding (without it, we would need a type equality judgement almost equally complicated but more restrictive). Subtyping is especially important for a refinement system since it is used to propagate refinements and forget them as necessary. We do not go into the details of their system since we will switch to a different relation in the next section anyway.
 
 This concludes the discussion of the base system. In the next section, we introduce intersections, unions, and a multiple conclusion subtyping relation which constitute our main contributions.
 
@@ -284,7 +274,6 @@ This concludes the discussion of the base system. In the next section, we introd
 \label{refinements}
 
 Recall our definition of process level naturals $\nat$. One can imagine cases where we would like to know more about the exact nature of the natural. For example, if we are using a natural to track the size of a list, we might want to ensure it is non-zero. Sometimes, it might be relevant to track whether we have an even or an odd number. The system we have described so far turns out to be strong enough to describe all these \emph{refinements} as illustrated below:
-
 \begin{lstlisting}[language=krill, style=custom]
   type Nat = +{zero : 1, succ : Nat}
 
@@ -293,12 +282,16 @@ Recall our definition of process level naturals $\nat$. One can imagine cases wh
   type Odd = +{succ : Even}
 \end{lstlisting}
 
-It is easy to see that $\pos$, $\even$, $\odd$ are all subtypes of $\nat$. We run into a problem when we try to implement the behavior described by these types, however. Consider the $\mathtt{suc}$ function, for example, which satisfies many properties: $\nat \lolli \nat$, $\pos \lolli \pos$, $\even \lolli \odd$, $\odd \lolli \even$ etc. Subtyping can be used to combine some of these (e.g.\ $\nat \lolli \pos$ for $\nat \lolli \nat$ and $\pos \lolli \pos$) but it is not strong enough. The usual solution is adding intersections to the type system.
+It is easy to see that $\pos$, $\even$, $\odd$ are all subtypes of $\nat$. We run into a problem when we try to implement the behavior described by these types, however. Consider the $\mathtt{s}$ function, for example, which satisfies many properties: $\nat \lolli \nat$, $\pos \lolli \pos$, $\even \lolli \odd$, $\odd \lolli \even$ etc. Subtyping can be used to combine some of these (e.g.\ $\nat \lolli \pos$ for $\nat \lolli \nat$ and $\pos \lolli \pos$) but it is not strong enough. The usual solution is adding intersections to the type system.
 
 
 \subsection{Intersection Types}
-We denote the intersection of two types $A$ and $B$ as $A \intersect B$ (the more common $\wedge$ was used for value communication). A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign $\mathtt{suc}$ a type specifying all behavioral properties we care about:
-$$ \mathtt{s} : (\nat \lolli \nat) \intersect (\nat \lolli \pos) \intersect (\even \lolli \odd) \intersect (\odd \lolli \even). $$
+We denote the intersection of two types $A$ and $B$ as $A \intersect B$ (the more common $\wedge$ was used for value communication). A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign the programs introduced in section~\ref{process-expressions} types specifying all behavioral properties we care about:
+\begin{lstlisting}[language=krill, style=custom]
+  z : Nat and Even
+  s : (Nat -o Nat) and (Even -o Odd) and (Odd -o Even)
+  double : (Nat -o Nat) and (Nat -o Even)
+\end{lstlisting}
 
 Note that as is usual with intersections, multiple types are assigned to \emph{the same process}. Put differently, we cannot use two different processes or specify two different behaviors to satisfy the different branches of an intersection. This leads to the following typing rule on the right:
 $$
@@ -338,11 +331,11 @@ Being dual to intersections, the typing rules for unions mirror the typing rules
     {\typeRecDJ{P}{c}{A}}
   \and \infer[\union\Right_2]{\typeRecDJ{P}{c}{A \union B}}
     {\typeRecDJ{P}{c}{B}}
-  \and \infer[\union\Left]{\typeD{\ctx, c : A \union B}{\recCtx}{P}{d}{D}}
-    {\typeD{\ctx, c : A}{P}{d}{D} & \typeD{\ctx, c : B}{\recCtx}{P}{d}{D}}
+  \and \infer[\union\Left]{\typeRecD{\ctx, c : A \union B}{\recCtx}{P}{d}{D}}
+    {\typeRecD{\ctx, c : A}{\recCtx}{P}{d}{D} & \typeRecD{\ctx, c : B}{\recCtx}{P}{d}{D}}
 \end{mathpar}
 
-The right rules say the process has to offer either the left type or the right type respectively. The left rule says we need to be prepared to handle either type. We would like to note that we restore a symmetry in this system that has been long lost for functional languages. The natural left rule we give here for unions (natural since it mirrors the right rule for intersection as it should) has been shown to be unsound in functional languages with effects \todo{Find citation}. Reconciling unions with effects requires complicated concepts such as an evaluation context and tridirectional type-checking \todo{citation}. The reason is that the typing rule only checks the cases where \emph{all} occurrences of a variable have the first type or all have the second type, however, it could be the case that some have the first and others have the second in the presence of effects. This cannot be the case here because our language almost acts like a lazy purely-functional language, and more importantly, linearity assures each channel is used once \todo{Not exactly once but close enough. Maybe the reason is it acts like the channel is always in an evaluation context?}
+The right rules state the process has to offer either the left type or the right type respectively. The left rule says we need to be prepared to handle either type. It is important to point out that we restore a long-lost symmetry for functional languages. The natural left rule we give here for unions (natural since it is dual to the right rule for intersection) has been shown to be unsound in functional languages with effects \todo{Frank: citation}. Reconciling unions with effects requires limiting this to expressions in evaluation position and using tridirectional type-checking \cite{DunfieldP04}. This is not a problem is our system since every process is in an evaluation position in sequent calculus.
 
 The usual subtyping rules are given below. These make the right rules derivable so they are not explicitly added to the system.
 
@@ -364,11 +357,7 @@ Unions allow us to describe some interesting properties. For example, we can sho
       zero -> wait `d; `c.zero; close `c
       succ -> `c.succ; `e <- iso `d; `c <- `e
 \end{lstlisting}
-We have to unfold and refold one level since our system cannot prove $Nat \sub Even \union Odd$.
-
-\subsection{Top and Bottom}
-
-$\bot$ is the unit for internal choice and union. $\top$ is the unit for external choice and intersection. \todo{Add more to this section or remove it.}
+We have to unfold one level since our system cannot prove $Nat \sub Even \union Odd$.
 
 
 \subsection{Subtyping Revisited}
@@ -383,9 +372,9 @@ Going from right to left turns out to be easy, but we quickly run into a problem
 \footnote{This issue does not come up in the other direction since intersection right and union left rules are invertible, that is, they preserve all information.}%
 We think the fact that the equality holds in the other direction only exacerbates the problem, since it means the way we write down types and where types happen to occur actually matters, which will inevitable lead to unintuitive type-checker errors.
 
-Our solution is doing the obvious: if the problem is losing half the information, well, we should just keep it around. This suggests a system where the single type on the left and on the type right are replaced with \emph{(multi)sets} of types. That is, instead of the judgment $A \le B$, we use a judgement of the form $A_1, \ldots, A_n \subA B_1, \ldots, B_n$, where the left of $\subA$ is interpreted as a conjunction (intersection) and the right is interpreted as a disjunction (union).\todo{Explain why it is conjunction and disjunction?} This results in a system reminiscent of \cite{Gentzen35, Girard87}. However, we take a slightly different approach since we are working with coinductive rules.
+Our solution is doing the obvious: if the problem is losing half the information, well, we should just keep it around. This suggests a system where the single type on the left and on the type right are replaced with \emph{(multi)sets} of types. That is, instead of the judgment $A \le B$, we use a judgement of the form $A_1, \ldots, A_n \subA B_1, \ldots, B_n$, where the left of $\subA$ is interpreted as a conjunction (intersection) and the right is interpreted as a disjunction (union). This results in a system reminiscent of \cite{Gentzen35, Girard87}. However, we take a slightly different approach since we are working with coinductive rules.
 
-The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keeping the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one type on the right with the same structure. Note that this is not an essential restriction. In fact, we predict that matching multiple types will give us distributivity of intersection and union over structural types, which is desirable. \todo{Give examples?} We have to be careful not to admit unsound judgements, and it makes the system more complicated, so we not explore that route in this paper. \todo{Interested readers are directed to the first author's thesis.} \todo{Split the rules into property and rest?}
+The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. Note that this is not an essential restriction. In fact, we predict that matching multiple types will give us distributivity of intersection and union over structural types, which is a venue for future research.
 
 \begin{rules}[subtyping-multi]{Subtyping with multiple hypothesis and conclusions}
   % Intersection
@@ -416,23 +405,17 @@ The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\ty
 \end{rules}
 
 
-\subsection{Refinement Example}
-\todo{We did promise.}
-
-
 \subsection{Reinterpreting Choice}
 
-In this section, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. A comparison between the typing rules for intersections and external choice (respectively unions and internal choice) reveal striking similarities. The only difference, in fact, is that internal choice (respectively external choice) has process level constructs where as intersections (respectively unions) are implicit. \todo{I don't like the whole respectively stuff. Rewrite.}
+In this section, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process level constructs where as intersections are implicit.
 
-Consider the binary external choice $\external\braces{\irb{inl} : A, \irb{inr} : B}$ for example. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This suggests the following redefinition for $n$-ary external and internal choices:
+Consider special case of binary external choice: $\external\braces{\irb{inl} : A, \irb{inr} : B}$. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
 \begin{mathpar}
   \externals A I \defined \bigintersect_{\indexVar \in I}{\external\braces{\lab_\indexVar : A_\indexVar}} \\
   \internals A I \defined \bigunion_{\indexVar \in I}{\internal\braces{\lab_\indexVar : A_\indexVar}}
 \end{mathpar}
 
-When $I$ is empty, the intersection reduces to $\top$ and the union reduces to $\bot$. It can be checked that these definitions satisfy the typing and subtyping rules for external and internal choices.
-
-\todo{Talk about how this admits some distributivity laws by definition.}
+When $I$ is empty, the intersection reduces to $\top$ and the union reduces to $\bot$, which are elided from this paper for space considerations. It can be checked that these definitions satisfy the typing and subtyping rules for external and internal choices.
 
 
 \section{Metatheory}
@@ -450,7 +433,7 @@ If $\providesCtx \config \ctx$ then either
 \end{enumerate}
 \end{theorem}
 \begin{proof}
-  By induction on $\providesCtx \config \ctx$ followed by a nested induction on the typing of the root process for the $\confOne$ case. When two processes involved, we also need inversion on client's typing. The full proof will be published in first author's thesis. \todo{Should I say will be, or can be found in.}
+  By induction on $\providesCtx \config \ctx$ followed by a nested induction on the typing of the root process for the $\confOne$ case. When two processes involved, we also need inversion on client's typing.
 \end{proof}
 
 
@@ -466,45 +449,31 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
 \section{Algorithmic System}
 \label{algorithmic}
 
-To show that our system is practical, we would like to show that subtyping and type-checking are decidable. We do this by designing an algorithm that takes in a (sub)typing judgement and produces true if there is a derivation in the system and false otherwise. Note that everything in the judgement is considered an input, that is, the interface for the algorithms are $\typeList^+ \subA \typeListB^+$ and $\typeRecD {\ctx^+} {\recCtx^+} {P^+} {c^+} {A^+}$, respectively (where $^+$ indicates input and non-existent $^-$ indicates output). \todo{Probably don't need the last sentence.}
+In this section, we prove that subtyping and type-checking are decidable by designing an algorithm that takes in a (sub)typing judgement and produces true if and only if there is a derivation. Note that everything in the judgement is considered an input.
 
 
 \subsection{Algorithmic Subtyping}
 
-The subtyping judgement we gave is already mostly algorithmic (since we are working with coinductive rules), so we only have a couple loose-ends to tie up. The first is deciding which rule to pick when multiple are applicable. We apply $\SubA{\intersect\Right}$, $\Sub{\intersect\Left}$, $\SubA{\union\Right}$, $\Sub{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these are invertible. At some point, we must hit all structural types due to our contractiveness restriction, at which point we non-deterministically pick a structural rule and continue. \todo{Citation?}
+The subtyping judgement we gave is already mostly algorithmic (a necessity of working with coinductive rules), so we only have to tie a couple loose-ends. The first is deciding which rule to pick when multiple are applicable. We apply $\SubA{\intersect\Right}$, $\Sub{\intersect\Left}$, $\SubA{\union\Right}$, $\Sub{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these are invertible. At some point, we must hit all structural types due to our contractiveness restriction, at which point we non-deterministically pick a structural rule and continue.
 
-The coinductive nature of typing means we can (and often will) have infinite derivations. This raises the question of how we can have a finite time algorithm. We use a slightly modified version of the algorithm given in \cite{GayH05}. The idea is simple: we maintain a context of previously seen subtyping checks and immediately terminate with success if we ever compare the same pair of sets of types again. Since every recursive step corresponds to a rule, the generated derivation must be productive. We know there cannot be an infinite chain due to the contractiveness restriction. A more formal treatment can be found in \cite{StoneS2005}.
-
-Now that we have an algorithm for subtyping, the next step is to come up with an algorithm for type checking.
+Second, the coinductive nature of typing means we can (and often will) have infinite derivations. We combat this by using a cyclicity check (similar to the one in \cite{GayH05}): we maintain a context of previously seen subtyping comparisons and immediately terminate with success if we ever compare the same pair of sets of types again. Every recursive step corresponds to a rule, which ensures a productive derivation. We know there cannot be an infinite chain of new types due to the contractiveness restriction. A more formal treatment can be found in \cite{StoneS2005}.
 
 
 \subsection{Algorithmic Type-checking}
 
-Designing a type checking algorithm is quite simple for the base system where we only have structural types (no recursion or subtyping), since the form of the process determines a unique applicable typing rule. The $\cut$ rule causes a small problem since we do not have a type for the helper process to check against. This is solved by adding type annotations in spawning processes (but nowhere else) so that the new form is $\tspawnType c {P_c} A {Q_c}$. We define $\erase{P}$ to be $P$ with all type annotations erased.
+Designing a type checking algorithm is quite simple for the base system where we only have structural types (no recursion or subtyping), since the form of the process determines a unique applicable typing rule. The $\cut$ rule causes a small problem since we do not have a type for the helper process to check against. This is solved by adding type annotations in spawning processes so that the new form is $\tspawnType c {P_c} A {Q_c}$.
 
-In the extended system with subtyping and property types, type-checking is a lot trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free (meaning it can be anything), and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
+In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free, and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
 
-The former problem is solved by switching to \emph{bidirectional type-checking} where we only need to check subtyping when we do a forward. This relies on the following crucial observation: if we are checking a process against a structural type, the subparts of $P$ must check against subparts of $A$. For example, if we are checking $\tsend c d {P_d} Q$ against $c : A \tensor B$, then $P_d$ must check against $d : A$ and $Q$ must check against $c : B$. Even if we could use subsumption, $\tsend c d {P_d} Q$ would still have to type-check against a type $c : A' \tensor B' \sub A \tensor B$ which would imply $A' \sub A$ and $B' \sub B$. \todo{Kinda messed this up. Better explanation.} To make sure we can always get down to structural types, we add unfolding rules on the right and on the left, and apply these eagerly along with rules for intersections and unions.
+The former problem is solved by switching to \emph{bidirectional type-checking} where we only check subtyping when we do a forward. This relies on the following crucial observation: if we are checking a process against a structural type, subparts of the process must check against subparts of the type. For example, if we are checking $\tsend c d {P_d} Q$ against $c : A \tensor B$, then $P_d$ must check against $d : A$ and $Q$ must check against $c : B$. To make sure we can always get down to structural types, we add unfolding rules on the right and on the left, and apply these eagerly along with rules for intersections and unions. Interested readers should see appendix~\ref{optional-algorithmic} for the full system.
 
-\todo{Talk about soundness and completeness.}
-
-The final system is given in \todo{Rules for the final system}.
+The resulting is also shown sound and complete with respect to the original system, but we do not have space to discuss that further. \todo{I think I said we ran out of space too many times.}
 
 
 \section{Conclusion}
 \label{conclusion}
 
-Some aspects that would be important in a full accounting of the system but are left out for the sake of conciseness are as follows:
-\begin{itemize}
-  \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13,Toninho15phd,Griffith16phd}.
-  \item We do not consider shared channels and persistent processes, which should be a straightforward extension based on prior work. \cite{CairesP10,PfenningG15}
-  \item Our operational semantics is synchronous, but asynchronous communication~\cite{DeYoungCPT12} is subject to the same type system~\cite{PfenningG15,Griffith16phd}.
-  \item Behavioral polymorphism~\cite{CairesPPT13} and abstract types are not in the system. Their interaction with subtyping, intersections and unions is an interesting avenue for future work.
-\end{itemize}
-
-
-Future work:
-Polymorphism, type inference, abstract types, top, bottom.
+We introduced intersections and unions to a simple system of session types, and demonstrated how they can be used to refine behavioral specifications of processes. Some aspects that would be important in a full accounting of the system are left out for conciseness or are left as future work. For example, a useful system would integrate an underlying functional language \cite{ToninhoCP13}, add shared channels \cite{CairesP10,PfenningG15}, and consider asynchronous communication \cite{DeYoungCPT12,PfenningG15,Griffith16phd}. These should be straightforward extensions based on prior work. In addition, it would be very useful to have behavioral polymorphism \cite{CairesPPT13} and abstract types. Their interaction with subtyping, intersections, and unions is an interesting avenue for future work.
 
 
 %%
@@ -518,6 +487,7 @@ Polymorphism, type inference, abstract types, top, bottom.
 %% Appendix
 %%
 
+\clearpage
 \appendix
 
 \section{Operational Semantics}
@@ -574,6 +544,15 @@ As for reduction, recursive processes simply unfold:
 $$ \irb{rec} : \proc{c}{\tapp {\parens{\trec p {\tvector y} P}} {\tvector z}}
      \lolli \monad{ \proc c {\subst {\trec p {\tvector y} P} p {\subst {\tvector z} {\tvector y} P}} }
 $$
+
+
+\section{Process Typing in the Algorithmic System}
+\label{optional-algorithmic}
+
+
+
+\section{Bit Strings}
+\label{optional-example}
 
 
 

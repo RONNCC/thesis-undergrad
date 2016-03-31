@@ -1,9 +1,10 @@
-DBLP:conf/fossacs/DunfieldP03 as Dunfield03
 DBLP:journals/tcs/Girard87 as Girard87
 DBLP:conf/popl/AmadioC91 as AmadioC91
 DBLP:conf/pldi/FreemanP91 as FreemanP91
 DBLP:conf/concur/Honda93 as Honda93
 DBLP:conf/tacs/Damm94 as Damm94
+DBLP:conf/fossacs/DunfieldP03 as Dunfield03
+DBLP:conf/popl/DunfieldP04 as DunfieldP04
 DBLP:journals/iandc/CervesatoS09 as CervesatoS09
 DBLP:conf/concur/CairesP10 as CairesP10
 DBLP:conf/csl/DeYoungCPT12 as DeYoungCPT12
