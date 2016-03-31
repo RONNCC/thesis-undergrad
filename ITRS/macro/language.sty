@@ -7,6 +7,7 @@
 \RequirePackage{mathtools}
 \RequirePackage{mathpartir}
 \RequirePackage{stmaryrd}
+\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
 
 
 \SetupKeyvalOptions{
@@ -97,6 +98,7 @@
 % Functions
 \DeclareMathOperator{\free}{free}
 \DeclareMathOperator{\unguarded}{UV}
+% \newcommand{\erase}[1]{[\![ {#1} ]\!]}
 \newcommand{\erase}[1]{\left \llbracket {#1} \right \rrbracket}
 
 % Contractiveness

@@ -74,7 +74,7 @@ Prior work has established a Curry-Howard correspondence between intuitionistic 
 
 In the base system, each type directly corresponds to a process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural types} since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property types} since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other.
 
-Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type-safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviors, which we demonstrate with examples analogous to those in functional languages \cite{FreemanP91,Dunfield03fossacs}.
+Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type-safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviors, which we demonstrate with examples analogous to those in functional languages \cite{FreemanP91,Dunfield03}.
 
 Our contributions are summarized below:
 \begin{itemize}
@@ -268,7 +268,7 @@ In the style of \cite{AmadioC91}, we interpret recursive types as finite represe
 
 \subsection{Recursive Processes}
 
-Term level recursion is achieved by a new form of process expression, $\trec {p} {\tvector c} P_p$, which is parametrized over channels $\tvector c$ to allow renaming. The development is fairly standard and is not as important in this paper. More detail can be found in \cite{Toninho14}. The only thing to note is that the typing judgement is extended with a new context $\recCtx$ to keep track of process variables. The new judgment is written $\typeRecDJ P c A$. Typing and reduction rules are given in appendix~\ref{optional-recursion}.
+Term level recursion is achieved by a new form of process expression, $\trec {p} {\tvector c} P_p$, which is parametrized over channels $\tvector c$ to allow renaming. The development is fairly standard and is not as important in this paper. More detail can be found in \cite{ToninhoCP14}. The only thing to note is that the typing judgement is extended with a new context $\recCtx$ to keep track of process variables. The new judgment is written $\typeRecDJ P c A$. Typing and reduction rules are given in appendix~\ref{optional-recursive}.
 
 
 \subsection{Subtyping}
@@ -498,8 +498,8 @@ Some aspects that would be important in a full accounting of the system but are 
 \begin{itemize}
   \item We omit discussion of an underlying functional language and only consider the process calculus. We believe the integration is orthogonal and can be found elsewhere \cite{ToninhoCP13,Toninho15phd,Griffith16phd}.
   \item We do not consider shared channels and persistent processes, which should be a straightforward extension based on prior work. \cite{CairesP10,PfenningG15}
-  \item Our operational semantics is synchronous, but asynchronous communication~\cite{DeYoung12csl} is subject to the same type system~\cite{PfenningG15,Griffith16phd}.
-  \item Behavioral polymorphism~\cite{Caires13esop} and abstract types are not in the system. Their interaction with subtyping, intersections and unions is an interesting avenue for future work.
+  \item Our operational semantics is synchronous, but asynchronous communication~\cite{DeYoungCPT12} is subject to the same type system~\cite{PfenningG15,Griffith16phd}.
+  \item Behavioral polymorphism~\cite{CairesPPT13} and abstract types are not in the system. Their interaction with subtyping, intersections and unions is an interesting avenue for future work.
 \end{itemize}
 
 
@@ -507,12 +507,23 @@ Future work:
 Polymorphism, type inference, abstract types, top, bottom.
 
 
+%%
+%% Bibliography
+%%
+
+\bibliography{bibliography,dblp}
+
+
+%%
+%% Appendix
+%%
+
 \appendix
 
 \section{Operational Semantics}
 \label{operational-semantics}
 
-We express reduction rules using \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{Cervesato06}. For example, the rule for $\terminate$ can be written as:
+We express reduction rules using \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{CervesatoS09}. For example, the rule for $\terminate$ can be written as:
 $$ \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}} \lolli \monad{\proc{d}{P}}. $$
 Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. Instead, $\tensor$ should be interpreted as conjunctions, and $\lolli$ marks transition rules. So, $A \tensor B \tensor C \lolli D \tensor E$ would mean we could replace the resources $A, B, C$ together to get a $D, E$. The curly braces $\braces \ldots$ indicated a monad which essentially forces the rules to be interpreted as a multiset rewriting rule. The rest of the rules are given below:
 
@@ -563,15 +574,6 @@ As for reduction, recursive processes simply unfold:
 $$ \irb{rec} : \proc{c}{\tapp {\parens{\trec p {\tvector y} P}} {\tvector z}}
      \lolli \monad{ \proc c {\subst {\trec p {\tvector y} P} p {\subst {\tvector z} {\tvector y} P}} }
 $$
-
-
-%%
-%% Bibliography
-%%
-
-\todo{Somehow shrink the citations. Maybe get rid of the urls.}
-
-\bibliography{bibliography}
 
 
 
