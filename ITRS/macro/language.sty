@@ -122,6 +122,9 @@
 % Algorithmic system
 \newcommand\typeA[4]{#1 \Vdash #2 :: \parens{#3 : #4}}
 \newcommand\typeAJ{\typeA{\ctx}}
+\newcommand\typeRecA[5]{{#1} \Vdash_{#2} \hasType{#3}{#4}{#5}}
+\newcommand\typeRecAJ{\typeRecA{\ctx}{\recCtx}}
+\newcommand\typeRecAJR[1]{\typeRecA{#1}{\recCtx}}
 \newcommand{\typeList}{\alpha}
 \newcommand{\typeListB}{\beta}
 \DeclareMathOperator\all{all}

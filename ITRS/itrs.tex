@@ -549,11 +549,107 @@ $$
 \section{Process Typing in the Algorithmic System}
 \label{optional-algorithmic}
 
+Algorithmic typing rules for processes are given below. We use $\ctx \remove c$ to denote $\ctx$ with all occurrences of channel $c$ removed. Rules for recursive processes are not duplicated since simply capture sets of types rather than a single type.
+
+\begin{mathpar}
+  % Intersection
+  \infer[\intersect\Right]{\typeRecAJR \ctx P c {A \intersect B, \typeList}}
+    { \typeRecAJR \ctx P c {A, \typeList}
+    & \typeRecAJR \ctx P c {B, \typeList}
+    }
+  \and \infer[\intersect\Left]{\typeRecAJR{\ctx, c : A \intersect B}{P}{d}{\typeList}}
+    {\typeRecAJR{\ctx, c : A, c : B}{P}{d}{\typeList}}
+  % Union
+  \\ \infer[\union\Right]{\typeRecAJR \ctx P c {A \union B, \typeList}}
+    {\typeRecAJR \ctx P c {A, B, \typeList}}
+  \and \infer[\union\Left]{\typeRecAJR{\ctx, c : A \union B} P d \typeList}
+    { \typeRecAJR {\ctx, c : A} P d \typeList
+    & \typeRecAJR {\ctx, c : B} P d \typeList
+    }
+  % Recursive
+  \\ \infer[\mu\Right]{\typeRecAJ P c {\recursive t A, \typeList}}
+    { \typeRecAJ P c {\subst {\recursive t A} t A, \typeList} }
+  \and \infer[\mu\Left]{\typeRecAJR {\ctx, c : \recursive t A} P d {\typeList}}
+    { \typeRecAJR {\ctx, c : \subst {\recursive t A} t A} P d {\typeList} }
+  % id and cut
+  \\ \infer[\id]{ \typeRecAJR {\ctx, c : A} {\tfwd d c} {d} {A', \typeList} }
+    { \ctx \remove c = \emptyset
+    & A \sub A'
+    }
+  \and \infer[\cut]{ \typeRecAJR {\ctx, \ctx'} {\tspawnType c {P_c} A {Q_c}} {d} \typeList }
+    { \dom \ctx \cap \dom {\ctx'} = \emptyset
+    & \typeRecAJR \ctx {P_c} {c} {A}
+    & \typeRecAJR {\ctx', c : A} {Q_c} {d} {\typeList}
+    }
+  % Terminate
+  \\ \infer[\terminate\Right]{\typeRecAJR{\emptyCtx}{\tclose c}{c}{\terminate, \typeList}}
+   {}
+  \and \infer[\terminate\Left]{\typeRecAJR{\ctx, c : \terminate}{\twait c P} d \typeList}
+    { \typeRecAJR {\ctx \remove c} P d \typeList}
+  % Tensor
+  \and \infer[\tensor\Right]{\typeRecAJR{\ctx, \ctx'}{\tsend c d {P_d} Q }{c}{A \tensor B, \typeList}}
+    { \ctx \cap \ctx' = \emptyset
+    & \typeRecAJR \ctx P d A
+    & \typeRecAJR {\ctx'} Q c B
+    }
+  \and \infer[\tensor\Left]{ \typeRecAJR{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{\typeList} }
+    { \typeRecAJR{\ctx \remove c, d : A, c : B}{P_d}{e}{\typeList} }
+  % Internal choice
+  \and \infer[\internal\Right]{\typeRecAJR \ctx { \tselect{c}{i}{P} } {c} {\internals{A}{I}, \typeList }}
+    { i \in I
+    & \typeRecAJR \ctx {P}{c}{A_i}
+    }
+  \and \infer[\internal\Left]{ \typeRecAJR { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {\typeList} }
+   { I \subseteq J
+   & \typeRecAJR{\ctx \remove c, c : A_k}{P_k}{d}{\typeList}~\text{for}~k\in I
+   }
+  % Lolli
+  \and \infer[\lolli\Right]{ \typeRecAJR{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B, \typeList} }
+    { \typeRecAJR{\ctx, d : A}{P_d}{c}{B} }
+  \and \infer[\lolli\Left]{\typeRecAJR{\ctx, \ctx', c : A \lolli B}{ \tsend{c}{d}{P_d}{Q} } {e}{\typeList}}
+    { \ctx \cap \ctx' = \emptyset
+    & \typeRecAJR{\ctx}{P_d}{d}{A}
+    & \typeRecAJR{\ctx' \remove c, c : B}{Q}{e}{\typeList}
+    }
+  % External choice
+  \and \infer[\external\Right]{ \typeRecAJR \ctx { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}, \typeList} }
+   { J \subseteq I
+   & \typeRecAJR \ctx {P_k}{c}{A_k}~\text{for}~k\in J
+   }
+  \and \infer[\external\Left]{\typeRecAJR{\ctx, c : \externals{A}{I}} { \tselect{c}{i}{P} } {d} {\typeList}}
+    { i \in I
+    & \typeRecAJR{\ctx \remove c, c : A_i}{P}{d}{\typeList}
+    }
+\end{mathpar}
 
 
 \section{Bit Strings}
 \label{optional-example}
 
+Here, we give a slightly more involved example where we define a more interesting property using recursive refinements.
+
+First, we define process level bit string:
+\begin{lstlisting}[language=krill, style=custom]
+  type Bits = +{eps : 1, zero : Bits, one : Bits}
+\end{lstlisting}
+Here, \texttt{eps} is the empty string, \texttt{zero} and \texttt{one} append a least significant bit. We can define bit strings in standard form (no leading zeros) as follows:
+\begin{lstlisting}[language=krill, style=custom]
+  type Empty = +{eps : 1}
+  type Std = Empty  or StdPos
+  type StdPos = +{one : Std, zero : StdPos}
+\end{lstlisting}
+
+Then, we can write an increment function that preserves bit strings in standard form:
+\begin{lstlisting}[language=krill, style=custom]
+  inc : Std -o Std and {- hypotheses -} StdPos -o StdPos and Empty -o StdPos
+  `c <- inc `d =
+    case `d of
+      eps -> wait `d; `c.one; `c.eps; close `c
+      zero -> `c.one; `c <- `d
+      one -> `c.zero; `c <- inc `d
+\end{lstlisting}
+
+Note how we had to add extra type specifications that correspond to ``induction hypotheses'' for type-checking to go through.
 
 
 \end{document}
