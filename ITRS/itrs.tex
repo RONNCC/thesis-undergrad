@@ -70,7 +70,7 @@
 
 \section{Introduction}
 
-Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are interpreted as session-types, proofs as processes, and cut elimination as communication. Session types are assigned to channels and prescribe the communication behavior along them. Each channel is offered by a unique process and used by exactly one, which is ensured by linearity. When the behavior along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides a communcation of type $A$ along $c$.
+Prior work has established a Curry-Howard correspondence between intuitionistic linear sequent calculus and session-typed message-passing concurrency \cite{CairesP10, PfenningG15, Honda93}. In this formulation, linear propositions are interpreted as session-types, proofs as processes, and cut elimination as communication. Session types are assigned to channels and prescribe the communication behavior along them. Each channel is offered by a unique process and used by exactly one, which is ensured by linearity. When the behavior along a channel $c$ satisfies the type $A$ and $P$ is the process that offers along $c$, we say that $P$ provides a session of type $A$ along $c$.
 
 In the base system, each type directly corresponds to a process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural types} since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property types} since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other.
 
@@ -88,7 +88,7 @@ Our contributions are summarized below:
 
 \section{From Linear Logic to Session Types}
 \label{base}
-We only give a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut elimination as communication. For this correspondence, hypothesis are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This gives us the following form for typing judgements:
+We only give a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut elimination steps as communication. For this correspondence, hypotheses are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This gives us the following form for typing judgements:
 $$ \typeD {c_1 : A_1, \ldots, c_n : A_n} P c A$$
 which should be interpreted as ``$P$ offers along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ (linearly) with the corresponding types''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct.
 
@@ -124,8 +124,8 @@ The processes (or proof terms) corresponding to these types are given below with
 \end{tabular}
 \end{center}
 
-An example program will give more intuition about the system. We will look at process level natural numbers, which will also be our running example in this paper. Note that we will use concrete syntax, but the mapping to abstract syntax presented above should be clear. Also, this example (and almost any interesting one) requires recursive types, which are introduced in the next section. However, it should be good enough to give some intuition.
-
+An example program will give more intuition about the system. We will look at process level natural numbers, which will also be our running example in this paper. Note that we will use concrete syntax, but the mapping to abstract syntax presented above should be clear. Also, this example (and almost any interesting one) requires recursive types, which are introduced in the next section. 
+% However, it should be good enough to give some intuition.
 First, we define the interface:
 
 \begin{lstlisting}[language=krill, style=custom]
@@ -152,7 +152,7 @@ This states a process level natural number is an internal choice of either zero 
 \end{lstlisting}
 \end{minipage}
 
-\texttt{z} simply sends the label \texttt{zero} and terminates, whereas \texttt{s} appends a successor to the given process. Here is a slightly more complicated example that uses recursion:
+\texttt{z} simply sends the label \texttt{zero} along the channel \texttt{`c} (which it provides) and terminates, whereas \texttt{s} prepends a successor to the number provided along channel \texttt{`d} and then delegates to \texttt{`d}. Here is a slightly more complicated example that uses recursion:
 
 \begin{lstlisting}[language=krill, style=custom]
   double : Nat -o Nat
@@ -162,12 +162,12 @@ This states a process level natural number is an internal choice of either zero 
       succ -> `c.succ; `c.succ; `c <- double `d
 \end{lstlisting}
 
-These are very simple examples, though we hope they offer some insight into the system. We will assign more interesting types to these processes after we introduce intersections and unions. We also have a more interesting example in appendix~\ref{optional-example}.
+These are very simple examples, though we hope they offer some insight into the system. We will assign more interesting types to these processes after we introduce intersections and unions. We also have another example in Appendix~\ref{optional-example}.
 
 
 \subsection{Type Assignment for Processes}
 
-The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms. The rules are given in Figure~\ref{session-assignment}. One thing to note is that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier (subtyping is discussed in section~\ref{original-subtyping}).
+The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms. The rules are given in Figure~\ref{session-assignment}. One thing to note is that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier, as discussed in section~\ref{original-subtyping}.
 
 \begin{rules}[session-assignment]{Type assignment for process expressions}
   % id and cut
@@ -221,7 +221,9 @@ The typing rules for other constructs are derived from linear logic by decoratin
 
 So far in the theory, we have only considered processes in isolation. In this section, we introduce process configurations in order to talk about the interactions between multiple processes. A process configuration is simply a set of processes where each process is labelled with the channel along which it provides. We use the notation $\proc c P$ for labelling the process $P$, and require all labels in a configuration to be distinct.
 
-With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge (including the root nodes which have ``phantom'' edges) and any number of incoming edges that correspond to channels the process uses. This observation suggests the typing rules below, which mimic the structure of a multi-way tree. Note that the definition is well-founded since the size of the configuration gets strictly smaller.
+With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge
+% (including the root nodes which have ``phantom'' edges)
+and any number of incoming edges that correspond to channels the process uses. This observation suggests the typing rules below, which mimic the structure of a multi-way tree. Note that the definition is well-founded since the size of the configuration gets strictly smaller.
 \begin{mathpar}
   \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
    { \typeRecD \ctx \emptyset P c A
@@ -237,11 +239,11 @@ With the above restriction, each process offers along a specific channel and eac
 
 \subsection{Operational Semantics}
 
-A process configuration evolves over time when a process takes a step (forwarding and cut step without communication) or when two matching processes communicate. For example, the processes configuration
+A process configuration evolves over time when a process takes a step, either by spawning a new process ($\cut$), delegation ($\id$) or when two matching processes communicate. For example, the processes configuration
 $ \config, \proc{c}{\tselect{c}{i}{P}}, \proc{d}{\tcase{c}{\tbranches Q I}} $
 can step to
 $ \config, \proc{c}{P} \otimes \proc{d}{Q_i} $
-whenever $i \in I$. We get similar reduction rules for $\id$, $\cut$, and each structural rule. These are provided in appendix~\ref{operational-semantics} due to space limitations.
+whenever $i \in I$. We get similar reduction rules for $\id$, $\cut$, and each structural rule. The formal rules are relagated to Appendix~\ref{operational-semantics} due to space limitations.
 
 
 \section{Recursion and Subtyping}
