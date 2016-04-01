@@ -477,7 +477,7 @@ Designing a type checking algorithm is quite simple for the base system where we
 
 In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free, and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
 
-The former problem is solved by switching to \emph{bidirectional type-checking} where we only check subtyping at the identity rule (delegation). This relies on the following crucial observation: if we are checking a process against a structural type, subparts of the process must check against subparts of the type. For example, if we are checking $\tsend c d {P_d} Q$ against $c : A \tensor B$, then $P_d$ must check against $d : A$ and $Q$ must check against $c : B$. To make sure we can always decompose property types, we add unfolding rules on the right and on the left, and apply these eagerly along with rules for intersections and unions. Interested readers should see Appendix~\ref{optional-algorithmic} for the full system.  We omit the standard proof that it is sound and complete with respect to the declarative system presented in this paper.
+The former problem is solved by switching to \emph{bidirectional type-checking} where we only check subtyping at the identity rule (delegation). This relies on the following crucial observation: if we are checking a process against a structural type, subparts of the process must check against subparts of the type. For example, if we are checking $\tsend c d {P_d} Q$ against $c : A \tensor B$, then $P_d$ must check against $d : A$ and $Q$ must check against $c : B$. To make sure we can always decompose property types, we add unfolding rules on the right and on the left, and apply these eagerly along with rules for intersections and unions. Interested readers should see Appendix~\ref{optional-algorithmic} for the full system. We omit the standard proof that it is sound and complete with respect to the declarative system presented in this paper (at the time of this submission, these proofs are still in progress).
 
 \section{Conclusion}
 \label{conclusion}
@@ -558,7 +558,7 @@ $$
 \section{Process Typing in the Algorithmic System}
 \label{optional-algorithmic}
 
-Algorithmic typing rules for processes are given below. We use $\ctx \remove c$ to denote $\ctx$ with all occurrences of channel $c$ removed. Rules for recursive processes are not duplicated since simply capture sets of types rather than a single type.
+Algorithmic typing rules for processes are given below. Rules for recursive processes are not duplicated since they simply capture sets of types rather than a single type.
 
 \begin{mathpar}
   % Intersection
@@ -579,7 +579,7 @@ Algorithmic typing rules for processes are given below. We use $\ctx \remove c$ 
   \\ \infer[\mu\Right]{\typeRecAJ P c {\recursive t A, \typeList}}
     { \typeRecAJ P c {\subst {\recursive t A} t A, \typeList} }
   \and \infer[\mu\Left]{\typeRecAJR {\ctx, c : (\typeList, \recursive t A)} P d {\typeListB}}
-    { \typeRecAJR {\ctx, c : (\subst {\typeList, \recursive t A} t A)} P d {\typeListB} }
+    { \typeRecAJR {\ctx, c : (\typeList, \subst {\recursive t A} t A)} P d {\typeListB} }
   % id and cut
   \\ \infer[\id]{ \typeRecAJR {\ctx, c : \typeList} {\tfwd d c} {d} {\typeListB} }
     { \typeList \subA \typeListB }
@@ -623,77 +623,6 @@ Algorithmic typing rules for processes are given below. We use $\ctx \remove c$ 
   \and \infer[\external\Left]{\typeRecAJR{\ctx, c : (\typeList, \externals{A}{I})} { \tselect{c}{i}{P} } {d} {\typeListB}}
     { i \in I
     & \typeRecAJR{\ctx, c : A_i}{P}{d}{\typeListB}
-    }
-\end{mathpar}
-
-\begin{mathpar}
-  % Intersection
-  \infer[\intersect\Right]{\typeRecAJR \ctx P c {A \intersect B, \typeList}}
-    { \typeRecAJR \ctx P c {A, \typeList}
-    & \typeRecAJR \ctx P c {B, \typeList}
-    }
-  \and \infer[\intersect\Left]{\typeRecAJR{\ctx, c : A \intersect B}{P}{d}{\typeList}}
-    {\typeRecAJR{\ctx, c : A, c : B}{P}{d}{\typeList}}
-  % Union
-  \\ \infer[\union\Right]{\typeRecAJR \ctx P c {A \union B, \typeList}}
-    {\typeRecAJR \ctx P c {A, B, \typeList}}
-  \and \infer[\union\Left]{\typeRecAJR{\ctx, c : A \union B} P d \typeList}
-    { \typeRecAJR {\ctx, c : A} P d \typeList
-    & \typeRecAJR {\ctx, c : B} P d \typeList
-    }
-  % Recursive
-  \\ \infer[\mu\Right]{\typeRecAJ P c {\recursive t A, \typeList}}
-    { \typeRecAJ P c {\subst {\recursive t A} t A, \typeList} }
-  \and \infer[\mu\Left]{\typeRecAJR {\ctx, c : \recursive t A} P d {\typeList}}
-    { \typeRecAJR {\ctx, c : \subst {\recursive t A} t A} P d {\typeList} }
-  % id and cut
-  \\ \infer[\id]{ \typeRecAJR {\ctx, c : A} {\tfwd d c} {d} {A', \typeList} }
-    { \ctx \remove c = \emptyset
-    & A \sub A'
-    }
-  \and \infer[\cut]{ \typeRecAJR {\ctx, \ctx'} {\tspawnType c {P_c} A {Q_c}} {d} \typeList }
-    { \dom \ctx \cap \dom {\ctx'} = \emptyset
-    & \typeRecAJR \ctx {P_c} {c} {A}
-    & \typeRecAJR {\ctx', c : A} {Q_c} {d} {\typeList}
-    }
-  % Terminate
-  \\ \infer[\terminate\Right]{\typeRecAJR{\emptyCtx}{\tclose c}{c}{\terminate, \typeList}}
-   {}
-  \and \infer[\terminate\Left]{\typeRecAJR{\ctx, c : \terminate}{\twait c P} d \typeList}
-    { \typeRecAJR {\ctx \remove c} P d \typeList}
-  % Tensor
-  \and \infer[\tensor\Right]{\typeRecAJR{\ctx, \ctx'}{\tsend c d {P_d} Q }{c}{A \tensor B, \typeList}}
-    { \ctx \cap \ctx' = \emptyset
-    & \typeRecAJR \ctx P d A
-    & \typeRecAJR {\ctx'} Q c B
-    }
-  \and \infer[\tensor\Left]{ \typeRecAJR{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{\typeList} }
-    { \typeRecAJR{\ctx \remove c, d : A, c : B}{P_d}{e}{\typeList} }
-  % Internal choice
-  \and \infer[\internal\Right]{\typeRecAJR \ctx { \tselect{c}{i}{P} } {c} {\internals{A}{I}, \typeList }}
-    { i \in I
-    & \typeRecAJR \ctx {P}{c}{A_i}
-    }
-  \and \infer[\internal\Left]{ \typeRecAJR { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {\typeList} }
-   { I \subseteq J
-   & \typeRecAJR{\ctx \remove c, c : A_k}{P_k}{d}{\typeList}~\text{for}~k\in I
-   }
-  % Lolli
-  \and \infer[\lolli\Right]{ \typeRecAJR{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B, \typeList} }
-    { \typeRecAJR{\ctx, d : A}{P_d}{c}{B} }
-  \and \infer[\lolli\Left]{\typeRecAJR{\ctx, \ctx', c : A \lolli B}{ \tsend{c}{d}{P_d}{Q} } {e}{\typeList}}
-    { \ctx \cap \ctx' = \emptyset
-    & \typeRecAJR{\ctx}{P_d}{d}{A}
-    & \typeRecAJR{\ctx' \remove c, c : B}{Q}{e}{\typeList}
-    }
-  % External choice
-  \and \infer[\external\Right]{ \typeRecAJR \ctx { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}, \typeList} }
-   { J \subseteq I
-   & \typeRecAJR \ctx {P_k}{c}{A_k}~\text{for}~k\in J
-   }
-  \and \infer[\external\Left]{\typeRecAJR{\ctx, c : \externals{A}{I}} { \tselect{c}{i}{P} } {d} {\typeList}}
-    { i \in I
-    & \typeRecAJR{\ctx \remove c, c : A_i}{P}{d}{\typeList}
     }
 \end{mathpar}
 
