@@ -1,0 +1,22 @@
+module Nat where
+  type Nat = +{zero : 1, succ : Nat}
+
+  zero : Nat
+  `c <- zero = do
+    `c.zero
+    close `c
+
+  succ : Nat -o Nat
+  `c <- succ `d = do
+    `c.succ
+    `c <- `d
+
+  double : Nat -o Nat
+  `c <- double `d =
+    case `d of
+      zero -> do wait `d; `c.zero; close `c
+      succ -> do
+        `c.succ
+        `c.succ
+        `c <- double `d
+
