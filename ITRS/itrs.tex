@@ -8,7 +8,7 @@
 
 \usepackage{todonotes}
 
-\newcommand\indexVar{x}
+\newcommand\indexVar{k}
 \newcommand\lab{lab}
 
 \usepackage{macro/generic}
@@ -267,7 +267,14 @@ Term level recursion is achieved by a new form of process expression, $\trec {p}
 \subsection{Subtyping}
 \label{original-subtyping}
 
-Gay and Hole \cite{GayH05} add coinductive subtyping (denoted $A \sub B$ in this paper) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like structures. Subtyping also doubles as a convenient way of identifying a recursive a type and its unfolding (without it, we would need a type equality judgment almost equally complicated but more restrictive). Subtyping is especially important for a refinement system since it is used to propagate refinements and forget them as necessary. We do not go into the details of their system since we will switch to a different relation in the next section anyway.\todo{We need the two subsumption rules, since they are implicitly used in the discussion of intersection below.}
+Gay and Hole \cite{GayH05} add coinductive subtyping (denoted $A \sub B$ in this paper) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like structures. Subtyping also doubles as a convenient way of identifying a recursive a type and its unfolding (without it, we would need a type equality judgment almost equally complicated but more restrictive). Subtyping is especially important for a refinement system since it is used to propagate refinements and forget them as necessary. We do not go into the details of their system since we will switch to a different relation in the next section anyway. Either way, we relate subtyping to process typing with subsumption rules:
+\begin{mathpar}
+  \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
+    {\typeRecDJ{P}{c}{A'} & A' \sub A}
+  \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
+    {\typeD{\ctx, c : A'} P d B & A \sub A'}
+\end{mathpar}
+
 
 This concludes the discussion of the base system. In the next section, we introduce intersections, unions, and a multiple conclusion subtyping relation which constitute our main contributions.
 
@@ -375,7 +382,7 @@ Going from right to left turns out to be easy, but we quickly run into a problem
 
 Our solution is doing the obvious: if the problem is losing half the information, well, we should just keep it around. This suggests a system where the single type on the left and on the type right are replaced with \emph{(multi)sets} of types. That is, instead of the judgment $A \le B$, we use a judgment of the form $A_1, \ldots, A_n \subA B_1, \ldots, B_n$, where the left of $\subA$ is interpreted as a conjunction (intersection) and the right is interpreted as a disjunction (union). This results in a system reminiscent of \cite{Gentzen35, Girard87}. However, we take a slightly different approach since we are working with coinductive rules.
 
-The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. Note that this is not an essential restriction. In fact, we conjecture that matching multiple types can give us distributivity of intersection and union over structural types, which is a question for future research.\todo{we already assume here that choices are unary}
+The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. Note that this is not an essential restriction. In fact, we conjecture that matching multiple types can give us distributivity of intersection and union over structural types, which is a question for future research.
 
 \begin{rules}[subtyping-multi]{Subtyping with multiple hypothesis and conclusions; coinductively}
   % Intersection
@@ -392,12 +399,16 @@ The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\ty
   \\ \infer=[\SubA{\terminate}]{\typeList, \terminate \subA \typeListB, \terminate}{}
   \and \infer=[\SubA\tensor]{\typeList, A \tensor B \subA \typeListB, A' \tensor B'}
     {A \subA A' & B \subA B'}
-  \and \infer=[\SubA\internal]{\typeList, \internalSing{\lab}{A} \subA \typeListB, \internalSing{\lab}{A'}}
-    {A \subA A'}
+  \and \infer=[\SubA\internal]{\typeList, \internals A I \subA \typeListB, \internals {A'} J}
+    { I \subseteq J
+    & A_\indexVar \subA A_\indexVar'~\text{for}~\indexVar\in I
+    }
   \and \infer=[\SubA\lolli]{\typeList, A \lolli B \subA \typeListB, A' \lolli B'}
     {A' \subA A & B \subA B'}
-  \and \infer=[\SubA\external]{\typeList, \externalSing{\lab}{A} \subA \typeListB, \externalSing{\lab}{A'}}
-    {A \subA A'}
+  \and \infer=[\SubA\external]{\typeList, \externals A I \subA \typeListB, \externals {A'} J}
+    { J \subseteq I
+    & A_\indexVar \subA A_\indexVar'~\text{for}~\indexVar\in J
+    }
   % Recursive
   \\ \infer=[\SubA{\mu\Right}]{\typeList \subA \typeListB, \recursive t A}
      {\typeList \subA \typeListB, \subst {\recursive t A} t A}
@@ -548,6 +559,72 @@ $$
 \label{optional-algorithmic}
 
 Algorithmic typing rules for processes are given below. We use $\ctx \remove c$ to denote $\ctx$ with all occurrences of channel $c$ removed. Rules for recursive processes are not duplicated since simply capture sets of types rather than a single type.
+
+\begin{mathpar}
+  % Intersection
+  \infer[\intersect\Right]{\typeRecAJR \ctx P c {A \intersect B, \typeList}}
+    { \typeRecAJR \ctx P c {A, \typeList}
+    & \typeRecAJR \ctx P c {B, \typeList}
+    }
+  \and \infer[\intersect\Left]{\typeRecAJR{\ctx, c : (\typeList, A \intersect B)}{P}{d}{\typeListB}}
+    {\typeRecAJR{\ctx, c : (\typeList, A, B)}{P}{d}{\typeListB}}
+  % Union
+  \\ \infer[\union\Right]{\typeRecAJR \ctx P c {A \union B, \typeList}}
+    {\typeRecAJR \ctx P c {A, B, \typeList}}
+  \and \infer[\union\Left]{\typeRecAJR{\ctx, c : (\typeList, A \union B)} P d \typeListB}
+    { \typeRecAJR {\ctx, c : (\typeList, A)} P d \typeListB
+    & \typeRecAJR {\ctx, c : (\typeList, B)} P d \typeListB
+    }
+  % Recursive
+  \\ \infer[\mu\Right]{\typeRecAJ P c {\recursive t A, \typeList}}
+    { \typeRecAJ P c {\subst {\recursive t A} t A, \typeList} }
+  \and \infer[\mu\Left]{\typeRecAJR {\ctx, c : (\typeList, \recursive t A)} P d {\typeListB}}
+    { \typeRecAJR {\ctx, c : (\subst {\typeList, \recursive t A} t A)} P d {\typeListB} }
+  % id and cut
+  \\ \infer[\id]{ \typeRecAJR {\ctx, c : \typeList} {\tfwd d c} {d} {\typeListB} }
+    { \typeList \subA \typeListB }
+  \and \infer[\cut]{ \typeRecAJR {\ctx, \ctx'} {\tspawnType c {P_c} A {Q_c}} {d} \typeList }
+    { \typeRecAJR \ctx {P_c} {c} {A}
+    & \typeRecAJR {\ctx', c : A} {Q_c} {d} {\typeList}
+    }
+  % Terminate
+  \\ \infer[\terminate\Right]{\typeRecAJR{\emptyCtx}{\tclose c}{c}{\terminate, \typeList}}
+   {}
+  \and \infer[\terminate\Left]{\typeRecAJR{\ctx, c : (\typeList, \terminate)}{\twait c P} d \typeListB}
+    { \typeRecAJR {\ctx} P d \typeListB}
+  % Tensor
+  \and \infer[\tensor\Right]{\typeRecAJR{\ctx, \ctx'}{\tsend c d {P_d} Q }{c}{A \tensor B, \typeList}}
+    { \typeRecAJR \ctx P d A
+    & \typeRecAJR {\ctx'} Q c B
+    }
+  \and \infer[\tensor\Left]{ \typeRecAJR{\ctx, c : (\typeList, A \tensor B)}{\trecv{d}{c}{P_d}}{e}{\typeListB} }
+    { \typeRecAJR{\ctx, d : A, c : B}{P_d}{e}{\typeListB} }
+  % Internal choice
+  \and \infer[\internal\Right]{\typeRecAJR \ctx { \tselect{c}{i}{P} } {c} {\internals{A}{I}, \typeList }}
+    { i \in I
+    & \typeRecAJR \ctx {P}{c}{A_i}
+    }
+  \and \infer[\internal\Left]{ \typeRecAJR { \ctx, c : (\typeList, \internals{A}{I}) } { \tcase{c}{\tbranches{P}{J}} } {d} {\typeListB} }
+   { I \subseteq J
+   & \typeRecAJR{\ctx, c : A_k}{P_k}{d}{\typeListB}~\text{for}~k\in I
+   }
+  % Lolli
+  \and \infer[\lolli\Right]{ \typeRecAJR{\ctx}{\trecv{d}{c}{P_d}}{c}{A \lolli B, \typeList} }
+    { \typeRecAJR{\ctx, d : A}{P_d}{c}{B} }
+  \and \infer[\lolli\Left]{\typeRecAJR{\ctx, \ctx', c : (\typeList, A \lolli B)}{ \tsend{c}{d}{P_d}{Q} } {e}{\typeListB}}
+    { \typeRecAJR{\ctx}{P_d}{d}{A}
+    & \typeRecAJR{\ctx', c : B}{Q}{e}{\typeListB}
+    }
+  % External choice
+  \and \infer[\external\Right]{ \typeRecAJR \ctx { \tcase{c}{\tbranches{P}{I}} } {c} {\externals{A}{J}, \typeList} }
+   { J \subseteq I
+   & \typeRecAJR \ctx {P_k}{c}{A_k}~\text{for}~k\in J
+   }
+  \and \infer[\external\Left]{\typeRecAJR{\ctx, c : (\typeList, \externals{A}{I})} { \tselect{c}{i}{P} } {d} {\typeListB}}
+    { i \in I
+    & \typeRecAJR{\ctx, c : A_i}{P}{d}{\typeListB}
+    }
+\end{mathpar}
 
 \begin{mathpar}
   % Intersection
