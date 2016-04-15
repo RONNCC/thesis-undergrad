@@ -15,10 +15,48 @@ followed by the matching receiving construct.
 \end{tabular}
 \end{center}
 
+Let us consider an example program to get more intuition about the system. We will use process level natural numbers, $\nat$, as a running example. Note that we use concrete syntax to write programs, but the mapping to abstract syntax presented above should be clear. Also, this example (and almost any interesting one) requires recursive types, which are introduced in \cref{base:recursion}.
+
+First, we define the interface:
+
+\begin{lstlisting}[language=krill, style=custom]
+  type Nat = +{zero : 1, succ : Nat}
+\end{lstlisting}
+
+The interface states that a process level natural number is an internal choice of either zero or a successor of another natural. Next, we define two simple processes that implement the interface:
+
+\begin{minipage}{.48\textwidth}
+\begin{lstlisting}[language=krill, style=custom]
+  z : Nat
+  `c <- z =
+    `c.zero;
+    close `c
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{.48\textwidth}
+\begin{lstlisting}[language=krill, style=custom]
+  s : Nat -o Nat
+  `c <- s `d =
+    `c.succ;
+    `c <- `d
+\end{lstlisting}
+\end{minipage}
+
+\texttt{z} simply sends the label \texttt{zero} along the channel \texttt{`c} (which it provides) and terminates, whereas \texttt{s} prepends a successor to the number provided along channel \texttt{`d} and then delegates to \texttt{`d}. Here is a slightly more complicated example that uses recursion:
+
+\begin{lstlisting}[language=krill, style=custom]
+  double : Nat -o Nat
+  `c <- double `d =
+    case `d of
+      zero -> wait `d; `c.zero; close `c
+      succ -> `c.succ; `c.succ; `c <- double `d
+\end{lstlisting}
+
 
 \subsection{Type Assignment for Processes}
 
-We assign sessions to processes using the rules in \cref{session-assignment}.
+The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms. The rules are given in \cref{session-assignment}. Note that we allow unused branches case expressions for $\internal\Left$ and $\external\Right$, which makes width subtyping easier (discussed in \cref{refinements:original-subtyping}).
 
 \begin{rules}[session-assignment]{Process assignment}
   % id and cut
@@ -71,9 +109,7 @@ We assign sessions to processes using the rules in \cref{session-assignment}.
     }
 \end{rules}
 
-\todo{Note that we can simplify $\internal\Right,$ $\internal\Left,$ $\external\Right,$ $\external\Left$ using subtyping.}
-
-As usual, the specific channel names do not matter, that is, the rules respect alpha equivalence. \todo{Is this related to alpha-equivalence? We are renaming free channels not bound ones. What is the right word?} This is formalized by the fact that We can change free channel names while preserving typing as formalized below:
+As usual, we identify bound channels up to alpha conversion. We can change free channel names while preserving typing as formalized below:
 \begin{lemma}[Channel Substitution]
   \label{channel-substitution-pre}
   If $\typeDJ P c A$ and $\tvector z \cap \free {\parens P} = \emptyset$ then $\typeD {\subst {\tvector z} {\tvector y} \ctx} {\subst {\tvector z} {\tvector y} P} {\subst {\tvector z} {\tvector y} c} A$.

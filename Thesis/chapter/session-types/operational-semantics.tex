@@ -1,9 +1,12 @@
 
 \section{Dynamic Semantics}
+\label{base:semantics}
 
 \subsection{Reduction}
 
-We present reduction as multiset rewriting rules. The braces ($\braces{\ldots}$) indicate a contextual monad. \todo{What is a contextual monad?}
+We express reduction rules using \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{CervesatoS09}. For example, the rule for $\terminate$ can be written as:
+$$ \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}} \lolli \monad{\proc{d}{P}}. $$
+Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. For example, $A \tensor B \tensor C \lolli D \tensor E$ would mean we could replace the resources $A, B, C$ with $D, E$. The curly braces $\braces \ldots$ indicated a monad which essentially forces the rules to be interpreted as a multiset rewriting rule. The rest of the rules are given below:
 
 \begin{align*}
   % Id
@@ -44,13 +47,13 @@ One important observation about reduction of typed configurations is that it is 
 \end{lemma}
 
 \begin{proof}
-  Assume $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ with root $c$.
+  Assume $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ with root $c$. \todo{Do this proof.}
 \end{proof}
 
 
 \subsection{Progress}
 
-In a conventional language \todo{Functional, value, or expression language? What is the word for not-process language?}, progress is usually stated as a well-typed expressions either take a reduction step or are values. We do not have values in a process calculus, but there is a corresponding notion we call being poised. Intuitively, a process is poised if it is waiting on its client. We introduce a new judgement $\poised{\proc c P}$ capturing this notion and define it in \cref{poised}. 
+In a conventional functional language, the progress theorem states that a well-typed expression either is a value or it takes a reduction step. We do not have values in a process calculus, but there is a corresponding notion we call being poised. Intuitively, a process is poised if it is waiting on its client. We introduce a new judgement $\poised{\proc c P}$ capturing this notion and define it in \cref{poised}. 
 
 \begin{rules}[poised]{Poised Processes}
   \infer{\poised{\proc{c}{\tclose{c}}}}
@@ -65,7 +68,7 @@ In a conventional language \todo{Functional, value, or expression language? What
    {}
 \end{rules}
 
-We say that a process configuration $\config$ is poised if every process in $\config$ is poised.  We will need the following inversion lemma about well-typed poised processes to handle type equality.
+We say that a process configuration $\config$ is poised if every process in $\config$ is poised.  We will need the following inversion lemma about well-typed poised processes to handle type equality:
 
 \begin{lemma}[Inversion of Process Typing]
 \label{inversion-poised-eq}
@@ -80,12 +83,23 @@ We say that a process configuration $\config$ is poised if every process in $\co
 \end{lemma}
 
 \begin{proof}
-  By induction on the derivation of $\typeRecD \ctx \emptyset P c A$ followed by inversion on $\poised{\proc c P}$ or the equality judgement for impossible cases. \todo{Do the inversion proof.}
+  The proof is by induction on the derivation of $\typeRecD \ctx \emptyset P c A$ where $\ctx$ and $A$ are free.
+
+  \begin{description}
+    \item[Case $\id, \cut, \terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left, \rec :$] Impossible since $P$ is poised.
+
+    \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] If the rule matches the expected type (e.g.\ $A \typeeq 1$ and the rule is $\terminate\Right$), then $P$ has the expected form and we are done. Otherwise, we use inversion on the type equality judgement to show that the case is impossible.
+
+    \item[Case $\typeeq\Left :$] Follows immediately from the induction hypothesis.
+
+    \item[Case $\typeeq\Right :$] Follows from the induction hypothesis and the fact that $\typeeq$ is transitive (\cref{eq-is-equivalence}).
+  \end{description}
 \end{proof}
 
 We are now ready to state the progress theorem.
 
 \begin{theorem}[Progress]
+\label{base:progress}
 If $\providesCtx \config \ctx$ then either
 \begin{enumerate}
   \item $\steps{\config}{\config'}$ for some $\config'$, or
@@ -125,6 +139,7 @@ The proof is by induction on configuration typing followed by a nested induction
 Preservation is a bit more tedious to prove.
 
 \begin{theorem}[Preservation]
+\label{base:preservation}
 If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
 \end{theorem}
 

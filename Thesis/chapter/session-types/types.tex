@@ -1,7 +1,13 @@
 
 \section{Linear Propositions as Session Types}
 
-The syntax and intended meanings of session types are as follows:
+The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut elimination steps as communication \cite{CairesP10, PfenningG15, Honda93}. For this correspondence, hypotheses are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This gives us the following form for typing judgments:
+$$ \typeD {c_1 : A_1, \ldots, c_n : A_n} P c A$$
+which should be interpreted as ``$P$ offers along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ (linearly) with the corresponding types''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct.
+
+Each process offers along a specific channel, and in the linear setting, each channel must be used exactly in one place. Processes cannot rename channels, which means we can treat channel names as unique process identifiers.
+
+Working out the isomorphism further and assigning a session type to each linear proposition gives the following interpretation:
 
 \begin{center}
 \begin{tabular}{l c l l}
@@ -15,4 +21,5 @@ The syntax and intended meanings of session types are as follows:
 \end{tabular}
 \end{center}
 
-$\terminate$ corresponds to processes that offer no interesting behaviour. The types $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\internals A I$ is called an internal choice, since the label is picked by the provider (we always look at things from the provider's perspective). Similarly, $\externals A I$ is an external choice since the choice is made by the provider. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique. Finally, $\tau \sendVal B$ and $\tau \recvVal B$ type processes that send and receive values in some underlying functional language. We will ignore these types and limit our focus to the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
+$\terminate$ corresponds to processes that offer no interesting behaviour. The types $A \tensor B$ and $A \lolli B$ correspond to sending and receiving channel names respectively. $\internals A I$ is called an internal choice, since the label is picked by the provider (we always look at things from the provider's perspective). Similarly, $\externals A I$ is an external choice since the choice is made by the provider. In either case, $I$ is a \emph{finite} index set, $\lab : I \to \labels$ is an \emph{injective} function into the set of labels, and $A : I \to \types$ is any function into types. The order of labels does not matter and each label must be unique. Finally, $\tau \sendVal B$ and $\tau \recvVal B$ type processes that send and receive values in some underlying functional language. In this thesis, we will ignore these types and limit our focus to the process calculus. The integration of a functional language is orthogonal and can be found in \cite{ToninhoCP13}.
+

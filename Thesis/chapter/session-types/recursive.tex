@@ -1,19 +1,14 @@
 
 \section{Recursion}
+\label{base:recursion}
+
+In this section, we introduce equirecursive types and recursive processes which are central in many applications of session types.
+
 
 \subsection{Recursive Types}
 \label{recursive-types}
 
-We extend the language of types with a new construct:
-\begin{center}
-\begin{tabular}{l c l l}
-  $A, B, C$ & ::= & \ldots               & everything from before \\
-            & $|$ & $t$                  & type variables \\
-            & $|$ & $\recursive{t}{A_t}$ & (equi)recursive type
-\end{tabular}
-\end{center}
-
-We identify recursive types $\recursive{t}{A}$ with their unfolding $\subst{\recursive{t}{A}}{t}{A}$ which means there are no explicit term level coercions to go between the two types. This is sometimes called the equirecursive approach as opposed to the isorecursive approach since the recursive type and its unfolding are \emph{equated} rather than identified up to \emph{isomorphism} witnessed by term level construct like  $\mathtt{fold}$ and $\mathtt{unfold}$. Equirecursive tend to make type-checking and meta-theory harder, however, they make more sense in a concurrent setting where behavior is easier to rely on than term structure. \todo{Find better explanation. Amadio has a good intro.}
+We extend the language of types with variables and a new construct, $\recursive{t}{A_t}$, representing recursive types. A recursive type $\recursive{t}{A}$ is identified with its unfolding $\subst{\recursive{t}{A}}{t}{A}$, which means there are no explicit term level coercions (e.g.\ $\mathtt{unfold}$ and $\mathtt{fold}$) to go between them. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they reduce communication and make more sense in a concurrent setting where behavior is more important than term structure.
 
 In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
 
@@ -47,7 +42,7 @@ A type is then said to be contractive if every occurrence of $\recursive t A$ sa
 
 \subsubsection{Well-formed Types}
 
-Introduction of type variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. Fortunately, all such types can be eliminated by requiring all types to be closed. That is, the set of free variables of a type should be empty. Just like contractiveness, we will assume all types we consider are closed and will not explicitly restate this assumption. Every operation we need on types preserves this property%
+Extending the language of types with variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. Fortunately, all such types can be eliminated by requiring all types to be closed. That is, the set of free variables of a type should be empty. Just like contractiveness, we will assume all types we consider are closed and will not explicitly restate this assumption. Every operation we need on types preserves this property%
 \footnote{We will only unfold a $\mu$ which clearly results in a closed type given a closed type. We never take a $\mu$ apart. We will break down other types such as $A \tensor B$, but that cannot result in an open type.}%
 , so this is not an issue.
 
