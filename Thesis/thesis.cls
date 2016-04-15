@@ -138,24 +138,24 @@
 \UNIVERSITY  {\texorpdfstring{\href{http://www.cmu.edu}
                 {\uppercase{Carnegie Mellon University}}}
                 {\uppercase{Carnegie Mellon University}}}
-\department  {\texorpdfstring{\href{https://www.scs.cmu.edu}
-                {School of Computer Science}}
-                {School of Computer Science}}
-\DEPARTMENT  {\texorpdfstring{\href{https://www.scs.cmu.edu}
-                {\uppercase{School of Computer Science}}}
-                {\uppercase{School of Computer Science}}}
+\department  {\texorpdfstring{\href{https://www.csd.cs.cmu.edu/}
+                {Computer Science Department}}
+                {Computer Science Department}}
+\DEPARTMENT  {\texorpdfstring{\href{https://www.csd.cs.cmu.edu/}
+                {\uppercase{Computer Science Department}}}
+                {\uppercase{Computer Science Department}}}
 \group       {\texorpdfstring{\href{Research Group Web Site URL Here (include http://)}
                 {Research Group Name}}
                 {Research Group Name}}
 \GROUP       {\texorpdfstring{\href{Research Group Web Site URL Here (include http://)}
                 {RESEARCH GROUP NAME (IN BLOCK CAPITALS)}}
                 {RESEARCH GROUP NAME (IN BLOCK CAPITALS)}}
-\faculty     {\texorpdfstring{\href{Faculty Web Site URL Here (include http://)}
-                {Faculty Name}}
-                {Faculty Name}}
-\FACULTY     {\texorpdfstring{\href{Faculty Web Site URL Here (include http://)}
-                {FACULTY NAME (IN BLOCK CAPITALS)}}
-                {FACULTY NAME (IN BLOCK CAPITALS)}}
+\faculty     {\texorpdfstring{\href{https://www.scs.cmu.edu}
+                {School of Computer Science}}
+                {School of Computer Science}}
+\FACULTY     {\texorpdfstring{\href{https://www.scs.cmu.edu}
+                {\uppercase{School of Computer Science}}}
+                {\uppercase{School of Computer Science}}}
 \addresses   {}
 \subject     {}
 \keywords    {}
@@ -183,8 +183,7 @@
       \smallskip
       {\LARGE \authornames \par}
       \vfill
-      {\large A thesis submitted in partial fulfillment for the \par}
-      {\large degree of Doctor of Philosophy \par}
+      {\large Undergraduate Thesis \par}
       \bigskip
       \bigskip
       {\large in the \par}
@@ -219,20 +218,20 @@
   \thispagestyle{empty}
   \null\vfil
   \begin{center}
-    \setlength{\parskip}{0pt}
-    {\normalsize \UNIVNAME \par}
-    \bigskip
+    % \setlength{\parskip}{0pt}
+    % {\normalsize \UNIVNAME \par}
+    % \bigskip
     {\huge{\textit{Abstract}} \par}
     \bigskip
-    {\normalsize \facname \par}
-    {\normalsize \deptname \par}
-    \bigskip
-    {\normalsize Doctor of Philosophy\par}
-    \bigskip
-    {\normalsize\bf \@title \par}
-    \medskip
-    {\normalsize by \authornames \par}
-    \bigskip
+    % {\normalsize \facname \par}
+    % {\normalsize \deptname \par}
+    % \bigskip
+    % {\normalsize Doctor of Philosophy\par}
+    % \bigskip
+    % {\normalsize\bf \@title \par}
+    % \medskip
+    % {\normalsize by \authornames \par}
+    % \bigskip
   \end{center}
 }
 {

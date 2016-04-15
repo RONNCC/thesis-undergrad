@@ -46,7 +46,7 @@
 %	Macros
 %-------------------------------------------------------------------------------
 
-\newcommand\indexVar{x}
+\newcommand\indexVar{k}
 \newcommand\lab{lab}
 
 \usepackage{macro/generic}
@@ -54,7 +54,7 @@
 \usepackage[index=\indexVar,label=\lab]{macro/terms}
 \usepackage{macro/inference}
 \usepackage{macro/typing}
-\usepackage{macro/example}
+\usepackage{macro/code}
 
 
 %-------------------------------------------------------------------------------
@@ -77,18 +77,6 @@
 \frontmatter      % Begin Roman style (i, ii, iii, iv...) page numbering
 
 \maketitle
-
-
-%-------------------------------------------------------------------------------
-%	Declaration Page
-%-------------------------------------------------------------------------------
-
-% Declaration Page required for the Thesis, your institution may give you a different text to place here
-\Declaration{%
-\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
-\input{frontmatter/declaration}
-}
-\clearpage  % Declaration ended, now start a new page
 
 
 %-------------------------------------------------------------------------------
@@ -262,7 +250,7 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \label{Bibliography}
 \lhead{\emph{Bibliography}}  % Change the left side page header to "Bibliography"
 \bibliographystyle{unsrtnat} % Use the "unsrtnat" BibTeX style for formatting the Bibliography
-\bibliography{bibliography}  % Reference (bibliography) information is stored in the file named "bibliography.bib"
+\bibliography{bibliography,db}
 
 
 %-------------------------------------------------------------------------------
