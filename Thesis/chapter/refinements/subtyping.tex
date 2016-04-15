@@ -23,9 +23,9 @@ The next natural step is to carry this (and any other forms of subtyping we may 
 
 \begin{rules}[subtyping-choice]{Subtyping internal and external choices}
   \infer=[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
-    {I \subseteq J & A_k \sub A'_k~\text{for}~k \in J}
+    {I \subseteq J & A_\indexVar \sub A'\indexVar~\text{for}~\indexVar \in I}
   \and \infer=[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
-    {J \subseteq I & A_k \sub A'_k~\text{for}~k \in J}
+    {J \subseteq I & A_\indexVar \sub A'_\indexVar~\text{for}~\indexVar \in J}
 \end{rules}
 
 Internal and external choices are the main tools we use to define data types. Width and depth subtyping is especially important for our refinement system since they allow removing branches altogether and constraining the remaining ones. Combined with recursive subtyping, this will let us define interesting behavioral properties.
@@ -56,19 +56,19 @@ The usual subtyping rules for intersections and unions (\cite{DunfieldP03}) are 
 
 \begin{rules}[subtyping-property]{Subtyping intersection and union types}
   % Intersection
-  \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+  \infer=[\Sub{\intersect\Right}]{A \sub B_1 \intersect B_2}
     {A \sub B_1 \and A \sub B_2}
-  \and \infer=[\Sub{\intersect}\Left_1]{A_1 \intersect A_2 \sub B}
+  \and \infer=[\Sub{\intersect\Left_1}]{A_1 \intersect A_2 \sub B}
     {A_1 \sub B}
-  \and \infer=[\Sub{\intersect}\Left_2]{A_1 \intersect A_2 \sub B}
+  \and \infer=[\Sub{\intersect\Left_2}]{A_1 \intersect A_2 \sub B}
     {A_2 \sub B}
 
   % Union
-  \\ \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+  \\ \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
     {A \sub B_1}
-  \and \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+  \and \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
     {A \sub B_2}
-  \and \infer=[\Sub{\union}\Left]{A_1 \union A_2 \sub B}
+  \and \infer=[\Sub{\union\Left}]{A_1 \union A_2 \sub B}
     {A_1 \sub B & A_2 \sub B}
 \end{rules}
 
@@ -94,30 +94,29 @@ Subtyping is not directly related to the other constructs in the type system, so
     {\subst {\recursive t A} t A \sub B}
 
   % Intersection
-  \\ \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+  \\ \infer=[\Sub{\intersect\Right}]{A \sub B_1 \intersect B_2}
     {A \sub B_1 \and A \sub B_2}
-  \and \infer=[\Sub{\intersect}\Left_1]{A_1 \intersect A_2 \sub B}
+  \and \infer=[\Sub{\intersect\Left_1}]{A_1 \intersect A_2 \sub B}
     {A_1 \sub B}
-  \and \infer=[\Sub{\intersect}\Left_2]{A_1 \intersect A_2 \sub B}
+  \and \infer=[\Sub{\intersect\Left_2}]{A_1 \intersect A_2 \sub B}
     {A_2 \sub B}
 
   % Union
-  \\ \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+  \\ \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
     {A \sub B_1}
-  \and \infer=[\Sub{\union}\Right_1]{A \sub B_1 \union B_2}
+  \and \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
     {A \sub B_2}
-  \and \infer=[\Sub{\union}\Left]{A_1 \union A_2 \sub B}
+  \and \infer=[\Sub{\union\Left}]{A_1 \union A_2 \sub B}
     {A_1 \sub B & A_2 \sub B}
 \end{rules}
 
-\todo{Rename $k$ to $x$ in the above rules.}
 
 \subsection{Distributivity Laws}
 \label{distributivity}
 
-The subtyping relation we give in \cref{subtyping-first-system} is not complete with respect to, say, the ideal semantics of types (\cite{VouillonM04, Damm94}). This is because intersections and unions admit many distributivity-like rules over structural types and over each other. For example, it is not hard to see that $(A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2)$ would be sound using a propositional reading: if a process sends out a channel that satisfies $A_1$ then acts as $B_1$, \emph{and} the sent channel also satisfies $A_2$ in addition to the result satisfying $B_2$, then the channel satisfies both $A_1$ and $A_2$ and the result satisfies both $B_1$ and $B_2$. However, this judgement is not admissible in the given system: the only applicable rules are $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, both of which get stuck because we lose half the information we require for the rest of the derivation. The situation is perhaps exacerbated by the fact that we \emph{can} prove subtyping in the other direction, so these types are supposed to be equivalent. This means depending on where these types occur, we may fail to prove one side of a symmetric relation!
+The subtyping relation we give in \cref{subtyping-first-system} is not complete with respect to, say, the ideal semantics of types \cite{VouillonM04, Damm94}. This is because intersections and unions admit many distributivity-like rules over structural types and over each other. For example, it is not hard to see that $(A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2)$ would be sound using a propositional reading: if a process sends out a channel that satisfies $A_1$ then acts as $B_1$, \emph{and} the sent channel also satisfies $A_2$ in addition to the result satisfying $B_2$, then the channel satisfies both $A_1$ and $A_2$ and the result satisfies both $B_1$ and $B_2$. However, this judgement is not admissible in the given system: the only applicable rules are $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, both of which get stuck because we lose half the information we require for the rest of the derivation. The situation is perhaps exacerbated by the fact that we \emph{can} prove subtyping in the other direction, so these types are supposed to be equivalent. This means depending on where these types occur, we may fail to prove one side of a symmetric relation!
 
-The fix is not as simple as adding this rule as an extra axiom. For one, it is not trivial to rewrite this rule in order to preserve admissibility of transitivity. More importantly, this is not the only rule we would have to add. \cref{distributivity-examples} gives just \emph{some} of the many sound rules that are not admissible.
+The fix is not as simple as adding this rule as an extra axiom. For one, it is not trivial to rewrite this rule in order to preserve admissibility of transitivity. More importantly, this is not the only rule we would have to add. \Cref{distributivity-examples} gives just \emph{some} of the many sound rules that are not admissible.
 
 \begin{rules}[distributivity-examples]{Sound but inadmissible subtyping rules}
    % Intersection
@@ -135,9 +134,9 @@ The fix is not as simple as adding this rule as an extra axiom. For one, it is n
    (A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)
 \end{rules}
 
-This list is certainly not complete, and there are almost as many rules in this list as there are in the original system. Clearly, a blind axiomatic approach which adds all admissible rules is not practical and a more general treatment is in order. There has been some work in incorporating intersections and unions in a conventional type system that preserves completeness under certain conditions. The closest and most complete system we found was from Damm (\cite{Damm94, Damm94p2}). In \cite{Damm94}, he encodes types as regular tree expressions, and reformulates subtyping as regular tree grammar containment which was shown to be decidable. This results in a system that is sound and complete when all types are infinite (but $\terminate$ is a finite type). \cite{Damm94p2} extends this work such that the system is sound in the presence of finite types (although not necessarily complete).
+This list is certainly not complete, and there are almost as many rules in this list as there are in the original system. Clearly, a blind axiomatic approach which adds all admissible rules is not practical and a more general treatment is in order. There has been some work in incorporating intersections and unions in a conventional type system that preserves completeness under certain conditions. The closest and most complete system we found was from Damm \cite{Damm94, Damm94p2}. In \cite{Damm94}, he encodes types as regular tree expressions, and reformulates subtyping as regular tree grammar containment which was shown to be decidable. This results in a system that is sound and complete when all types are infinite (but $\terminate$ is a finite type). \cite{Damm94p2} extends this work such that the system is sound in the presence of finite types (although not necessarily complete).
 
-Their system is very close to what we would like to accomplish, however, we think it is too complicated for our purposes as it requires familiarity with ideal semantics of types (which in turn is based on domain theory and the theory metric spaces) and regular tree grammars. Even if a similar approach could be made to work, we find such systems to be fragile in the face of future extensions. We would rather work with a simple and robust subtyping relation that does not necessitate rethinking every details with every extension, so we make a design decision: we give up full completeness and instead design a system that admits the rules we are likely to encounter in practice.
+Their system is very close to what we would like to accomplish, however, we think it is too complicated for our purposes as it requires familiarity with ideal semantics of types (which in turn is based on domain theory and the theory metric spaces) and regular tree grammars. Even if a similar approach could be made to work, we find such systems to be fragile in the face of future extensions. We would rather work with a simple and robust subtyping relation that does not necessitate rethinking every detail with every extension, so we make a design decision: we give up full completeness and instead design a system that admits the rules we are likely to encounter in practice.
 
 In the next \namecref{subtyping-multi}, we present a system that we think achieves the right tradeoff between simplicity and completeness.
 
@@ -145,7 +144,41 @@ In the next \namecref{subtyping-multi}, we present a system that we think achiev
 \subsection{Subtyping as Sequent Calculus with Multiple Conclusions}
 \label{subtyping-multi}
 
+Our solution is doing the obvious: if the problem is losing half the information, well, we should just keep it around. This suggests a system where the single type on the left and on the type right are replaced with \emph{(multi)sets} of types. That is, instead of the judgment $A \le B$, we use a judgment of the form $A_1, \ldots, A_n \subA B_1, \ldots, B_n$, where the left of $\subA$ is interpreted as a conjunction (intersection) and the right is interpreted as a disjunction (union). This results in a system reminiscent of \cite{Gentzen35, Girard87}. However, we take a slightly different approach since we are working with coinductive rules.
 
+The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. Note that this is not an essential restriction. In fact, we conjecture that matching multiple types can give us distributivity of intersection and union over structural types, which is a question for future research.
+
+\begin{rules}[subtyping-multi]{Subtyping with multiple hypothesis and conclusions; coinductively}
+  % Intersection
+  \infer=[\SubA{\intersect}\Right]{\typeList \subA \typeListB, A_1 \intersect A_2}
+    {\typeList \subA \typeListB, A_1 \and \typeList \subA \typeListB, A_2}
+  \and \infer=[\SubA{\intersect}\Left]{\typeList, A_1 \intersect A_2 \subA \typeListB}
+    {\typeList, A_1, A_2 \subA \typeListB}
+  % Union
+  \\ \infer=[\SubA{\union}\Right]{\typeList \subA \typeListB, A_1 \union A_2}
+    {\typeList \subA \typeListB, A_1, A_2}
+  \and \infer=[\SubA{\union}\Left]{\typeList, A_1 \union A_2 \subA \typeListB}
+    {\typeList, A_1 \subA \typeListB & \typeList, A_2 \subA \typeListB}
+  % Structural
+  \\ \infer=[\SubA{\terminate}]{\typeList, \terminate \subA \typeListB, \terminate}{}
+  \and \infer=[\SubA\tensor]{\typeList, A \tensor B \subA \typeListB, A' \tensor B'}
+    {A \subA A' & B \subA B'}
+  \and \infer=[\SubA\internal]{\typeList, \internals A I \subA \typeListB, \internals {A'} J}
+    { I \subseteq J
+    & A_\indexVar \subA A_\indexVar'~\text{for}~\indexVar\in I
+    }
+  \and \infer=[\SubA\lolli]{\typeList, A \lolli B \subA \typeListB, A' \lolli B'}
+    {A' \subA A & B \subA B'}
+  \and \infer=[\SubA\external]{\typeList, \externals A I \subA \typeListB, \externals {A'} J}
+    { J \subseteq I
+    & A_\indexVar \subA A_\indexVar'~\text{for}~\indexVar\in J
+    }
+  % Recursive
+  \\ \infer=[\SubA{\mu\Right}]{\typeList \subA \typeListB, \recursive t A}
+     {\typeList \subA \typeListB, \subst {\recursive t A} t A}
+  \and \infer=[\SubA{\mu\Left}]{\typeList, \recursive t A \subA \typeListB}
+     {\typeList, \subst {\recursive t A} t A \subA \typeListB}
+\end{rules}
 
 
 \subsection{Properties}
@@ -155,6 +188,7 @@ Subtyping extends to contexts in the obvious way: $\ctx \sub \ctx'$ if and only 
 We require the subtyping relation to be a preorder, that is, it should satisfy reflexivity and transitivity. Since we want an algorithmic system, we do not want to add these as rules. Thus, we have the following admissibility theorem:
 
 \begin{theorem}
+  \label{sub-is-preorder}
   $\sub$ is a preorder:
   \begin{itemize}
     \item $A \sub A$ for all types $A$.
