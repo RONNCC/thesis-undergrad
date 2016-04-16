@@ -17,6 +17,17 @@ Being dual to intersections, the typing rules for unions mirror the typing rules
 
 The right rules state the process has to offer either the left type or the right type respectively. The left rule says we need to be prepared to handle either type. It is important to point out that we restore a long-lost symmetry for functional languages. The natural left rule we give here for unions (natural since it is dual to the right rule for intersection) has been shown to be problematic in functional languages \cite{Barbanera95ic}. One solution limits the left rule to expressions in evaluation position \cite{DunfieldP04}. The straightforward left rule turns out to be already sound here due to our use of the linear sequent calculus.
 
+The usual subtyping rules are given below. These make the right rules derivable so they are not explicitly added to the system.
+
+\begin{mathpar}
+  \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
+    {A \sub B_1}
+  \and \infer=[\Sub{\union\Right_1}]{A \sub B_1 \union B_2}
+    {A \sub B_2}
+  \and \infer=[\Sub{\union\Left}]{A_1 \union A_2 \sub B}
+    {A_1 \sub B & A_2 \sub B}
+\end{mathpar}
+
 Unions allow us to describe some interesting properties. For example, we can show that every natural is either even or odd:
 \begin{lstlisting}[language=krill, style=custom]
   iso : Nat -o (Even or Odd)

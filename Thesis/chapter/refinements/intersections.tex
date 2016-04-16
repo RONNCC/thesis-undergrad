@@ -22,3 +22,13 @@ When we are using a channel on the left that offers an intersection of two types
     {\typeRecD{\ctx, c : B}{\recCtx}{P}{d}{D}}
 \end{mathpar}
 
+The standard subtyping rules for intersections are given below. It should be noted that the left typing rules above are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add these to the final system. Also, we modify the subtyping relation in \cref{refinements:subtyping}, so these rules are only for reference.
+
+\begin{mathpar}
+  \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
+    {A \sub B_1 \and A \sub B_2}
+  \and \infer=[\Sub{\intersect\Left_1}]{A_1 \intersect A_2 \sub B}
+    {A_1 \sub B}
+  \and \infer=[\Sub{\intersect\Left_2}]{A_1 \intersect A_2 \sub B}
+    {A_2 \sub B}
+\end{mathpar}
