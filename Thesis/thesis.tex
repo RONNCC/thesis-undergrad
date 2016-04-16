@@ -190,9 +190,11 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \pagestyle{fancy}  % Return the page headers back to the "fancy" style
 \lhead{\fancyplain{}{\rightmark}} % Set the left side page header to the chapter name
 
-\include{chapter/introduction}
+\clearpage
+\input{chapter/introduction}
 
-\include{chapter/background}
+\clearpage
+\input{chapter/background}
 % \input{chapter/background/domains}
 % \input{chapter/background/metric-spaces}
 % \input{chapter/background/ideals}
@@ -200,14 +202,23 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 % \input{chapter/background/tree-grammars}
 % \input{chapter/background/tree-automata}
 
-\include{chapter/session-types}
+\clearpage
+\input{chapter/session-types}
 \input{chapter/session-types/types}
 \input{chapter/session-types/processes}
 \input{chapter/session-types/recursive}
 \input{chapter/session-types/configurations}
 \input{chapter/session-types/operational-semantics}
 
-\include{chapter/refinements}
+\clearpage
+\input{chapter/subtyping}
+\input{chapter/subtyping/choice}
+\input{chapter/subtyping/recursive}
+\input{chapter/subtyping/structural}
+\input{chapter/subtyping/metatheory}
+
+\clearpage
+\input{chapter/refinements}
 \input{chapter/refinements/intersections}
 \input{chapter/refinements/unions}
 \input{chapter/refinements/subtyping}
@@ -216,12 +227,14 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 %\input{chapter/refinements/compiling-choice}
 \input{chapter/refinements/safety}
 
-\include{chapter/algorithmic}
+\clearpage
+\input{chapter/algorithmic}
 \input{chapter/algorithmic/subtyping}
 \input{chapter/algorithmic/bidirectional}
 \input{chapter/algorithmic/equivalence}
 
-\include{chapter/conclusion}
+\clearpage
+\input{chapter/conclusion}
 
 \addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
 

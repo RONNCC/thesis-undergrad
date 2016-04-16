@@ -1,0 +1,16 @@
+
+\section{Recursive Types}
+\label{subtyping-recursive-types}
+
+Subtyping would not be very useful if we did not push it through recursive types. A basic notion of recursive subtyping turns out to be not that much more complicated than recursive type equality.%
+\footnote{Subtyping in the presence of intersections and unions turns out to be more complicated, but that comes later in \cref{refinements:subtyping}.} Just as we considered two recursive types equivalent whenever their infinite unfoldings were equivalent (refer to \cref{recursive-types}), we will consider a recursive type to be a subtype of another if their infinite unfoldings have this property. The rules are given in \cref{subtyping-recursive}.
+
+\begin{rules}[subtyping-recursive]{Subtyping recursive types}
+  \infer=[\Sub{\rec\Right}]{A \sub \recursive t B}
+    {A \sub \subst {\recursive t B} t B}
+  \and \infer=[\Sub{\rec\Left}]{\recursive t A \sub B}
+    {\subst {\recursive t A} t A \sub B}
+\end{rules}
+
+Another advantage of handling subtyping properly is that it subsumes type equivalence since we can define $A \typeeq B$ if and only if $A \sub B$ and $B \sub A$. This makes type equivalence a derived notion rather than a primitive one, which simplifies the theory. In fact, type equality will not ever come up in the theory since the only reason for introducing it was to identify a recursive type and its unfolding, which will now be handled by subtyping.
+

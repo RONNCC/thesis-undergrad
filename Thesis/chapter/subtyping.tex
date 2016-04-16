@@ -1,0 +1,19 @@
+
+\chapter{Subtyping}
+\label{original-subtyping}
+
+Subtyping is a binary relation between types which captures the notion of being more specific or carrying more information. We say that a type $A$ is a subtype of $B$ if (a process offering the type) $A$ can safely be used in any context where we expect (a process offering the type) $B$. We write $A \sub B$ to mean $A$ is a subtype of $B$. According to this interpretation, for example, natural numbers would be a subtype of reals since every natural number is also a real number. Depending the on the type system and the precise definitions of these types, this may or may not turn out to be the case. Of course, we are interested in processes not algebra, so only provides intuition.
+
+In the context of process calculi, subtyping was introduces (as far as we know) by Gay and Hole in \cite{GayH05} in order to admit width and depth subtyping for $n$-ary choices, which are natural for record-like structures. Subtyping also doubles as a convenient way of identifying a recursive type and its unfolding, thus, subsuming and generalizing the type equality we introduced before. In a refinement system, subtyping is especially important since it is used to propagate refinements and forget them as necessary. This last point is deferred to \cref{refinements:subtyping} since are still introducing the base system.
+
+As usual, we introduce subtyping to term typing using what are called subsumption rules, which are presented in \cref{subsumption}. The right rule says that if a process is to provide a type $A$, it can always provide a more specific type $A'$. Dually, the left rule says that if a process can properly handle a less specific type $A'$, then it does not hurt to make the type more specific.
+
+\begin{rules}[subsumption]{Subsumption rules}
+  \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
+    {\typeRecDJ{P}{c}{A'} & A' \sub A}
+  \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
+    {\typeD{\ctx, c : A'} P d B & A \sub A'}
+\end{rules}
+
+With that in mind, we can now talk about the specifics of the actual subtyping relation.
+

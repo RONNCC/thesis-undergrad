@@ -1,0 +1,25 @@
+
+\section{Structural Types and Final System}
+
+Subtyping is not directly related to the other constructs in the type system, so the rest of the rules are for confluence only. The resulting system is presented in \cref{base:subtyping}.
+
+\begin{rules}[base:subtyping]{Subtyping for the base system}
+  % Base types
+  \infer=[\Sub{\terminate}]{\terminate \sub \terminate}{}
+  \and \infer=[\Sub\tensor]{A \tensor B \sub A' \tensor B'}
+    {A \sub A' & B \sub B'}
+  \and \infer=[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
+    {I \subseteq J & A_k \sub A'_\indexVar~\text{for}~\indexVar \in J}
+  \and \infer=[\Sub\lolli]{A \lolli B \sub A' \lolli B'}
+    {A' \sub A & B \sub B'}
+  \and \infer=[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
+    {J \subseteq I & A_k \sub A'_\indexVar~\text{for}~\indexVar \in J}
+  % Recursive types
+  \\ \infer=[\Sub{\rec\Right}]{A \sub \recursive t B}
+    {A \sub \subst {\recursive t B} t B}
+  \and \infer=[\Sub{\rec\Left}]{\recursive t A \sub B}
+    {\subst {\recursive t A} t A \sub B}
+\end{rules}
+
+Subtyping extends to contexts in the obvious way: $\ctx \sub \ctx'$ if and only if $\ctx = (c_1 : A_1, \ldots, c_n : A_n)$, $\ctx' = (c_1 : A_1', \ldots, c_n : A_n')$, and $A_i \sub A_i'$ for $i \in \set{1, \ldots, n}$.
+

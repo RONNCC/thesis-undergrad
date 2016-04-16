@@ -1,0 +1,22 @@
+
+\section{Metatheory}
+
+Just like we did for type equivalence, we expect the subtyping relation to satisfy certain properties. Mainly, it should be a preorder, that is, it should satisfy reflexivity and transitivity. The following \namecref{base:sub-is-preorder} shows these are admissible:
+
+\begin{theorem}
+  \label{sub-is-preorder}
+  $\sub$ is a preorder:
+  \begin{itemize}
+    \item $A \sub A$ for all types $A$.
+    \item $A \sub B$ and $B \sub C$ implies $A \sub C$ for all types $A, B, C$.
+  \end{itemize}
+\end{theorem}
+\begin{proof}
+  Follows from a simple coinduction for reflexivity. For transitivity, we use a lexicographical coinduction on the two subtyping derivations and an induction on the middle type\todo{Is this the right order}. We omit details here since the proof is fairly standard (except for the use of coinduction) and since we will be changing the subtyping relation in \cref{refinements:subtyping}.
+\end{proof}
+
+
+\subsection{Type Safety}
+
+At this point, we would reprove progress and type preservation for the system with subtyping. However, the proofs are only slight modifications of the ones given in \cref{base:semantics}. In addition, we will do them for the larger system with intersection and unions later on in \cref{refinements:semantics}, so they are omitted.
+
