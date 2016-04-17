@@ -10,7 +10,7 @@ In this section, we introduce equirecursive types and recursive processes which 
 
 We extend the language of types with variables and a new construct, $\recursive{t}{A_t}$, representing recursive types. A recursive type $\recursive{t}{A}$ is identified with its unfolding $\subst{\recursive{t}{A}}{t}{A}$, which means there are no explicit term level coercions (e.g.\ $\mathtt{unfold}$ and $\mathtt{fold}$) to go between them. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they reduce communication and make more sense in a concurrent setting where behavior is more important than term structure.
 
-In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness and only consider contractive types from then on.
+In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness \cite{StoneS2005, GayH05} and only consider contractive types from then on.
 
 
 \subsubsection{Contractiveness}
@@ -43,13 +43,12 @@ A type is then said to be contractive if every occurrence of $\recursive t A$ sa
 \subsubsection{Well-formed Types}
 
 Extending the language of types with variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. Fortunately, all such types can be eliminated by requiring all types to be closed. That is, the set of free variables of a type should be empty. Just like contractiveness, we will assume all types we consider are closed and will not explicitly restate this assumption. Every operation we need on types preserves this property%
-\footnote{We will only unfold a $\mu$ which clearly results in a closed type given a closed type. We never take a $\mu$ apart. We will break down other types such as $A \tensor B$, but that cannot result in an open type.}%
-, so this is not an issue.
+\footnote{We will only unfold a $\mu$ which clearly results in a closed type given a closed type. We never take a $\mu$ apart. We will break down other types such as $A \tensor B$, but that cannot result in an open type.}.
 
 
 \subsection{Recursive Processes}
 
-We introduce a new form of process expression which we write $\trec {p} {\tvector c} P_p$ which are modeled after the corecursive processes of \cite{ToninhoCP14}. Here, $p$ is a process variable that intuitively stands for the whole expression and $\tvector c$ is an ordered list of channel names that is used to parametrize the expression over channel names. We use the notation $\tapp P {\tvector c}$ to denote specialization. Parametrization is useful in case we want to rename the provided or used channels. For instance, we will often want to spawn a copy of the overall expression: $\trec p c {\tspawn d {\tapp p d} P_d}$ where $P_d$ is some process that consumes $d$ and offers along $c$. The typing rules limit specialization to recursive processes and process variables.
+We introduce a new form of process expression which we write $\trec {p} {\tvector c} P_p$ which are modeled after the corecursive processes of \cite{ToninhoCP14}. Here, $p$ is a process variable that intuitively stands for the whole expression and $\tvector c$ is an ordered list of channel names that is used to parametrize the expression over channel names. We use the notation $\tapp P {\tvector c}$ for parameter instantiation. Parametrization is useful in case we want to rename the provided or used channels. For instance, we will often want to spawn a copy of the overall expression: $\trec p c {\tspawn d {\tapp p d} P_d}$ where $P_d$ is some process that consumes $d$ and offers along $c$. The typing rules limit specialization to recursive processes and process variables.
 
 We also have to extend the typing context to keep track of process variables. Note that we cannot simply add this information to the existing context since that contexts tracks channel names which are different from processes. In addition, the channel context is linear, but there is no reason to limit recursive occurrences of a process to exactly one place. We write the new judgement as $\typeRecDJ P c A$, where $\recCtx$ stores the typing context for process variables. As usual, we assume variable names in $\recCtx$ are made unique through alpha renaming. Recursive processes are typed using the rules in \cref{recursive-process}. These are the only rules that modify the process variable context, all other rules simply pass it up unchanged.
 
@@ -121,20 +120,20 @@ We expect type equality to be an equivalence relation between types (i.e.\ it sh
 \end{proof}
 
 
-\subsection{Substitution}
+% \subsection{Substitution}
 
-At this point, we have two forms of variables: one for channels and one for processes. We will of course be substituting for both as this is what variables are for! We give the following two results showing substitution is sound.
+% At this point, we have two forms of variables: one for channels and one for processes. We will of course be substituting for both as this is what variables are for! We give the following two results showing substitution is sound.
 
-\begin{lemma}[Channel Substitution]
-  \label{channel-substitution}
-  If $\typeRecD \ctx \emptyset P c A$ and $\tvector z \cap \free {\parens P} = \emptyset$ then $\typeRecD {\subst {\tvector z} {\tvector y} \ctx} \emptyset {\subst {\tvector z} {\tvector y} P} {\subst {\tvector z} {\tvector y} c} A$.
-  \todo{Does the process context need to be empty?}
-\end{lemma}
-\begin{proof}
-\todo{Do channel substitution proof.}
-\end{proof}
+% \begin{lemma}[Channel Substitution]
+%   \label{channel-substitution}
+%   If $\typeRecD \ctx \emptyset P c A$ and $\tvector z \cap \free {\parens P} = \emptyset$ then $\typeRecD {\subst {\tvector z} {\tvector y} \ctx} \emptyset {\subst {\tvector z} {\tvector y} P} {\subst {\tvector z} {\tvector y} c} A$.
+%   \todo{Does the process context need to be empty?}
+% \end{lemma}
+% \begin{proof}
+% \todo{Do channel substitution proof.}
+% \end{proof}
 
-\begin{lemma}[Process Substitution]
-\todo{Write process substitution lemma and prove it.}
-\end{lemma}
+% \begin{lemma}[Process Substitution]
+% \todo{Write process substitution lemma and prove it.}
+% \end{lemma}
 

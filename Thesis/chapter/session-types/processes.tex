@@ -1,8 +1,17 @@
 
 \section{Process Expressions}
 
-Below is a summary of the process expressions, with the sending construct
-followed by the matching receiving construct.
+Within this framework, proof terms correspond to processes. For example, cut, written $\tspawn{c}{P_c}{Q_c}$, denotes a form of process composition where the client spawns off a helper process ($P_c$) with which it can communicate from then on. The intuition is formalized in the typing rule:
+$$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
+    { \typeD {\ctx} {P_c} {c} {A}
+    & \typeD {\ctx', c : A} {Q_c} {d} {D}
+    }
+$$
+
+The rest of the process expressions are summarized below, with the sending construct
+followed by the matching receiving construct. Discussion of other typing rules is given in \cref{base:type-assignment}. Here, cut and $\mathtt{recv}$ bind the spawned or received channel name, which means these are identified up to alpha conversion.
+
+\todo{Write the notation for substitution somewhere.}
 
 \begin{center}
 \begin{tabular}{l c l l}
@@ -43,22 +52,23 @@ The interface states that a process level natural number is an internal choice o
 \end{lstlisting}
 \end{minipage}
 
-\texttt{z} simply sends the label \texttt{zero} along the channel \texttt{`c} (which it provides) and terminates, whereas \texttt{s} prepends a successor to the number provided along channel \texttt{`d} and then delegates to \texttt{`d}. Here is a slightly more complicated example that uses recursion:
+\texttt{z} simply sends the label \texttt{zero} along the channel \texttt{`c} (which it provides) and terminates, whereas \texttt{s} send the label \texttt{succ} and delegates to \texttt{`d}. Here is a slightly more complicated example that uses recursion:
 
 \begin{lstlisting}[language=krill, style=custom]
   double : Nat -o Nat
   `c <- double `d =
     case `d of
-      zero -> wait `d; `c.zero; close `c
+      zero -> `c.zero; wait `d; close `c
       succ -> `c.succ; `c.succ; `c <- double `d
 \end{lstlisting}
 
 
 \subsection{Type Assignment for Processes}
+\label{base:type-assignment}
 
 The typing rules for other constructs are derived from linear logic by decorating derivations with proof terms. The rules are given in \cref{session-assignment}. Note that we allow unused branches case expressions for $\internal\Left$ and $\external\Right$, which makes width subtyping easier (discussed in \cref{base:subtyping}).
 
-\begin{rules}[session-assignment]{Process assignment}
+\begin{rules}[session-assignment]{Type assignment to processes}
   % id and cut
   \infer[\id]{ \typeD {c : A} {\tfwd{d}{c}} {d} {A} }
     {}
@@ -83,10 +93,6 @@ The typing rules for other constructs are derived from linear logic by decoratin
     { i \in I
     & \typeDJ{P}{c}{A_i}
     }
-  \and \parens*{\infer[\internal\Right]{\typeDJ { \tselect{c}{}{P} } {c} {\internal \braces{\lab : A}} }
-    { \typeDJ{P}{c}{A}
-    }
-  }
   \and \infer[\internal\Left]{ \typeD { \ctx, c : \internals{A}{I} } { \tcase{c}{\tbranches{P}{J}} } {d} {D} }
    { I \subseteq J
    & \typeD{\ctx, c : A_k}{P_k}{d}{D}~\text{for}~k\in I
@@ -109,12 +115,13 @@ The typing rules for other constructs are derived from linear logic by decoratin
     }
 \end{rules}
 
-As usual, we identify bound channels up to alpha conversion. We can change free channel names while preserving typing as formalized below:
-\begin{lemma}[Channel Substitution]
-  \label{channel-substitution-pre}
-  If $\typeDJ P c A$ and $\tvector z \cap \free {\parens P} = \emptyset$ then $\typeD {\subst {\tvector z} {\tvector y} \ctx} {\subst {\tvector z} {\tvector y} P} {\subst {\tvector z} {\tvector y} c} A$.
-\end{lemma}
+As usual, we identify bound channels up to alpha conversion. Free channels are subject to consistent renaming across a sequent by substitution.
+%We can change free channel names while preserving typing as formalized below:
+% \begin{lemma}[Channel Substitution]
+%   \label{channel-substitution-pre}
+%   If $\typeDJ P c A$ and $\tvector z \cap \free {\parens P} = \emptyset$ then $\typeD {\subst {\tvector z} {\tvector y} \ctx} {\subst {\tvector z} {\tvector y} P} {\subst {\tvector z} {\tvector y} c} A$.
+% \end{lemma}
 
-We delay the proof until after we introduce recursive types since the typing-derivation will be changed slightly.
+% We delay the proof until after we introduce recursive types since the typing-derivation will be changed slightly.
 
 

@@ -1,13 +1,13 @@
 
 \section{Choice}
 
-The first form of subtyping we have is width subtyping for internal and external choices, which is similar to width subtyping for record calculi. The idea to width subtyping is simple: whenever we expect a choice between a set of options, it is sound to offer more options since we can safely ignore the ones we do not care about (external choice), and similarly, whenever we are prepared to handle a set branches, we are prepared to handle a subset of those branches (internal choice). This suggest the following subtyping rules for external and internal choice respectively: $\externals A I \sub \externals A J$ whenever $J \subseteq I$, and $\internals A I \sub \internals A J$ whenever $I \subseteq J$.
+The first form of subtyping we have is width subtyping for internal and external choices, which is similar to width subtyping for record calculi. The idea of width subtyping is simple: whenever a process offers a set of options, we can use it in a context that requires a subset of those options since we can safely ignore the ones we do not care about (external choice), and similarly, whenever we are prepared to handle a set branches, we are prepared to handle a subset of those branches (internal choice). \todo{Frank: does this sound better?} This suggest the following subtyping rules for external and internal choice respectively: $\externals A I \sub \externals A J$ whenever $J \subseteq I$, and $\internals A I \sub \internals A J$ whenever $I \subseteq J$.
 
 The next natural step is to carry this (and any other forms of subtyping we may have) out recursively, that is, to allow the $A_\indexVar$ to be replaced by subtypes. This is sometimes called depth subtyping and yields the rules in \cref{subtyping-choice}. The rules are coinductive due to the same reasons the rules for $\typeeq$ are coinductive (refer to \cref{base:type-equality}).
 
 \begin{rules}[subtyping-choice]{Subtyping internal and external choices}
   \infer=[\Sub\internal]{\internals{A}{I} \sub \internals{A'}{J}}
-    {I \subseteq J & A_\indexVar \sub A'\indexVar~\text{for}~\indexVar \in I}
+    {I \subseteq J & A_\indexVar \sub A'_\indexVar~\text{for}~\indexVar \in I}
   \and \infer=[\Sub\external]{\externals{A}{I} \sub \externals{A'}{J}}
     {J \subseteq I & A_\indexVar \sub A'_\indexVar~\text{for}~\indexVar \in J}
 \end{rules}

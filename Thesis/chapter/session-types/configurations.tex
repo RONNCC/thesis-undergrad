@@ -8,17 +8,17 @@ So far, we have only considered processes in isolation. In a concurrent setting,
   $\config = \set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is called a process configuration if $c_1, \ldots, c_n$ are all distinct.
 \end{definition}
 
-With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge (including the root nodes which have ``phantom'' edges) and any number of incoming edges that correspond to the channels the process uses. This observation suggests the typing rules in \cref{configuration-typing}, which mimic the structure of a multi-way tree, for a process configuration.
+With the above restriction, each process offers along a specific channel and each channel is offered by a unique process. Since channels are linear resources in our system, they must be used by exactly one process. In addition, we do not allow cyclic dependence, which imposes an implicit forest (set of trees) structure on a process configuration where each node has one outgoing edge (including root nodes which have ``dangling'' edges disconnected on one side) and any number of incoming edges that correspond to the channels the process uses. This observation suggests the typing rules in \cref{configuration-typing}, which mimic the structure of a multi-way tree, for a process configuration.
 
 \begin{rules}[configuration-typing]{Configuration Typing}
-  \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
+  \infer[\confZero]{\providesCtx{\emptyConfig}{\emptyCtx}} {}
+  \and \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
    { \typeRecD \ctx \emptyset P c A
    & \providesCtx \config \ctx
    }
-
    \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
     { \provides {\config_i} {c_i} {A_i} ~\text{for}~ i \in \set{1, \ldots, n}
-    & i = 0 \vee i > 1
+    & i > 1
     }
 \end{rules}
 
