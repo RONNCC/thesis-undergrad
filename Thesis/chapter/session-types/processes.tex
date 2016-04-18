@@ -9,9 +9,7 @@ $$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
 $$
 
 The rest of the process expressions are summarized below, with the sending construct
-followed by the matching receiving construct. Discussion of other typing rules is given in \cref{base:type-assignment}. Here, cut and $\mathtt{recv}$ bind the spawned or received channel name, which means these are identified up to alpha conversion.
-
-\todo{Write the notation for substitution somewhere.}
+followed by the matching receiving construct. Discussion of other typing rules is given in \cref{base:type-assignment}.
 
 \begin{center}
 \begin{tabular}{l c l l}
@@ -23,6 +21,8 @@ followed by the matching receiving construct. Discussion of other typing rules i
             & $|$ & $\tsendVal{c}{M}{Q} \mid \trecvVal{n}{c}{R_n}$ & $A \sendVal B,$ $A \recvVal B$
 \end{tabular}
 \end{center}
+
+Note that cut, $\mathtt{send}$, and $\mathtt{recv}$ bind the spawned, sent, and received channel names, which means these are identified up to alpha conversion. We denote the usual capture avoiding simultaneous substitution of channels $\tvector c$ for $\tvector x$ in $P$ by $\subst {\tvector c} {\tvector x} P$ where $\tvector c$ and $\tvector x$ are ordered sequences of equal length.
 
 Let us consider an example program to get more intuition about the system. We will use process level natural numbers, $\nat$, as a running example. Note that we use concrete syntax to write programs, but the mapping to abstract syntax presented above should be clear. Also, this example (and almost any interesting one) requires recursive types, which are introduced in \cref{base:recursion}.
 

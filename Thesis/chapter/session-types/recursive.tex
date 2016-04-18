@@ -40,6 +40,21 @@ A type is then said to be contractive if every occurrence of $\recursive t A$ sa
 \end{rules}
 
 
+Contractiveness ensures that repeated unfolding will terminate with a structural type in a finite number of steps. This is required for soundness of the theory, and comes up often in many inductive arguments we will present. Usually, the property that gets smaller will be the $\size$ of a type, which is defined to be the number of unfoldings we need to do before we hit a structural type:
+
+\begin{align*}
+  \size{(\terminate)} &= 0 \\
+  \size{(A \tensor B)} &= 0 \\
+  \size{(\internals A I)} &= 0 \\
+  \size{(A \lolli B)} &= 0 \\
+  \size{(\externals A I)} &= 0 \\
+  \size{(t)} &= \bot \\
+  \size{(\recursive t A)} &= 1 + \size{(A)}
+\end{align*}
+
+Note that $\size$ is well defined for contractive types since we can never hit the variable case. It is of course finite since types are finite.
+
+
 \subsubsection{Well-formed Types}
 
 Extending the language of types with variables means not every syntactically valid type makes sense. For example, the type $\recursive t u$ is meaningless since $u$ is not bound anywhere. Fortunately, all such types can be eliminated by requiring all types to be closed. That is, the set of free variables of a type should be empty. Just like contractiveness, we will assume all types we consider are closed and will not explicitly restate this assumption. Every operation we need on types preserves this property%
@@ -96,9 +111,9 @@ Possibly the more interesting part is our definition of $\typeeq$. Intuitively, 
   \and \infer=[\TypeEq\external]{\externals{A}{I} \typeeq \externals{A'}{I}}
     {A_x \typeeq A_x'~\text{for}~x \in I}
 
-  \\ \infer=[\TypeEq\mu \Right]{A \typeeq \recursive t B}
+  \\ \infer=[\TypeEq{\mu\Right}]{A \typeeq \recursive t B}
    { A \typeeq \subst {\recursive t B} t B}
-  \and \infer=[\TypeEq\mu \Left]{\recursive t A \typeeq B}
+  \and \infer=[\TypeEq{\mu\Left}]{\recursive t A \typeeq B}
    { \subst {\recursive t A} t A \typeeq B}
 \end{rules}
 
@@ -109,14 +124,17 @@ We expect type equality to be an equivalence relation between types (i.e.\ it sh
   \label{eq-is-equivalence}
   $\typeeq$ is an equivalence:
   \begin{itemize}
-    \item $A \typeeq A$ for all types $A.$
+    \item $A \typeeq A$ for all types $A$.
     \item $A \typeeq B$ implies $B \typeeq A$ for all types $A, B$.
     \item $A \typeeq B$ and $B \typeeq C$ implies $A \typeeq C$ for all types $A, B, C$.
   \end{itemize}
 \end{theorem}
 
 \begin{proof}
-  By coinduction. \todo{Prove that $\typeeq$ is an equivalence.}
+  Reflexivity \todo{Ask Frank: what does reflexivity follow from? Is it induction or coinduction on the type?} Symmetry follow from a simple coinduction on the derivation of type equality using the symmetric rules for $\TypeEq{\mu\Right}$ and $\TypeEq{\mu\Left}$. For transitivity, we use a lexicographical coinduction on the two equality derivations and induction on $\size{(B)}$.
+
+The details are omitted since the proofs are quite standard (except for the use of coinduction, which does not change the structure much). In addition, we will soon replace equality with subtyping in \cref{base:subtyping}.
+  \todo{Frank: The proof was added after your pass. How does it read?}
 \end{proof}
 
 

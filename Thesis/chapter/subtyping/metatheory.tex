@@ -12,7 +12,7 @@ Just like we did for type equivalence, we expect the subtyping relation to satis
   \end{itemize}
 \end{theorem}
 \begin{proof}
-  Follows from a simple coinduction for reflexivity. For transitivity, we use a lexicographical coinduction on the two subtyping derivations and an induction on the middle type\todo{Is this the right order}. We omit details here since the proof is fairly standard (except for the use of coinduction) and since we will be changing the subtyping relation in \cref{refinements:subtyping}.
+  Follows from a simple coinduction for reflexivity\todo{There is a problem here. Related to the same problem for equality.}. For transitivity, we use a lexicographical coinduction on the two subtyping derivations and an induction on $\size{(B)}$. \todo{Does this sentence read right?} We omit details here since the proof is fairly standard (except for the use of coinduction) and since we will be changing the subtyping relation in \cref{refinements:subtyping}.
 \end{proof}
 
 

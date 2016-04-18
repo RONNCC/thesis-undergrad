@@ -2,6 +2,8 @@
 \section{Encoding $n$-ary Choice Using Intersections and Unions}
 \label{encoding-choice}
 
+\todo{Talk about Pavoni or whatever.}
+
 In this \namecref{encoding-choice}, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process level constructs where as intersections are implicit.
 
 Consider special case of binary external choice: $\external\braces{\irb{inl} : A, \irb{inr} : B}$. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
@@ -11,3 +13,7 @@ Consider special case of binary external choice: $\external\braces{\irb{inl} : A
 \end{mathpar}
 
 When $I$ is empty, the intersection reduces to $\top$ and the union reduces to $\bot$, which are elided from this paper for space considerations. It can be checked that these definitions satisfy the typing and subtyping rules for external and internal choices.
+\todo{More on $\top$ and $\bot$.}
+
+\todo{Talk about how this makes certain subtyping rules admissible.}
+
