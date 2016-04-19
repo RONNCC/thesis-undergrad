@@ -88,45 +88,161 @@ The new system is Figure~\ref{refinements:subtyping-multi-rules}. We use $\typeL
      {\typeList, \subst {\recursive t A} t A \subA \typeListB}
 \end{rules}
 
-Subtyping of singular types like we had before is defined as expected: $A \sub B$ if and only if $A \subA B$. \todo{Do I want to say this?}
 
+\subsection{Properties of Subtyping}
+\label{refinements:subtyping-properties}
 
-\subsection{Properties}
+First, let us make sure that the new system in fact admits the desired distributivity rules:
+$$
+  \infer[\SubA{\union\Right}]
+  { (A_1 \union B) \intersect (A_2 \union B) \subA (A_1 \intersect A_2) \union B }
+  { \infer[\SubA{\intersect\Left}]
+     { (A_1 \union B) \intersect (A_2 \union B) \subA A_1 \intersect A_2, B }
+     { \infer[\SubA{\intersect\Right}]
+        { A_1 \union B, A_2 \union B \subA A_1 \intersect A_2, B }
+        { \infer[\SubA{\union\Left}]
+           { A_1 \union B, A_2 \union B \subA A_1, B }
+           { \infer[\weak]
+              { A_1, A_2 \union B \subA A_1, B }
+              { \infer [\id] {A_1 \subA A_1} {}
+              }
+           & \deduce {B, A_2 \union B \subA A_1, B} {\vdots}
+           }
+        & \deduce{ A_1 \union B, A_2 \union B \subA A_2, B } {\vdots}
+        }
+     }
+  }
+$$
+where $\weak$ and $\id$ are the weakening and identity lemmas proven later in this \namecref{refinements:subtyping-properties}. The proof of
+$ (A_1 \union A_2) \intersect B \subA (A_1 \intersect B) \union (A_2 \intersect B)$ is similar. Intuitively, these proofs go thorough since $\SubA{\intersect\Left}$ and $\SubA{\union\Right}$ do not lose information. Formally, this means these rules are invertible:
 
-First, let us make sure that the new system in fact admits the desired distributivity rules.
-\todo{Show the derivations of distributivity as an example.}
+\begin{lemma}[Invertibility]
+  \label{refinements:subtyping-inversion}
+  The following are admissible:
+  \begin{description}
+    % Intersection
+    \item[$(\SubA{\intersect\Right})$] $\typeList \subA A_1 \intersect A_2, \typeListB \iff  \typeList \subA A_1, \typeListB \text{ and } \typeList \subA A_2, \typeListB$.
+    \item[$(\SubA{\intersect\Left})$] $\typeList, A_1 \intersect A_2 \subA \typeListB \iff \typeList, A_1, A_2 \subA \typeListB$.
+
+    % Union
+    \item[$(\SubA{\union\Right})$] $\typeList \subA A_1 \union A_2, \typeListB \iff \typeList \subA A_1, A_2, \typeListB$.
+    \item[$(\SubA{\union\Left})$] $\typeList, A_1 \union A_2 \subA \typeListB \iff  \typeList, A_1 \subA \typeListB \text{ and } \typeList, A_2 \subA \typeListB$.
+
+    % Recursive
+    \item[$(\SubA{\mu\Right})$] $\typeList \subA \recursive t {A_t}, \typeListB \iff \typeList \subA \subst {\recursive t {A_t}} t {A_t}, \typeListB$.
+    \item[$(\SubA{\mu\Left})$] $\typeList, \recursive t {A_t} \subA \typeListB \iff \typeList, \subst {\recursive t {A_t}} t {A_t} \subA \typeListB$.
+  \end{description}
+\end{lemma}
+\begin{proof}
+  Right to left follows by an immediate application of $\SubA{\intersect\Right}$, $\SubA{\intersect\Left}$, $\SubA{\union\Right}$, $\SubA{\union\Left}$, $\SubA{\mu\Right}$, or $\SubA{\union\Left}$ respectively.
+
+  For the other direction, we proceed with coinduction on the derivation of the subtyping judgement. Call the type we care about $A$.
+  \begin{itemize}
+    \item If the proof is by a structural rule ($\SubA\terminate$, $\SubA\tensor$, $\SubA\internal$, $\SubA\lolli$, or $\SubA\external$), it must be on types in $\typeList$ and $\typeListB$, so we use the same rule with the same premises to prove the result.
+    \item If the proof is by the relevant rule on $A$, then the premises are exactly what we need.
+    \item Otherwise, the proof deconstructs a type in $\typeList$ or $\typeListB$ using a property rule without changing $A$. Using the same rule and the coinduction hypotheses gives the result.
+  \end{itemize}
+\end{proof}
 
 Next, we verify that usual properties expected of logical systems (such as weakening and cut admissibility) are valid for our system.
 
 \begin{lemma}[Weakening]
+  \label{refinements:subtyping-weakening}
   If $\typeList \subA \typeListB$, then  $\typeList, \typeList' \subA \typeListB, \typeListB'$ for all $\typeList', \typeListB'$.
 \end{lemma}
 \begin{proof}
   Follows from a trivial coinduction on the derivation of $\typeList \subA \typeListB$ since all rules are parametric on the unused types.
 \end{proof}
 
-\begin{lemma}[Admissibility of Identity]
+\begin{theorem}[Admissibility of Identity]
+  \label{refinements:subtyping-identity}
   $\typeList \subA \typeList$ for all non-empty $\typeList$.
-\end{lemma}
+\end{theorem}
 \begin{proof}
   Assume \todo{Resolve the same problem for equality and old subtyping first.}
 \end{proof}
 
-\begin{lemma}[Admissibility of Cut]
-  If $\typeList \subA \typeList, A$ and $\typeList, A \subA \typeListB$, then $\typeList \subA \typeListB$.
-\end{lemma}
+\begin{theorem}[Admissibility of Cut]
+  \label{refinements:subtyping-cut}
+  If $\typeList \subA A, \typeListB$ and $\typeList, A \subA \typeListB$, then $\typeList \subA \typeListB$.
+\end{theorem}
 \begin{proof}
-  
+  Assume $\DD : \typeList \subA A, \typeListB$ and $\EE : \typeList, A \subA \typeListB$. We proceed by simultaneous coinduction $\DD$ and $\EE$ to construct a proof of $\FF : \typeList \subA \typeListB$:
+  \begin{itemize}
+    \item If $\DD$ is by a structural rule not using $A$, then the same rule with the same premises proves $\FF$. We make no use of $\EE$.
+    \item Similarly, if $\EE$ is by a structural rule not using $A$, then the same rule with the same premises proves $\FF$. We do not need $\DD$ in this case.
+
+    \item $\DD$ is by a non-structural rule not using $A$. We will only show the case for $\SubA{\intersect\Left}$ since all these cases are similar. We have:
+    $$ \DD = 
+       \vcenter{
+        \infer[\SubA{\intersect\Left}]{\typeList', B_1 \intersect B_2 \subA A, \typeListB}
+         { \DD' : \typeList', B_1, B_2 \subA A, \typeListB }
+        }
+    $$
+    \Cref{refinements:subtyping-inversion} on $\EE$ gives $\EE' : \typeList', B_1, B_2, A \subA \typeListB$. Then, we can construct $\FF$ as follows:
+    $$ \infer[\SubA{\intersect\Left}] { \typeList \subA \typeListB }
+        { \infer[\cut{(\DD', \EE', A)}]{\typeList', B_1, B_2 \subA \typeListB}
+           {}
+        }
+    $$
+    \item $\EE$ is by a non-structural rule not using $A$. Similar to the previous case.
+
+    \item $\DD$ and $\EE$ are by structural rules on $A$. We will only present the case for $\SubA{\lolli}$. We have:
+    \begin{mathpar}
+      \DD = \vcenter{
+        \infer[\SubA{\lolli}]
+         { \typeList', B_1 \lolli B_2  \subA A_1 \lolli A_2, \typeListB }
+         { \DD_1 : A_1 \subA B_1
+         & \DD_2 : B_2 \subA A_2
+         }
+       }
+      \and \EE = \vcenter{
+        \infer[\SubA{\lolli}]
+         { \typeList, A_1 \lolli A_2  \subA C_1 \lolli C_2, \typeListB' }
+         { \EE_1 : C_1 \subA A_1
+         & \EE_2 : A_2 \subA C_2
+         }
+       }
+  \end{mathpar}
+
+  We construct $\FF$ as follows:
+  $$
+    \infer[\SubA{\lolli}] {\typeList', B_1 \lolli B_2 \subA C_1 \lolli C_2, \typeListB'}
+     { \infer [\trans{(\EE_1, \DD_1)}] {C_1 \subA B_1} {}
+     & \infer [\trans{(\DD_2, \EE_2)}] {B_2 \subA C_2} {}
+     }
+  $$
+  where $\trans$ is a specific use of $\cut$ defined in \cref{refinements:sub-is-preorder}.
+  \todo{Is the application of trans here OK for readability? It is fine form a technical standpoint by inlining the definition.}
+
+  \item \todo{Do non structural rules on $A$.}
+  \end{itemize}
 \end{proof}
 
 
-We should check that the new subtyping relation is a preorder:
-\begin{theorem}
+Of course, we do not have multisets of types at the top level. The final subtyping relation is thus defined by passing singleton sets to the relation: ``$A$ is a subtype of $B$'' $\defined A \subASing B$. It makes sense to ask whether the relation on singleton sets is a preorder, which easily follows from what we have proved:
+
+\begin{corollary}
   \label{refinements:sub-is-preorder}
-  $\sub$ is a preorder:
+  $\subASing$ is a preorder:
   \begin{itemize}
-    \item $A \sub A$ for all types $A$.
-    \item $A \sub B$ and $B \sub C$ implies $A \sub C$ for all types $A, B, C$.
+    \item $A \subASing A$ for all types $A$.
+    \item $A \subASing B$ and $B \subASing C$ implies $A \subASing C$ for all types $A, B, C$.
   \end{itemize}
+\end{corollary}
+\begin{proof}
+  Reflexivity is a special case of identity (\cref{refinements:subtyping-identity}). Transitivity follows from cut admissibility using weakening: assume $A \subA B$ and $B \subA C$. By weakening, $A \subA B, C$ and $A, B \subA C$. This now matches the form required by \cref{refinements:subtyping-cut}.
+\end{proof}
+
+
+\subsection{Completeness of $\subASing$ with Respect to $\sub$}
+
+Whenever one changes the structure of a judgement, it is a good idea to establish a relation between the new and the old judgements. Usually, the relation established is equivalence, where the new system is shown to be sound and complete with respect to the old. Completeness shows that the new system is not any weaker: everything derivable in the old system is also derivable in the new. Soundness is the converse: everything derivable in the new system was already derivable in the old. Soundness clearly fails here since $\subASing$ admits distributivity among property types whereas $\sub$ does not. In fact, this was precisely the reason for switching over! We still would like to make sure that we are not \emph{losing} and relations, which is witnessed by the following theorem:
+
+\begin{theorem}[Soundness of $\subASing$]
+  If $A \sub B$ then $A \subASing B$.
 \end{theorem}
+\begin{proof}
+  By a straightforward coinduction on the derivation of $A \sub B$. In each case, we apply the corresponding rule for $\subA$, using \cref{refinements:subtyping-weakening} to weaken the premises of $\SubA{\intersect\Left}$ and $\SubA{\union\Right}$ as necessary.
+\end{proof}
 

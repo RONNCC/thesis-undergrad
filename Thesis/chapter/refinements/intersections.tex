@@ -36,6 +36,6 @@ The standard subtyping rules for intersections are given below. It should be not
 Since we are extending the language of types, we need to revisit contractiveness. Since they do not have a corresponding expression level construct, intersections are not considered structural types. Thus, they propagate unguarded variables:
 \begin{align*}
   \unguarded{(A \intersect B)} &= \unguarded{(A)} \cup \unguarded{(B)} \\
-  \size{(A \intersect B)} &= \size{(A)} + \size{(B)}
+  \size{(A \intersect B)} &= 1 + \size{(A)} + \size{(B)}
 \end{align*}
 

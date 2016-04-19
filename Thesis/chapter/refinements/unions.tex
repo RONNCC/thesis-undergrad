@@ -41,6 +41,6 @@ We have to unfold one level since our system cannot prove $Nat \sub Even \union 
 Definitions of unguarded variables and $\size$ are extended similarly:
 \begin{align*}
   \unguarded{(A \union B)} &= \unguarded{(A)} \cup \unguarded{(B)} \\
-  \size{(A \union B)} &= \size{(A)} + \size{(B)}
+  \size{(A \union B)} &= 1 + \size{(A)} + \size{(B)}
 \end{align*}
 
