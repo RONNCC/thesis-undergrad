@@ -10,7 +10,7 @@ As usual, we need to prove type safety for the extended system. Note that we did
 First, we need to change the inversion lemma for process typing to use subtyping rather than type equality:
 
 \begin{lemma}[Inversion of Process Typing]
-\label{refinements:inversion-poised-eq}
+\label{refinements:inversion-poised-sub}
   If $\typeRecD \ctx \emptyset P c A$ and $\poised{\proc c P}$, then:
   \begin{itemize}
     \item If $A \sub \terminate$ then $P = \tclose c$.
@@ -37,26 +37,24 @@ If $\providesCtx \config \ctx$ then either
 \end{theorem}
 
 \begin{proof}
-We will extend the proof of \cref{base:progress}. Again, we will use induction on configuration typing followed by a nested induction on the typing derivation in the single channel case. The case for multiple channels does not change. For the single channel case, we know $\config = \config', \proc c P$, and by inversion, $\typeRecD \ctx \emptyset P c A$ and $\providesCtx {\config'} \ctx$. Assume $\config'$ is poised by induction.
+We will extend the proof of \cref{base:progress}. As a reminder, the proof is by induction on configuration typing followed by a nested induction on the typing derivation in the single channel case. The case for multiple channels follows trivially from the induction hypotheses. In the single channel case, we know $\config = \config', \proc c P$, and by inversion, $\typeRecD {\ctx_0} \emptyset P c A$ and $\providesCtx {\config'} {\ctx_0}$. Assume $\config'$ is poised by induction.
 
   Define $\pred{\typeRecD{\ctx'}{\emptyset}{P}{c}{A'}} :=$ if $\providesCtx {\config'} {\ctx'}$ then either $\proc c P$ is poised or $\config$ can take a step. We proceed by induction on the typing derivation.
     \begin{description}
       \item[Case $\id, \cut, \terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right, \rec :$] Same as before.
 
-      \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Same as before, but using \cref{refinements:inversion-poised-eq} instead of \cref{inversion-poised-eq}.
+      \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Same as before, but using \cref{refinements:inversion-poised-sub} instead of \cref{inversion-poised-eq}.
 
-      \item[Case $\intersect\Right, \union\Right, \irb{Sub}\Right :$] Follows immediately from the induction hypothesis (using either branch for $\intersect\Right$).
+      \item[Case $\intersect\Right, \irb{Sub}\Right :$] Follows immediately from the induction hypothesis (using either branch for $\intersect\Right$).
 
-      \item[Case $\intersect\Left, \union\Left, \irb{Sub}\Left :$] In all cases, $\ctx' = \ctx'', d : D$ and $\typeRecD{\ctx'', d : D'}{\emptyset}{P}{c}{A'}$ for some $D'$ where $D \sub D'$%
-      \footnote{$D'$ is one of the branches of $\intersect$ or $\union$ in the relevant cases. The branch is predetermined for  $\intersect\Left$. For $\union\Left$, either suffices.}
+      \item[Case $\irb{Sub}\Left :$] $\ctx' = \ctx'', d : D$ and we have $\typeRecD{\ctx'', d : D'}{\emptyset}{P}{c}{A'}$ for some $D'$ such that $D \subASing D'$. Then, $\ctx' \subASing \ctx'', d : D'$ by definition, which means $\providesCtx {\config'} {\ctx'', d : D'}$ using \cref{refinements:sub-configuration}. The result follows from the induction hypothesis.
+      \todo{Do this branch.}
 
-      \item[Case $\union\Left :$]
-
-      \item[Case $\irb{Sub}\Left :$] $\ctx' = \ctx'', d : D$ and $\typeRecD{\ctx'', d : D'}{\emptyset}{P}{c}{A'}$ for some $D'$ where $D \sub D'$. Then, $\ctx' \sub \ctx'', d : D'$, so the result follows from \cref{refinements:sub-configuration} and the induction hypothesis.
-
+      \item[Case $\union\Left :$] $\ctx' = \ctx'', d : D_1 \union D_2$ and we know $\typeRecD{\ctx'', d : D_1}{\emptyset}{P}{c}{A'}$ and $\typeRecD{\ctx'', d : D_2}{\emptyset}{P}{c}{A'}$. By \cref{refinements:union-inversion}, either $\providesCtx{\config'}{\ctx'', d : D_1}$ or $\providesCtx{\config'}{\ctx'', d : D_2}$. We apply the induction hypothesis on the corresponding branch to get the result.
+      \todo{Crap, this case fails I think.}
     \end{description}
 
-    Finally, we get either $\poised{\proc c P}$ or $\config$ steps from $\pred{\typeRecD \ctx \emptyset P c A}$ where $\ctx \sub \ctx$ by \cref{sub-is-preorder}. In the former case, $\config$ is poised since $\config'$ is poised from before, and in the latter case we are immediately done.
+    Finally, we get either $\poised{\proc c P}$ or $\config$ steps from $\pred{\typeRecD {\ctx_0} \emptyset P c A}$. In the former case, $\config$ is poised since $\config'$ is poised from before, and in the latter case we are immediately done.
 \end{proof}
 
 

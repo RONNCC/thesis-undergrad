@@ -102,13 +102,13 @@ $$
         { A_1 \union B, A_2 \union B \subA A_1 \intersect A_2, B }
         { \infer[\SubA{\union\Left}]
            { A_1 \union B, A_2 \union B \subA A_1, B }
-           { \infer[\weak]
+           { \deduce[\weak]
               { A_1, A_2 \union B \subA A_1, B }
-              { \infer [\id] {A_1 \subA A_1} {}
+              { \deduce [\id{(A_1)}] {A_1 \subA A_1} {}
               }
-           & \deduce {B, A_2 \union B \subA A_1, B} {\vdots}
+           & \infer* {B, A_2 \union B \subA A_1, B} {}
            }
-        & \deduce{ A_1 \union B, A_2 \union B \subA A_2, B } {\vdots}
+        & \infer*{ A_1 \union B, A_2 \union B \subA A_2, B } {}
         }
      }
   }
@@ -167,12 +167,12 @@ Next, we verify that usual properties expected of logical systems (such as weake
   If $\typeList \subA A, \typeListB$ and $\typeList, A \subA \typeListB$, then $\typeList \subA \typeListB$.
 \end{theorem}
 \begin{proof}
-  Assume $\DD : \typeList \subA A, \typeListB$ and $\EE : \typeList, A \subA \typeListB$. We proceed by simultaneous coinduction $\DD$ and $\EE$ to construct a proof of $\FF : \typeList \subA \typeListB$:
+  Assume $\DD : \typeList \subA A, \typeListB$ and $\EE : \typeList, A \subA \typeListB$. We will use a lexicographic combination of coinduction on $\DD$ and $\EE$ and induction on $\size{A}$ to construct a proof of $\FF : \typeList \subA \typeListB$:
   \begin{itemize}
     \item If $\DD$ is by a structural rule not using $A$, then the same rule with the same premises proves $\FF$. We make no use of $\EE$.
     \item Similarly, if $\EE$ is by a structural rule not using $A$, then the same rule with the same premises proves $\FF$. We do not need $\DD$ in this case.
 
-    \item $\DD$ is by a non-structural rule not using $A$. We will only show the case for $\SubA{\intersect\Left}$ since all these cases are similar. We have:
+    \item $\DD$ is by a non-structural rule not using $A$. We will only show the case for $\SubA{\intersect\Left}$ since other cases are similar. We have:
     $$ \DD = 
        \vcenter{
         \infer[\SubA{\intersect\Left}]{\typeList', B_1 \intersect B_2 \subA A, \typeListB}
@@ -181,13 +181,13 @@ Next, we verify that usual properties expected of logical systems (such as weake
     $$
     \Cref{refinements:subtyping-inversion} on $\EE$ gives $\EE' : \typeList', B_1, B_2, A \subA \typeListB$. Then, we can construct $\FF$ as follows:
     $$ \infer[\SubA{\intersect\Left}] { \typeList \subA \typeListB }
-        { \infer[\cut{(\DD', \EE', A)}]{\typeList', B_1, B_2 \subA \typeListB}
+        { \deduce[\cut{(\DD', \EE', A)}]{\typeList', B_1, B_2 \subA \typeListB}
            {}
         }
     $$
     \item $\EE$ is by a non-structural rule not using $A$. Similar to the previous case.
 
-    \item $\DD$ and $\EE$ are by structural rules on $A$. We will only present the case for $\SubA{\lolli}$. We have:
+    \item $\DD$ and $\EE$ are by the same structural rule on $A$. We will only present the case for $\SubA{\lolli}$. We have:
     \begin{mathpar}
       \DD = \vcenter{
         \infer[\SubA{\lolli}]
@@ -208,14 +208,38 @@ Next, we verify that usual properties expected of logical systems (such as weake
   We construct $\FF$ as follows:
   $$
     \infer[\SubA{\lolli}] {\typeList', B_1 \lolli B_2 \subA C_1 \lolli C_2, \typeListB'}
-     { \infer [\trans{(\EE_1, \DD_1)}] {C_1 \subA B_1} {}
-     & \infer [\trans{(\DD_2, \EE_2)}] {B_2 \subA C_2} {}
+     { \deduce [\trans{(\EE_1, \DD_1, A_1)}] {C_1 \subA B_1} {}
+     & \deduce [\trans{(\DD_2, \EE_2, A_2)}] {B_2 \subA C_2} {}
      }
   $$
   where $\trans$ is a specific use of $\cut$ defined in \cref{refinements:sub-is-preorder}.
   \todo{Is the application of trans here OK for readability? It is fine form a technical standpoint by inlining the definition.}
 
-  \item \todo{Do non structural rules on $A$.}
+  \item $\DD$ and $\EE$ are by symmetric non-structural rules on $A$. This turns out to be the most tricky case and the only case where we need the induction. Case for $\mu\Right$/$\mu\Left$ follows from an immediate application of the coinduction hypothesis (note that $\size{(A)}$ shrinks by one). Cases for $\intersect\Right$/$\intersect\Left$ and $\union\Right$/$\union\Left$ are similar, so we will show the former. We have:
+    \begin{mathpar}
+      \DD = \vcenter{
+       \infer[\SubA{\intersect\Right}]{\typeList \subA A_1 \intersect A_2, \typeListB}
+        { \DD_1 : \typeList \subA A_1, \typeListB
+        & \DD_2 : \typeList \subA A_2, \typeListB
+        }
+      }
+      \and \EE = \vcenter{
+       \infer[\SubA{\intersect\Left}]{\typeList, A_1 \intersect A_2 \subA \typeListB}
+        { \EE' : \typeList, A_1, A_2 \subA \typeListB }
+      }
+    \end{mathpar}
+
+    We then define $F$ as follows:
+    $$
+    \infer[\cut]{\typeList \subA \typeListB}
+    { \deduce {\typeList \subA A_1, \typeListB} {\DD_1}
+    & \infer[\cut]{\typeList, A_1 \subA \typeListB}
+       { \deduce[\weak] {\typeList, A_1 \subA A_2, \typeListB} {\DD_2}
+       & \deduce {\typeList, A_1, A_2 \subA \typeListB} {\EE'}
+       }
+      }
+    $$
+    Note that the size of the type is inductively smaller than $\size{(A)}$ in every (co)inductive application of $\cut$.
   \end{itemize}
 \end{proof}
 
