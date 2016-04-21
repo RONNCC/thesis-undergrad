@@ -14,11 +14,16 @@
 
 % Context
 \newcommand{\emptyCtx}{\emptyset}
-\newcommand{\remove}{\mathbin{/}}
 \newcommand{\ctx}{\Psi}
 \newcommand{\recCtx}{\eta}
+
 \newcommand{\config}{\Omega}
 \newcommand{\emptyConfig}{\emptyset}
+
+\newcommand{\remove}{\mathbin{/}}
+\newcommand{\lookup}[2]{{#1}{(#2)}}
+
+
 
 % Declarative system
 \newcommand\hasType[3]{#1 :: \parens{#2 : #3}}
@@ -30,10 +35,11 @@
 % Algorithmic system
 \newcommand\typeA[4]{#1 \Vdash #2 :: \parens{#3 : #4}}
 \newcommand\typeAJ{\typeA{\ctx}}
+\newcommand\typeRecA[5]{{#1} \Vdash_{#2} \hasType{#3}{#4}{#5}}
+\newcommand\typeRecAJ{\typeRecA{\ctx}{\recCtx}}
+\newcommand\typeRecAJR[1]{\typeRecA{#1}{\recCtx}}
 \newcommand{\typeList}{\alpha}
 \newcommand{\typeListB}{\beta}
-\DeclareMathOperator\all{all}
-\DeclareMathOperator\any{any}
 
 
 % Configurations
