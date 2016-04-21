@@ -10,14 +10,14 @@ In this section, we introduce equirecursive types and recursive processes which 
 
 We extend the language of types with variables and a new construct, $\recursive{t}{A_t}$, representing recursive types. A recursive type $\recursive{t}{A}$ is identified with its unfolding $\subst{\recursive{t}{A}}{t}{A}$, which means there are no explicit term level coercions (e.g.\ $\mathtt{unfold}$ and $\mathtt{fold}$) to go between them. This is the reason they are called equirecursive as opposed to isorecursive where term level coercions would witness the isomorphism. Equirecursive types tend to make type-checking and meta-theory harder, however, they reduce communication and make more sense in a concurrent setting where behavior is more important than term structure.
 
-In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness \cite{StoneS2005, GayH05} and only consider contractive types from then on.
+In the style of \cite{AmadioC91}, we interpret recursive types as finite representations of potentially infinite $\mu$-free types through repeated unfolding. For example, the type $\recursive t {\terminate \lolli t}$ stands for $\terminate \lolli (\terminate \lolli (\terminate \lolli (\cdots )))$ and $\recursive t {t \tensor t}$ represents $(\cdots) \tensor (\cdots)$. This interpretation, however, breaks down when we have types such as $\recursive t t$ which only unfold to themselves (therefore, no amount of unfolding can remove the $\mu$). To forbid such types, we introduce the standard global syntactic restriction called contractiveness \cite{StoneS05, GayH05} and only consider contractive types from then on.
 
 
 \subsubsection{Contractiveness}
 
 Intuitively, a recursive type $\recursive t A$ is contractive if all occurrences of $t$ in $A$ are under a \emph{structural} (i.e.\ not $\mu$) type constructor. For example, $\recursive t {\terminate \lolli t}$ and $\recursive t {t \tensor t}$ are contractive whereas $\recursive t t$ and $\recursive t {\recursive u t}$ are not.
 
-We formalize contractiveness using the notion of unguarded variables \cite{StoneS2005}. Unguarded variables of a type $A$, denoted $\unguarded{(A)}$, are defined inductively as follows:
+We formalize contractiveness using the notion of unguarded variables \cite{StoneS05}. Unguarded variables of a type $A$, denoted $\unguarded{(A)}$, are defined inductively as follows:
 \begin{align*}
   \unguarded{(\terminate)} &= \emptyset \\
   \unguarded{(A \tensor B)} &= \emptyset \\
@@ -97,7 +97,7 @@ We mentioned that we will identify a recursive type $\recursive t A$ with its un
    }
 \end{rules}
 
-Possibly the more interesting part is our definition of $\typeeq$. Intuitively, it is the unfolding rule $\recursive t A \typeeq \subst {\recursive t A} t A$ along with a congruence rule for each structural type constructor. However, we define $\typeeq$ \emph{coinductively} since a coinductive definition can safely equate more types \cite{StoneS2005} and since we are more interested in behaviour than structure as mentioned before. The rules for $\typeeq$ are given in \cref{type-equality}. We use double lines to mean rules should be interpreted coinductively.
+Possibly the more interesting part is our definition of $\typeeq$. Intuitively, it is the unfolding rule $\recursive t A \typeeq \subst {\recursive t A} t A$ along with a congruence rule for each structural type constructor. However, we define $\typeeq$ \emph{coinductively} since a coinductive definition can safely equate more types \cite{StoneS05} and since we are more interested in behaviour than structure as mentioned before. The rules for $\typeeq$ are given in \cref{type-equality}. We use double lines to mean rules should be interpreted coinductively.
 
 \begin{rules}[type-equality]{Equality of types}
   \infer=[\TypeEq{\terminate}]{\terminate \typeeq \terminate}{}

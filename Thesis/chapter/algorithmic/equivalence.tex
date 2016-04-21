@@ -1,48 +1,6 @@
 
 \section{Equivalence to the Declarative System}
 
-\subsection{Properties}
-
-\begin{lemma}[Weakening]
-  The following are admissible:
-  \begin{itemize}
-    \item $\typeA \ctx P c \typeList \implies \typeA \ctx P c {A, \typeList}.$
-    \item $\typeA \ctx P c \typeList \implies \typeA {\ctx, d : A} P c \typeList$ if $d \in \dom \ctx.$
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  By induction on the typing derivation.
-\end{proof}
-
-\begin{lemma}[Contraction]
-  The following are admissible:
-  \begin{itemize}
-    \item $\typeA \ctx P c {A, A, \typeList} \implies \typeA \ctx P c {A, \typeList}.$
-    \item $\typeA {\ctx, d : A, d : A} P c \typeList \implies \typeA {\ctx, d : A} P c \typeList.$
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  By induction on the typing derivation.
-\end{proof}
-
-\begin{lemma}[Invertibility]
-  The following are admissible:
-  \begin{description}
-    \item[$(\intersect\Right)$] $\typeA \ctx P c {A_1 \intersect A_2, \typeList} \iff \typeA \ctx P c {A_1, \typeList} \text{ and } \typeA \ctx P c {A_2, \typeList}.$
-    \item[$(\intersect\Left)$] $\typeA {\ctx, d : A_1 \intersect A_2} P c \typeList \iff
-    \typeA {\ctx, d : A_1, d : A_2} P c \typeList.$
-    \item[$(\union\Right)$] $\typeA \ctx P c {A_1 \union A_2, \typeList} \iff \typeA \ctx P c {A_1, A_2, \typeList}.$
-    \item[$(\union\Left)$] $\typeA {\ctx, d : A_1 \union A_2} P c \typeList \iff
-    \typeA {\ctx, d : A_1} P c \typeList
-    \text{ and } \typeA {\ctx, d : A_2} P c \typeList.$
-  \end{description}
-\end{lemma}
-\begin{proof}
-  Right to left direction is derivable by an application of $\intersect\Right$, $\intersect\Left$, $\union\Right$, or $\union\Left$ respectively.
-
-  Forward direction is by induction on the typing derivation.
-\end{proof}
-
 \begin{lemma}[Subtyping]
   \label{bi-sub}
   If $\ctx' \le \ctx,$ $\typeList \le \typeList',$ and $\typeA \ctx P c \typeList,$ then $\typeA {\ctx'} P c {\typeList'}.$
@@ -52,5 +10,11 @@
 \end{proof}
 
 \subsection{Soundness}
+
+\begin{theorem}[Soundness of Algorithmic Typing]
+  If $\typeRecAJ P c \typeList$, then $\typeRecD \ctx {\recCtx} P c {\any \typeList}$.
+
+\end{theorem}
+
 
 \subsection{Completeness}

@@ -7,7 +7,7 @@
 %	Document Configuration
 %-------------------------------------------------------------------------------
 
-\documentclass[letter, 11pt, oneside]{thesis}
+\documentclass[letterpaper, 11pt, oneside]{thesis}
 \graphicspath{Figures/}  % Location of the graphics files
 
 \usepackage[square, numbers, comma, sort&compress]{natbib}  % Use the "Natbib" style for the references in the Bibliography
@@ -231,6 +231,7 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \input{chapter/algorithmic}
 \input{chapter/algorithmic/subtyping}
 \input{chapter/algorithmic/bidirectional}
+\input{chapter/algorithmic/properties}
 \input{chapter/algorithmic/equivalence}
 
 \clearpage
@@ -243,15 +244,18 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 %	Appendices
 %-------------------------------------------------------------------------------
 
-\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+%\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
 
-\include{appendix/appendixA}	% Appendix Title
+%\clearpage
+%\input{appendix/appendixA}	% Appendix Title
 
+%\clearpage
 %\input{Appendices/AppendixB} % Appendix Title
 
+%\clearpage
 %\input{Appendices/AppendixC} % Appendix Title
 
-\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+%\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
 
 
 %-------------------------------------------------------------------------------
