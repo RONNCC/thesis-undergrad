@@ -583,7 +583,7 @@ Algorithmic typing rules for processes are given below. Rules for recursive proc
   \and \infer[\mu\Left]{\typeRecAJR {\ctx, c : (\typeList, \recursive t A)} P d {\typeListB}}
     { \typeRecAJR {\ctx, c : (\typeList, \subst {\recursive t A} t A)} P d {\typeListB} }
   % id and cut
-  \\ \infer[\id]{ \typeRecAJR {\ctx, c : \typeList} {\tfwd d c} {d} {\typeListB} }
+  \\ \infer[\id]{ \typeRecAJR {c : \typeList} {\tfwd d c} {d} {\typeListB} }
     { \typeList \subA \typeListB }
   \and \infer[\cut]{ \typeRecAJR {\ctx, \ctx'} {\tspawnType c {P_c} A {Q_c}} {d} \typeList }
     { \typeRecAJR \ctx {P_c} {c} {A}
