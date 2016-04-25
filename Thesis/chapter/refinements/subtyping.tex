@@ -93,6 +93,15 @@ The new system is Figure~\ref{refinements:subtyping-multi-rules}. We use $\typeL
 \label{refinements:subtyping-properties}
 
 First, let us make sure that the new system in fact admits the desired distributivity rules:
+\begin{remark}
+  \label{refinements:distributivity-proof}
+  We have
+  $(A_1 \union B) \intersect (A_2 \union B) \subA (A_1 \intersect A_2) \union B$
+  and
+  $(A_1 \union A_2) \intersect B \subA (A_1 \intersect B) \union (A_2 \intersect B)$.
+\end{remark}
+\begin{proof}
+We give the following derivation for the former relation:
 $$
   \infer[\SubA{\union\Right}]
   { (A_1 \union B) \intersect (A_2 \union B) \subA (A_1 \intersect A_2) \union B }
@@ -113,8 +122,10 @@ $$
      }
   }
 $$
-where $\weak$ and $\id$ are the weakening and identity lemmas proven later in this \namecref{refinements:subtyping-properties}. The proof of
-$ (A_1 \union A_2) \intersect B \subA (A_1 \intersect B) \union (A_2 \intersect B)$ is similar. Intuitively, these proofs go thorough since $\SubA{\intersect\Left}$ and $\SubA{\union\Right}$ do not lose information. Formally, this means these rules are invertible:
+where $\weak$ and $\id$ are the weakening and identity lemmas proven later in this \namecref{refinements:subtyping-properties}. The proof of the latter relation is similar.
+\end{proof}
+
+Intuitively, these proofs go thorough since $\SubA{\intersect\Left}$ and $\SubA{\union\Right}$ do not lose information. Formally, this means these rules are invertible:
 
 \begin{lemma}[Invertibility]
   \label{refinements:subtyping-inversion}

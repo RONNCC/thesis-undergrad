@@ -1,0 +1,54 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macro/interpretation}
+  [2016/01/29 version 1.0.0 Interpretation of Types]
+
+\RequirePackage{mathtools}
+\RequirePackage{macro/generic}
+\RequirePackage{macro/typing}
+
+
+% Sets
+\newcommand\struct[1]{#1^{\mathtt{S}}}
+\newcommand\prop[1]{#1^{\mathtt{T}}}
+\newcommand\typesStruct{\struct{\mathbf{Type}}}
+\newcommand\typesProp{\prop{\mathbf{Type}}}
+
+\newcommand\props{{\mathbf{Prop}}}
+\newcommand\propLattice{\mathcal{L}_{\props}}
+
+
+% Definitions
+\newcommand\identity{\mathtt{identity}}
+\newcommand\pair[2]{\angled*{#1, #2}}
+
+
+% Typing
+\newcommand\subAStruct{\mathrel{\struct\Rightarrow}}
+\newcommand\typeRecAStruct[5]{{#1} \struct{\Vdash_{#2}} \hasType{#3}{#4}{#5}}
+\newcommand\typeRecAJStruct{\typeRecAStruct{\ctx}{\recCtx}}
+\newcommand\typeRecAJRStruct[1]{\typeRecAStruct{#1}{\recCtx}}
+
+
+% Interpretation
+\DeclarePairedDelimiter\interpBars{\lVert}{\rVert}
+
+\newcommand\interpGP[2]{\interpBars*{#1}^{#2}}
+\newcommand\interpG[3]{\interpGP{#1}{#2}\parens*{#3}}
+\newcommand\interpGJ[2]{\interpGP{#1}{#2}\parens*{\mathcal P}}
+
+\newcommand\interpP[1]{\interpBars*{#1}}
+\newcommand\interp[2]{\interpP{#1}\parens*{#2}}
+\newcommand\interpJ[1]{\interp{#1}{\mathcal P}}
+
+\newcommand\interpCP[1]{\interpBars*{#1}^{\mathtt C}}
+\newcommand\interpC[2]{\interpCP{#1}\parens*{#2}}
+\newcommand\interpCJ[1]{\interpC{#1}{\mathcal P}}
+
+\newcommand\interpWedgeP[1]{\interpBars*{#1}^{\wedge}}
+\newcommand\interpWedge[2]{\interpWedgeP{#1}\parens*{#2}}
+\newcommand\interpWedgeJ[1]{\interpWedge{#1}{\mathcal P}}
+
+\newcommand\interpVeeP[1]{\interpBars*{#1}^{\vee}}
+\newcommand\interpVee[2]{\interpVeeP{#1}\parens*{#2}}
+\newcommand\interpVeeJ[1]{\interpVee{#1}{\mathcal P}}
+

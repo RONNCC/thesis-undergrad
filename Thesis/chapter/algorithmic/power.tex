@@ -1,0 +1,11 @@
+
+\section{Going One Level Up}
+
+The properties we just proved were quite superficial in that they only explore a small portion of the algorithmic system. \todo{Reword this sentence.} In the later sections, we will try to understand the full breadth of the algorithmic system. One thing to note though, is that every time we have an intersection on the right or a union on the left, the typing derivation splits in half which will result in an exponential (or possibly worse) explosion in the size of the derivation. Fully understanding the system necessarily requires dealing with this explosion. For that, we will need to generalize what we have proven so far to a (multi)set of (multi)set of types.
+
+We will use $\power{\typeList}$ and $\power{\typeListB}$ to denote sets of sets of types, and $\power{\ctx}$ to denote sets of contexts (where each channel is labelled with a set of types). We generalize our definitions from before as follows:
+\begin{mathpar}
+  \power{\typeList} \subAPower \power{\typeListB} = \setdef{\typeList \subA \typeListB}{\typeList \in \power\typeList, \typeListB \in \power\typeListB}
+  \\ \typeRecAJR {\power\ctx} P c {\power\typeList} = \setdef{\typeRecAJ P c \typeList}{\ctx \in \power\ctx, \typeList \in \power\typeList}
+\end{mathpar}
+

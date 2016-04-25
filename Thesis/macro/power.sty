@@ -1,0 +1,20 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macro/power}
+  [2016/01/29 version 1.0.0 Power Sets]
+
+\RequirePackage{mathtools}
+\RequirePackage{tikz}
+
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+\newcommand{\circledAlt}[2][6pt]{\raisebox{-#1}{\tikz{\node (F) at (0,0) {#2};\draw[thick](F)\circle(#1);}}}
+
+\newcommand\power[1]{\text{\circled{${#1}$}}}
+\newcommand\subAPower{\mathrel\Rightarrow} % TODO: use the definition from macro/types
+
+% Operations on sets
+\DeclareMathOperator\All{All}
+\DeclareMathOperator\Any{Any}
+% \DeclareMathOperator\singleton{sing}
+%\DeclareMathOperator\choose{choose}
+

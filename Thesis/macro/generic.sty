@@ -46,6 +46,8 @@
 
 %%% Math
 \DeclareMathOperator\dom{dom}
+\newcommand\lam[2]{\lambda {#1} . {#2}}
+\newcommand\lamt[3]{\lambda {#1} \in {#2} . {#3}}
 
 
 %%% Induction
@@ -56,4 +58,6 @@
 \newcommand\predC[1]{\pred{\centerLine{#1}}}
 \newcommand\predQ[1]{\mathcal{Q}\parens*{#1}}
 \newcommand\predQC[1]{\predQ{\centerLine{#1}}}
+
+\DeclareMathOperator\induction{induction}
 

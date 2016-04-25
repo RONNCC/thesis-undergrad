@@ -1,20 +1,85 @@
 
 \section{Equivalence to the Declarative System}
 
-\begin{lemma}[Subtyping]
-  \label{bi-sub}
+\todo{Intro to equivalence of systems.}
+
+Note that subtyping extends to contexts in a straightforward way: $\ctx \subASing \ctx'$ if and only if $\ctx = c_1 : \typeList_1, \ldots, c_n : \typeList_n$, $\ctx' = c_1 : \typeListB_1, \ldots, c_n : \typeListB_n$, and $\typeList_i \subA \all{\typeListB_i}$ for all $i \in \set{1, \ldots, n}$.
+
+
+\subsection{Soundness}
+
+\begin{theorem}[Soundness of Algorithmic Typing]
+  If $\typeRecAJ P c \typeList$, then $\typeRecD {\all\ctx} {\recCtx} {\erase P} c {\any \typeList}$.
+\end{theorem}
+\begin{proof}
+  We proceed by induction on the typing derivation.
+  \begin{description}
+    % Intersections
+    \item[Case $\intersect\Right :$] This is one of the two tricky cases (the other is the dual $\union\Left$). In fact, this case is the reason we needed distributivity of intersection over union. Assume $\DD : \typeRecAJR \ctx P c {A, \typeList}$ and $\EE : \typeRecAJR \ctx P c {B, \typeList}$. We have the following derivation:
+    $$ \infer[\irb{Sub}\Right]{\typeRecAJR {\all\ctx} P c {\any{\parens{A \intersect B, \typeList}}}}
+        { \infer[\intersect\Right]{\typeRecAJR {\all\ctx} P c {(A \union \any\typeList) \intersect (B \union \any\typeList)}}
+           { \deduce[\induction{(\DD)}]{\typeRecAJR {\all\ctx} P c {A \union \any\typeList}} {}
+           & \deduce[\induction{(\EE)}]{\typeRecAJR {\all\ctx} P c {B \union \any\typeList}} {}
+           }
+        & \deduce[\text{\Cref{refinements:distributivity-proof}}]{\ldots \subASing \ldots}{}
+        }
+    $$
+    where \cref{refinements:distributivity-proof} is used to prove $(A \union \any\typeList) \intersect (B \union \any\typeList) \subASing (A \intersect B) \union \any\typeList$.
+
+    \item[Case $\intersect\Left :$] Follows from $\irb{Sub}\Left$ (we need subtyping to reorder the large intersection) and the induction hypothesis.
+
+    % Unions
+    \item[Case $\union\Right :$] Follows from $\irb{Sub}\Right$ (to reorder the large union) and the induction hypothesis.
+    \item[Case $\union\Left :$] Similar to $\intersect\Right$.
+
+    % Recursive types
+    \item[Case $\mu\Right, \mu\Left :$] Follows immediately from $\irb{Sub}\Right$ and $\irb{Sub}\Left$, respectively.
+
+    % id and cut
+    \item[Case $\id :$] Follows by an application of $\irb{Sub}\Right$ and $\id$. We note that if $\typeList \subA \typeListB$, then $\all\typeList \subASing \any\typeListB$ by a trivial induction on the sum of the number of types in $\typeList$ and $\typeListB$.
+    \item[Case $\cut :$] Follows immediately from $\cut$ and the two induction hypotheses.
+
+    % Structural rules
+    \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] Follows from $\irb{Sub}\Right$ to ``pick out the right type'' followed by the corresponding rule in the declarative system.
+    \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Follows from $\irb{Sub}\Left$ to ``pick out the right type'' followed by the corresponding rule in the declarative system.
+    \todo{Recursive types?}
+  \end{description}
+\end{proof}
+
+
+\subsection{Completeness}
+
+\begin{lemma}[Completeness of Delegation]
+  \label{algorithmic:delegation-sub}
+  \todo{What to call this?}
   If $\ctx' \le \ctx,$ $\typeList \le \typeList',$ and $\typeA \ctx P c \typeList,$ then $\typeA {\ctx'} P c {\typeList'}.$
 \end{lemma}
 \begin{proof}
   By lexicographical induction on $\typeA \ctx P c \typeList$ first, followed by $\ctx \le \ctx'$ and $\typeList \le \typeList'.$
 \end{proof}
 
-\subsection{Soundness}
-
-\begin{theorem}[Soundness of Algorithmic Typing]
-  If $\typeRecAJ P c \typeList$, then $\typeRecD \ctx {\recCtx} P c {\any \typeList}$.
-
+\begin{theorem}[Completeness of Algorithmic Typing]
+  If $\typeRecDJ P c A$, then there exists $P'$ such that $\erase{P'} = P$ and $\typeRecAJ {P'} c A$.
 \end{theorem}
+\begin{proof}
+  We proceed by induction on the typing derivation.
+  \begin{description}
+    % id and cut
+    \item[Case $\id :$] We use $\id$ and the fact that $\subASing$ is reflexive.
+    \item[Case $\cut :$] Follows from $\cut$ and the two induction hypotheses. We use the type from the derivation of the first branch to annotate $P$.
 
+    % Structural rules
+    \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] Follows immediately from the corresponding rule and the induction hypotheses.
+    \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Follows immediately from the corresponding rule and the induction hypotheses.
 
-\subsection{Completeness}
+    % Subtyping
+    \item[Case $\irb{Sub}\Right, \irb{Sub}\Left :$] Follows from the induction hypothesis and \cref{algorithmic:delegation-sub}.
+
+    % Intersection and union
+    \item[Case $\intersect\Right :$] \todo{This branch is tricky since we have to combine two annotations.}
+    \item[Case $\union\Left :$] \todo{This branch is tricky since we have to combine two annotations.}
+
+    \todo{Recursive types?}
+  \end{description}
+
+\end{proof}
