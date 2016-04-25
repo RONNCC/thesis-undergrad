@@ -52,11 +52,51 @@ Note that subtyping extends to contexts in a straightforward way: $\ctx \subASin
 \begin{lemma}[Completeness of Delegation]
   \label{algorithmic:delegation-sub}
   \todo{What to call this?}
-  If $\ctx' \le \ctx,$ $\typeList \le \typeList',$ and $\typeA \ctx P c \typeList,$ then $\typeA {\ctx'} P c {\typeList'}.$
+  The following are admissible:
+  \begin{itemize}
+    \item If $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$ then $\typeRecAJ P c {\typeList'}$.
+    \item If $\typeRecAJR {\ctx, d : \typeList} P c \typeListB$ and $\typeList' \subA \typeList$ then $\typeRecAJR {\ctx, d : \typeList'} P c \typeListB$.
+  \end{itemize}
+  Note that $P$ stays the same, which means we do not need to change type annotations.
 \end{lemma}
 \begin{proof}
-  By lexicographical induction on $\typeA \ctx P c \typeList$ first, followed by $\ctx \le \ctx'$ and $\typeList \le \typeList'.$
+  By induction on the structure of $P$ and appealing to \cref{algorithmic:interpretation-commutes}. Since both parts of the theorem are similar, we only show the former. Assume $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$. By \cref{algorithmic:interpretation-commutes}, we know
+  $$ \interpP {\typeRecAJ P c \typeList}
+    \iff \interp \typeList {\lam A { \interpC \ctx {\lam {\ctx'} {\typeRecAJRStruct {\ctx'} P c A}} }}
+  $$
+  and
+  $$ \interpP {\typeList \subA \typeList'}
+     \iff \interpC \typeList {\lam A {\interp {\typeList'} {\lam {A'} {A \subAStruct A'}} }}.
+  $$
+  By \cref{algorithmic:interpretation-mix}, it suffices to show
+  $$
+    \typeRecAJStruct P c A \wedge \interp {\typeList'} {\lam {A'} {A \subAStruct A'}}
+    \implies \interp {\typeList'} {\lam {A'} {\typeRecAJStruct P c {A'}} }
+  $$
+  for some $A \in \typesStruct$. Similarly, by \cref{algorithmic:interpretation-connectives}, it suffices to show
+  $$
+    \typeRecAJStruct P c A \wedge A \subAStruct A'
+    \implies \typeRecAJStruct P c {A'}
+  $$
+  for some $A' \in \typesStruct$. Assume $\DD : \typeRecAJStruct P c A$ and $\EE : A \subAStruct A'$. We use inversion on $\DD$:
+  \begin{description}
+    \item[Case $\id :$] Follows from the transitivity of $\subA$.
+    \item[Case $\cut :$] We have
+      $$ \DD = \vcenter{
+          \infer[\cut]{\typeRecAJR {\ctx_1, \ctx_2} {\tspawnType d Q B {P'}} c A}
+           { \DD_1 : \typeRecAJR {\ctx_1} Q d B
+           & \DD_2 : \typeRecAJR {\ctx_2, d : B} Q d A
+           }
+         }
+      $$
+      The induction hypothesis on $\DD_2$ and $\EE$ gives $\typeRecAJR {\ctx_2, d : B} Q d {A'}$. $\cut$ on this and $\DD_1$ gives the result.
+    \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] Inversion on $\EE$ gives the necessary subtyping relation(s). We match these with the sub-derivations from $\DD$ which lets us apply the induction hypotheses. The result follows from the same rule using these.
+    \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Follows immediately from the induction hypotheses.
+
+    \item[Case $\mu, \procVar :$] \todo{Recursive processes.}
+  \end{description}
 \end{proof}
+
 
 \begin{theorem}[Completeness of Algorithmic Typing]
   If $\typeRecDJ P c A$, then there exists $P'$ such that $\erase{P'} = P$ and $\typeRecAJ {P'} c A$.

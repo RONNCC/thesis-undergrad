@@ -20,7 +20,7 @@ where $f, g : \propLattice \to \propLattice \to \propLattice$. Note that the def
   \\ \interpVeeJ X = \interpGJ X {\pair \vee \vee}
   \and \interpWedgeJ X = \interpGJ X {\pair \wedge \wedge}
 \end{mathpar}
-\todo{Explain these.} We will drop the $\mathcal P$ when it is the identity function, or when ther is an obvious way to go from $T_2$ to a proposition (for example, if $x \in T_2$ is a judgement, then $\mathcal P {(x)}$ would be $x$ holds).
+\todo{Explain these.} We will drop the $\mathcal P$ when it is the identity function, or when there is an obvious way to go from $T_2$ to a proposition (for example, if $x \in T_2$ is a judgement, then $\mathcal P {(x)}$ would be $x$ holds).
 
 Most judgements we have defined, such as subtyping and algorithmic typing, have the property that rules concerning property types are invertible and thus can be applied eagerly at the beginning. If we think of applying these rules as generating a decision tree, we have structural rules at the leaves. Most theorems come down to traversing this tree in a boring obvious way and resolving the leaves, which is the hard part. This suggests mapping $\intersect$ to $\wedge$, $\union$ to $\vee$, and structural types to a proposition according to some function $\mathcal P$.
 
@@ -84,7 +84,7 @@ Note how the functions in the interpretation are flipped for types on the left. 
 
 
 \begin{lemma}[Commutativity]
-  \label{algorithmic:interpretation-commutes}
+  \label{algorithmic:interpretation-commutativity}
   Nested uses of interpretation commute:
   $$\interpG X M {\lam x {\interpG Y N {\lam y {\mathcal P {\parens{x, y}}} } }}
   \iff \interpG Y N {\lam y {\interpG X M {\lam x {\mathcal P {\parens{x, y}}} } }}.
@@ -96,8 +96,10 @@ Note how the functions in the interpretation are flipped for types on the left. 
 
 \begin{lemma}
   \label{algorithmic:interpretation-connectives}
-  The following are admissible:
+  The following are true:
   \begin{itemize}
+    \item If $p \in \props$ holds, then $\interpG X M {\lam x p}$ for all $X, M$.
+    \item If $p \in \props$ and $\interpGJ X M$ hold, then $\interpG X M {\lam x {p \wedge \mathcal P}}$. \todo{I think either this or the previous one is redundant. Both are obvious.}
     \item $\interpG X M {\mathcal P \wedge \mathcal Q} \implies \interpG X M {\mathcal P} \wedge \interpG X M {\mathcal Q}$
     \item $\interpG X M {\mathcal P} \vee \interpG X M {\mathcal Q} \implies \interpG X M {\mathcal P \vee \mathcal Q}$
     \item $\interpG X M {\mathcal P \implies \mathcal Q} \wedge \interpG X M {\mathcal P} \implies \interpG X M {\mathcal Q}$
@@ -111,8 +113,8 @@ Note how the functions in the interpretation are flipped for types on the left. 
 
 \begin{lemma}
   \label{algorithmic:interpretation-mix}
-  The following is admissible:
-  $$ \parens*{\interpJ X \wedge \interpCJ Q \wedge
+  The following holds:
+  $$ {\interpJ X \wedge \interpCJ Q \wedge
      \interpWedge X {\lam x {\mathcal P {(x)} \wedge \mathcal Q {(x)} \implies R }} }
      \implies R.$$
 \end{lemma}
