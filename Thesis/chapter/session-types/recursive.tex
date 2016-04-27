@@ -130,9 +130,9 @@ We expect type equality to be an equivalence relation between types (i.e.\ it sh
 \end{theorem}
 
 \begin{proof}
-  Reflexivity \todo{Ask Frank: what does reflexivity follow from? Is it induction or coinduction on the type?} Symmetry follow from a simple coinduction on the derivation of type equality using the symmetric rules for $\TypeEq{\mu\Right}$ and $\TypeEq{\mu\Left}$. For transitivity, we use a lexicographic combination of coinduction on the two equality derivations and induction on $\size{(B)}$.
+  Reflexivity is by coinduction on $A$. Symmetry follow from a simple coinduction on the derivation of type equality using the symmetric rules for $\TypeEq{\mu\Right}$ and $\TypeEq{\mu\Left}$. For transitivity, we use a lexicographic combination of coinduction on the two equality derivations and induction on $\size{(B)}$.
 
-The details are omitted since the proofs are quite standard (except for the use of coinduction, which does not change the structure much). In addition, we will soon replace equality with subtyping in \cref{base:subtyping}.
+The details are omitted since the proofs are quite standard (except for the use of coinduction, which does not change the structure of the proof). In addition, we will soon replace equality with subtyping in \cref{base:subtyping}.
   \todo{Frank: The proof was added after your pass. How does it read?}
 \end{proof}
 

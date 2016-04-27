@@ -1,5 +1,6 @@
 
 \section{Process Expressions}
+\label{base:process-expressions}
 
 Within this framework, proof terms correspond to processes. For example, cut, written $\tspawn{c}{P_c}{Q_c}$, denotes a form of process composition where the client spawns off a helper process ($P_c$) with which it can communicate from then on. The intuition is formalized in the typing rule:
 $$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }

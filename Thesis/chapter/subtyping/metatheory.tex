@@ -12,11 +12,13 @@ Just like we did for type equivalence, we expect the subtyping relation to satis
   \end{itemize}
 \end{theorem}
 \begin{proof}
-  Follows from a simple coinduction for reflexivity\todo{There is a problem here. Related to the same problem for equality.}. For transitivity, we use a lexicographic combination of coinduction on the two subtyping derivations and induction on $\size{(B)}$. \todo{Does this sentence read right?} We omit details here since the proof is fairly standard (except for the use of coinduction) and since we will be changing the subtyping relation in \cref{refinements:subtyping}.
+  Follows from a simple coinduction for reflexivity. For transitivity, we use a lexicographic combination of coinduction on the two subtyping derivations and induction on $\size{(B)}$. We omit details here since the proof is standard and since we will be switching to a different subtyping relation in \cref{refinements:subtyping}.
 \end{proof}
 
 
 \subsection{Type Safety}
 
-At this point, we would reprove progress and type preservation for the system with subtyping. However, the proofs are only slight modifications of the ones given in \cref{base:semantics}. In addition, we will do them for the larger system with intersection and unions later on in \cref{refinements:semantics}, so they are omitted.
+We did not add new forms of processes, so reduction and the notion of being poised is the same as in \cref{base:semantics}. We have, however, replaced type equality with a more general notion of subtyping, so we need to revisit the progress and preservation theorems.
+
+The proofs of progress and preservation theorems are slight modifications of the ones we presented in \cref{base:semantics}: we simply replace every occurrence of $\typeeq$ with $\sub$. It should be straightforward to modify the process inversion \namecref{inversion-poised-eq} (\cref{inversion-poised-eq}) which is used in the proof of the progress theorem, and the two cases related to $\typeeq$, so we omit details here.
 

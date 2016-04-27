@@ -1,19 +1,53 @@
 
-\section{Encoding $n$-ary Choice Using Intersections and Unions}
+\section{Encoding \texorpdfstring{$n$-ary}{n-ary} Choice Using Intersections and Unions}
 \label{encoding-choice}
 
 \todo{Talk about Pavoni or whatever.}
 
-In this \namecref{encoding-choice}, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process level constructs where as intersections are implicit.
+In this \namecref{encoding-choice}, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process level constructs whereas intersections are implicit.
 
-Consider special case of binary external choice: $\external\braces{\irb{inl} : A, \irb{inr} : B}$. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
+Consider the special case of binary external choice: $\external\braces{\irb{inl} : A, \irb{inr} : B}$. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
 \begin{mathpar}
-  \externals A I \defined \bigintersect_{\indexVar \in I}{\external\braces{\lab_\indexVar : A_\indexVar}} \\
-  \internals A I \defined \bigunion_{\indexVar \in I}{\internal\braces{\lab_\indexVar : A_\indexVar}}
+  \externals A I \defined \bigintersect_{\indexVar \in I}{\externalSing {\lab_\indexVar} {A_\indexVar}} \\
+  \internals A I \defined \bigunion_{\indexVar \in I}{\internalSing {\lab_\indexVar} {A_\indexVar}}
 \end{mathpar}
 
-When $I$ is empty, the intersection reduces to $\top$ and the union reduces to $\bot$, which are elided from this paper for space considerations. It can be checked that these definitions satisfy the typing and subtyping rules for external and internal choices.
-\todo{More on $\top$ and $\bot$.}
+It can be verified that these definitions satisfy the typing and subtyping rules for external and internal choices, so they are faithful to the meaning of original constructs. At this point, we could remove $n$-ary external and internal choices from the system in favor of singleton choices. These definitions do not indicate what happens when $I$ is empty, however. We could either insist this be not the case (since there are not many useful programs that make use of empty choices), or we could add empty choices along with singleton choices.
 
-\todo{Talk about how this makes certain subtyping rules admissible.}
+An advantage of singleton choices is that they simplify the typing and subtyping rules. The new typing rules are:
+\begin{mathpar}
+  % Internal choice
+  \infer[\internal\Right]{\typeRecDJ { \tselect{c}{}{P} } {c} {\internalSing \lab A} }
+    { \typeRecDJ P c A }
+  \and \infer[\internal\Left]{ \typeRecD { \ctx, c : \internalSing {\lab_i} {A} } \recCtx { \tcase{c}{\tbranches{P}{I}} } d D }
+   { i \in I
+   & \typeRecD {\ctx, c : A} \recCtx {P_i} d D
+   }
+  % External choice
+  \and \infer[\external\Right]{ \typeRecDJ { \tcase{c}{\tbranches{P}{I}} } {c} {\externalSing {\lab_i} A} }
+   { i \in I
+   & \typeRecDJ {P_i} c A
+   }
+  \and \infer[\external\Left]{\typeRecD {\ctx, c : \externalSing \lab A} \recCtx { \tselect{c}{}{P} } d D}
+    { \typeRecD {\ctx, c : A} \recCtx P d D }
+\end{mathpar}
+And the simplified subtyping rules are given below.
+\begin{mathpar}
+  \infer=[\Sub\internal]{\internalSing \lab A \sub \internalSing \lab {A'}}
+    {A \sub A'}
+  \and \infer=[\Sub\external]{\externalSing \lab A \sub \externalSing \lab {A'}}
+    {A \sub A'}
+\end{mathpar}
+
+Another advantage is we recover some form of distributivity of intersections and unions over choices. In particular, the following rules hold by definition (modulo the commutativity and associativity of intersection and union):
+\begin{mathpar}
+   % Intersection
+   \internals A I \intersect \internals B J \sub \internal\braces{\lab_\indexVar : A_\indexVar \intersect B_\indexVar}_{\indexVar \in I \cap J} \\
+   \externals A I \intersect \externals B J \sub \externals A I \cup \externals B J ~ (I \cap J = \emptyset)\\
+   % Union
+   \internals A I \cup \internals B J \sub \internals A I \union \internals B J ~ (I \cap J = \emptyset) \\
+   \external\braces{\lab_\indexVar : A_\indexVar \union B_\indexVar}_{\indexVar \in I \cap J} \sub \externals A I \union \externals B J
+\end{mathpar}
+
+\todo{Check the above rules. Also mention what still doesn't hold.}
 

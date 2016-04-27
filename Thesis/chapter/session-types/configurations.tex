@@ -25,13 +25,9 @@ With the above restriction, each process offers along a specific channel and eac
 This definition is well-founded since the size of the configuration gets strictly smaller. The rules only expose the types of the roots since this is the only information we need when typing the next level. At the top level, we will usually start with one process with type $\terminate$, which will spawn off providers as needed using $\cut$. Since we do not care about the specific type at the top level, we say a process configuration $\config$ is well typed if $\providesCtx \config \ctx$ for some $\ctx$. Finally, note that the rules do not allow cyclic uses of channel names, and that the left of the turnstile is empty since configurations must be closed.
 
 
-\begin{definition}[Domain and Free Variables]
+\begin{definition}[Domain of a Configuration]
 We define
-\[\dom {\set{\proc {c_1} {P_1}, \ldots, \proc {c_n} {P_n}}} = \set{c_1, \ldots, c_n}\]
-and
-\[\free {\parens \config} = \bigcup_{\proc c P \in \config}{\free { \parens P }} .\]
-
-Note that $\dom {\parens \config} \subseteq \free {\parens \config}$ since each channel must be provided and the provided channel is considered free in the process providing it.
+\[\dom {\set{\proc {c_1} {P_1}, \ldots, \proc {c_n} {P_n}}} = \set{c_1, \ldots, c_n}.\]
 \end{definition}
 
 Type equality interacts with configuration typing as expected:
@@ -40,17 +36,17 @@ Type equality interacts with configuration typing as expected:
   If $\providesCtx \config \ctx$ and $\ctx \typeeq \ctx'$ then $\providesCtx \config {\ctx'}$.
 \end{lemma}
 \begin{proof}
-  Case for multiple channels follows immediately by induction. Single channel case is by inversion and $\rec\Right$.
+  Case for multiple channels follows immediately from the induction hypotheses. Single channel case is by inversion and $\typeeq\Right$.
 \end{proof}
 
-Substitution is extended to configurations in the obvious way (making sure to rename process labels where needed) and has the following property:
-\begin{lemma}[Channel Substition in Contexts]
-  \label{channel-substitution-configuration}
-  If $\providesCtx \config \ctx$ and $\tvector c \cap \free {\parens \config} = \emptyset$ then $\providesCtx {\subst {\tvector c} {\tvector d} \config} {\subst {\tvector c} {\tvector d} \ctx}$.
-\end{lemma}
-\begin{proof}
-  Follows from \cref{channel-substitution} by a trivial induction on $\providesCtx \config \ctx$.
-\end{proof}
+% Substitution is extended to configurations in the obvious way (making sure to rename process labels where needed) and has the following property:
+% \begin{lemma}[Channel Substition in Contexts]
+%   \label{channel-substitution-configuration}
+%   If $\providesCtx \config \ctx$ and $\tvector c \cap \free {\parens \config} = \emptyset$ then $\providesCtx {\subst {\tvector c} {\tvector d} \config} {\subst {\tvector c} {\tvector d} \ctx}$.
+% \end{lemma}
+% \begin{proof}
+%   Follows from \cref{channel-substitution} by a trivial induction on $\providesCtx \config \ctx$.
+% \end{proof}
 
 The following inversion lemma will come in handy:
 \begin{lemma}[Inversion of Configuration Typing]
@@ -58,6 +54,6 @@ The following inversion lemma will come in handy:
   If $\providesCtx \config \ctx$ and $\proc c P \in \config$, then there exist $\config_1, \config_2$ such that $\config = \config_1, \config_2, \proc c P$ and $\provides {\config_2, \proc c P} c A$ for some $A$. In addition, for any $\config_2'$ and $P'$ such that $\provides {\config_2', \proc c {P'}} c A$, $\providesCtx {\config_1, \config_2', \proc c {P'}} \ctx$.
 \end{lemma}
 \begin{proof}
-  By induction on the derivation. \todo{Do the configuration inversion proof.}
+  By a straightforward induction on the typing derivation.
 \end{proof}
 

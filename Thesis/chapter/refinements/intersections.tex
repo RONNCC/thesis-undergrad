@@ -1,7 +1,7 @@
 
 \section{Intersection Types}
 
-We denote the intersection of two types $A$ and $B$ as $A \intersect B$. A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign the programs introduced in \cref{process-expressions} types specifying all behavioral properties we care about:
+We denote the intersection of two types $A$ and $B$ as $A \intersect B$. A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign the programs introduced in \cref{base:process-expressions} types specifying all behavioral properties we care about:
 \begin{lstlisting}[language=krill, style=custom]
   z : Nat and Even
   s : (Nat -o Nat) and (Even -o Odd) and (Odd -o Even)
@@ -22,7 +22,7 @@ When we are using a channel on the left that offers an intersection of two types
     {\typeRecD{\ctx, c : B}{\recCtx}{P}{d}{D}}
 \end{mathpar}
 
-The standard subtyping rules for intersections are given below. It should be noted that the left typing rules above are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add these to the final system. Also, we modify the subtyping relation in \cref{refinements:subtyping}, so these rules are temporary. \todo{Maybe delete this last sentence?}
+The standard subtyping rules for intersections are given below. It should be noted that the left typing rules above are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add these to the final system.
 
 \begin{mathpar}
   \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}

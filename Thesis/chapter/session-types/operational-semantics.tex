@@ -6,7 +6,7 @@
 
 We express reduction rules using \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{CervesatoS09}. For example, the rule for $\terminate$ can be written as:
 $$ \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}} \lolli \monad{\proc{d}{P}}. $$
-Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. For example, $A \tensor B \tensor C \lolli D \tensor E$ would mean we could replace the resources $A, B, C$ with $D, E$. The curly braces $\braces \ldots$ indicated a monad which essentially forces the rules to be interpreted as a multiset rewriting rule. $\monad{\exists x. F}$ creates a new $a$ and proceeds with $subst a x F$, while $c = d$ performs a global identification of $c$ and $d$ in the configuration. The rest of the rules are given in \cref{base:reduction-relation}.
+Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. Instead, a rule of the form $A_1 \tensor \ldots \tensor A_n \lolli \monad{B_1 \tensor \ldots \tensor B_m}$ means we can replace the resources $A_1, \ldots, A_n$ with $B_1, \ldots, B_m$. The curly braces $\braces \ldots$ indicates a monad which essentially forces the rules to be interpreted as a multiset rewriting rule. $\monad{\exists x. F}$ generates a fresh $a$ and proceeds with $subst a x F$, while $c = d$ performs a global identification of $c$ and $d$ in the configuration. The rest of the rules are given in \cref{base:reduction-relation}.
 
 \begin{figure}[!ht]
   \centering
@@ -41,9 +41,9 @@ Note that the rule is written using linear connectives, however, these should no
 
 We say that $\config$ reduces to or steps to $\config'$ if one application of the above rules transforms $\config$ into $\config'$, and write $\steps{\config}{\config'}$. We denote the reflexive transitive closure of $\stepArrow$ by $\stepManyArrow$.
 
-One important observation about reduction of typed configurations is that it is constrained to one subtree, where the tree structure is implicit in the typing judgement as discussed in \cref{chapter/session-types/configurations}. This observation leads to the following framing rule.
+An important observation about reductions in typed configurations is that they are constrained to one subtree, where the tree structure is implicit in the typing judgement as discussed in \cref{chapter/session-types/configurations}. This observation leads to the following framing rule.
 
-\begin{definition}[Root of Reduction] We say that channel $c$ is the root of $\steps{\config}{\config'}$ if $\proc c P \in \config$ is rewritten by the reduction, and either it is the only process on the left of the reduction (rules $\irb{id}, \irb{cut}, \irb{rec}$), or it is the client. \todo{I don't like the wording ``on the left of the reduction''.}
+\begin{definition}[Root of Reduction] We say that channel $c$ is the root of $\steps{\config}{\config'}$ if $\proc c P \in \config$ is rewritten by the reduction, and either it is the only process to the left of $\lolli$ (rules $\irb{id}, \irb{cut}, \irb{rec}$), or it is the client.
 \end{definition}
 
 \begin{lemma}[Framing]
@@ -52,11 +52,17 @@ One important observation about reduction of typed configurations is that it is 
 \end{lemma}
 
 \begin{proof}
-  Assume $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ with root $c$. \todo{Do this proof.}
+  Assume $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ with root $c$. We proceed by induction on $\providesCtx \config \ctx$.
+  \begin{itemize}
+    \item For the single channel case, assume $\ctx = d : A$. If $d = c$, then we pick $\config_1 = \emptyConfig$, $\config_2 = \config$, and $\config_2' = \config'$. The result follows immediately. Otherwise, we know $\proc c P \in \config$ was not part of the reduction, so we can apply the induction hypothesis. We add $\proc c P$ to the $\config_1$ we get from the induction hypothesis.
+    \item For the multiple channel case, assume $\ctx = d_1 : A_1, \ldots, d_n : A_n$, $\config = \config^1, \ldots, \config^n$, and $\provides {\config^i} {d_i} {A_i}$. We know the reduction must work on only one of the $\config_i$, so we apply the induction hypothesis on that portion of the context. We add the rest to $\config_1$.
+  \end{itemize}
+  \todo{Frank: how is the detail on the proof? I somewhat gloss over it since it is quite boring.}
 \end{proof}
 
 
 \subsection{Progress}
+\label{base:progress-section}
 
 In a conventional functional language, the progress theorem states that a well-typed expression either is a value or it takes a reduction step. We do not have values in a process calculus, but there is a corresponding notion we call being poised. Intuitively, a process is poised if it is waiting on its client. We introduce a new judgement $\poised{\proc c P}$ capturing this notion and define it in \cref{poised}.
 
@@ -159,13 +165,13 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
     %% Base cases
     \item $\predC{\infer[\id]{\typeRecD {d : A'} \emptyset {\tfwd c d} c {A'}}%
             {\phantom{id}}} :$
-      \par Then, $\config_2 = \subst c d {\config_1^c}$. Note that $c$ cannot appear free in $\config_1^c$ (since $c \not\in \dom{\parens {\config_1^c}} \subseteq \free{\parens{\config_1^c}}$), so $\provides {\config_1^c} d {A'}$ implies $\provides {\config_2} c {A'}$ by \cref{channel-substitution-configuration}.
+      \par Then, $\config_2 = \subst c d {\config_1^c}$. Note that $c \not\in \dom{\parens{\config_1^c}}$ (since well-formed contexts do not have duplicate channel labels), so $\provides {\config_1^c} d {A'}$ implies $\provides {\config_2} c {A'}$ by substitution.
 
     \item $\predC{\infer[\cut]{\typeRecD {\ctx_c, \ctx_c'} \emptyset {\tspawn d {P_d'} { Q_d }} c {A'}}%
             { \DD : \typeRecD {\ctx_c} \emptyset {P_d'} d D
             & \EE : \typeRecD {\ctx_c', d : D} \emptyset c {Q_d} {A'}
             } } :$
-     \par Then, $\config_2 = \config_1^c, \proc a {P_a'}, \proc c {Q_a}$ where $d \not\in \free{\parens {\config_1}}$. By inversion on $\providesCtx {\config_1^c} {\parens{\ctx_c, \ctx_c'}}$, there are $\config_1^1, \config_1^2$ such that $\config_1^c = \parens{\config_1^1, \config_1^2}$, $\providesCtx {\config_1^1} {\ctx_c}$ and $\providesCtx {\config_1^2} {\ctx_c'}$. Using $\DD$ and \cref{channel-substitution}, we know $\provides {\config_1^1, \proc a {P_a'}} a D$. Then,  $\providesCtx {\config_1^2, \config_1^1, \proc a {P_a'}} {\parens{\ctx_c', a : D}}$. Thus, $\EE$ and \cref{channel-substitution} implies $\provides {\config_2} c {A'}$.
+     \par Then, $\config_2 = \config_1^c, \proc a {P_a'}, \proc c {Q_a}$ where $a$ is fresh. By inversion on $\providesCtx {\config_1^c} {\parens{\ctx_c, \ctx_c'}}$, there are $\config_1^1, \config_1^2$ such that $\config_1^c = \parens{\config_1^1, \config_1^2}$, $\providesCtx {\config_1^1} {\ctx_c}$ and $\providesCtx {\config_1^2} {\ctx_c'}$. Applying $\confOne$ on $\DD$ and $\providesCtx {\config_1^1} {\ctx_c}$ gives $\provides {\config_1^1, \proc a {P_a'}} a D$ (through suitable substitution). Then,  $\providesCtx {\config_1^2, \config_1^1, \proc a {P_a'}} {\parens{\ctx_c', a : D}}$ by $\confN$. Finally, $\EE$ and $\confOne$ implies $\provides {\config_2} c {A'}$.
 
       \item $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$ Impossible since $\proc c P$ is the client.
 
@@ -190,9 +196,9 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
             \par $\predC{\infer[\tensor\Left]{\typeRecD {\ctx_c', d : D_1 \tensor D_2} \emptyset {\trecv x d {P_x'}} c {A'}}%
               { \FF : \typeRecD {\ctx_c', x : D_1, d : D_2} \emptyset {P_x'} c {A'}
               } } :$
-            \par Then $\config_2 = \config_1^{c'}, \config_1^d, \proc a {R_a}, \proc d {Q'}, \proc c {P_a'}$ where $a \not\in \free {\parens{\config_1}}$. Inversion on $D_1' \tensor D_2' \typeeq D_1 \tensor D_2$ gives $D_1' \typeeq D_1$ and $D_2' \typeeq D_2$. There are $\config_1^1, \config_1^2$ such that $\providesCtx {\config_1^1} {\ctx_d}$ and $\providesCtx {\config_1^2} {\ctx_d'}$ by inversion on $\providesCtx {\config_1^d} {\parens{\ctx_d, \ctx_d'}}$.
+            \par Then $\config_2 = \config_1^{c'}, \config_1^d, \proc a {R_a}, \proc d {Q'}, \proc c {P_a'}$ where $a$ is fresh. Inversion on $D_1' \tensor D_2' \typeeq D_1 \tensor D_2$ gives $D_1' \typeeq D_1$ and $D_2' \typeeq D_2$. There are $\config_1^1, \config_1^2$ such that $\providesCtx {\config_1^1} {\ctx_d}$ and $\providesCtx {\config_1^2} {\ctx_d'}$ by inversion on $\providesCtx {\config_1^d} {\parens{\ctx_d, \ctx_d'}}$.
 
-            $\confOne$ on $\providesCtx {\config_1^1} {\ctx_d}$ and $\DD$ (using $\typeeq\Right$ and \cref{channel-substitution}) gives $\provides {\config_1^1, \proc a {R_a}} a {D_1}$. Similarly, $\confOne$ on $\providesCtx {\config_1^2} {\ctx_d'}$ and $\EE$ with $\typeeq\Right$ gives $\provides {\config_1^2, \proc d {Q'}} d {D_2}$. Finally, $\confOne$ using the previous two derivations, $\providesCtx {\config_1^{c'}} {\ctx_c'}$, and $\FF$ with \cref{channel-substitution} gives the desired result.
+            $\confOne$ on $\providesCtx {\config_1^1} {\ctx_d}$ and $\DD$ with $\typeeq\Right$ gives $\provides {\config_1^1, \proc a {R_a}} a {D_1}$. Similarly, $\confOne$ on $\providesCtx {\config_1^2} {\ctx_d'}$ and $\EE$ with $\typeeq\Right$ gives $\provides {\config_1^2, \proc d {Q'}} d {D_2}$. Finally, $\confOne$ using the previous two derivations, $\providesCtx {\config_1^{c'}} {\ctx_c'}$, and $\FF$ with gives the desired result.
 
           \item $\internal\Right, \lolli\Right, \external\Right :$ Similar to above. \todo{Probably a good idea to check these cases.}
 
@@ -216,7 +222,7 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
     \item $\predC{\infer[\rec]{\typeRecD {\ctx_c} \emptyset P c {A'}}%
             { \DD : \typeRecD {\ctx_c} \emptyset P c {A''}
             } } :$
-            \todo{Do rec.}
+      \par Follows from a suitable substitution lemma for process variables. We omit the details since it is quite standard.
 
     %% Induction Step
     \item $\predC{\infer[\typeeq\Right]{\typeRecD {\ctx_c} \emptyset P c {A'}}%

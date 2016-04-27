@@ -4,11 +4,10 @@
 
 Every refinement system requires a notion of subtyping to be practical since subtyping is needed in order to implicitly propagate refinements. For example, if we have a process providing $\pos$, we should be able to use it in a context that requires $\nat$ since $\pos$ is a more specific type. Otherwise, we would require explicit coercions to erase extra information which can easily become cumbersome, especially when we have multiple refinements on a type and we need a specific subset. However, addition of non-structural types such as intersection and union complicates subtyping since these types do not depend on or reveal the structure of the processes they describe. More specifically, property types raise questions about the soundness of completeness of the subtyping relation.
 
-Subtyping is said to be sound if whenever $A \sub B$, using processes of type $A$ in contexts expecting a process of type $B$ does not break type safety. This is usually requires (1) all terms of types $A$ and $B$ to have the same structure, and (2) the set of possible behaviors of terms with type $A$ to be a subset of the set of possible behaviors of terms with type $B$. Some systems, mainly the ones that use coercive subtyping \todo{References to coercive subtyping}, may not necessarily require condition (1). We will in this system though, since we do not want term level constructs that witness convertibility. Subtyping is complete if every time it is safe to use $A$ for $B$, we have $A \sub B$.
+Subtyping is said to be sound if whenever $A \sub B$, using processes of type $A$ in contexts expecting a process of type $B$ does not break type safety. This is usually requires (1) all terms of types $A$ and $B$ to have the same structure, and (2) the set of possible behaviors of terms with type $A$ to be a subset of the set of possible behaviors of terms with type $B$. Some systems, mainly the ones that use coercive subtyping \cite[LuoSX13], may not necessarily require condition (1). We will in this system though, since we do not want term level constructs (whether explicit or implicit) that witness convertibility. Subtyping is complete if every time it is safe to use $A$ for $B$, we have $A \sub B$.
 
 Soundness of subtyping is necessary for type safety, so we have no choice but to make sure this is the case. On the other hand, type safety will hold even in the presence of incompleteness. In fact, most practical systems give up on completeness since it usually turns out to be very hard to design a simple and complete subtyping relation. This will be the case for our system, though, we do try to find a middle ground between simplicity and completeness in order to recover some rules we believe are important in practice.
 
-\todo{Explain why completeness is important?}
 
 \subsection{Distributivity Laws}
 \label{distributivity}
@@ -20,20 +19,20 @@ The fix is not as simple as adding this rule as an extra axiom. For one, it is n
 \begin{rules}[distributivity-examples]{Sound but inadmissible subtyping rules}
    % Intersection
    (A_1 \tensor A_2) \intersect (B_1 \tensor B_2) \sub (A_1 \intersect B_1) \tensor (A_2 \intersect B_2) \\
-   \internals A I \intersect \internals B J \sub \internal\braces{\lab_x : A_x \intersect B_x}_{x \in I \cap J} \\
+   \internals A I \intersect \internals B J \sub \internal\braces{\lab_\indexVar : A_\indexVar \intersect B_\indexVar}_{\indexVar \in I \cap J} \\
    (A \lolli B_1) \intersect (A \lolli B_2) \sub A \lolli (B_1 \intersect B_2) \\
    \externals A I \intersect \externals B J \sub \externals A I \cup \externals B J ~ (I \cap J = \emptyset)\\
    % Union
    (A_1 \union A_2) \tensor B \sub (A_1 \tensor B) \union (A_2 \tensor B) \\
    \internals A I \cup \internals B J \sub \internals A I \union \internals B J ~ (I \cap J = \emptyset) \\
    (A_1 \lolli B) \intersect (A_2 \lolli B) \sub (A_1 \union A_2) \lolli B \\
-   \external\braces{\lab_x : A_x \union B_x}_{x \in I \cap J} \sub \externals A I \union \externals B J \\
+   \external\braces{\lab_\indexVar : A_\indexVar \union B_\indexVar}_{\indexVar \in I \cap J} \sub \externals A I \union \externals B J \\
    % Intersection and union
    (A_1 \union B) \intersect (A_2 \union B) \sub (A_1 \intersect A_2) \union B \\
    (A_1 \union A_2) \intersect B \sub (A_1 \intersect B) \union (A_2 \intersect B)
 \end{rules}
 
-This list is certainly not complete, and there are almost as many rules in this list as there are in the original system. Clearly, a blind axiomatic approach which adds all admissible rules is not practical and a more general treatment is in order. There has been some work in incorporating intersections and unions in a conventional type system that preserves completeness under certain conditions. The closest and most complete system we found was from Damm \cite{Damm94, Damm94p2}. In \cite{Damm94}, he encodes types as regular tree expressions, and reformulates subtyping as regular tree grammar containment which was shown to be decidable. This results in a system that is sound and complete when all types are infinite (but $\terminate$ is a finite type). \cite{Damm94p2} extends this work such that the system is sound in the presence of finite types (although not necessarily complete).
+This list is certainly not complete, and there are almost as many rules in this list as there are in the original system. Clearly, a blind axiomatic approach is not practical and a more general treatment is in order. There has been some work on incorporating intersections and unions in a conventional type system that preserves completeness under certain conditions. The closest and most complete system we found was from Damm \cite{Damm94, Damm94p2}. In \cite{Damm94}, he encodes types as regular tree expressions, and reformulates subtyping as regular tree grammar containment which was shown to be decidable. This results in a system that is sound and complete when all types are infinite (but $\terminate$ is a finite type). \cite{Damm94p2} extends this work such that the system is sound in the presence of finite types (although not necessarily complete).
 
 Their system is very close to what we would like to accomplish, however, we think it is too complicated for our purposes as it requires familiarity with ideal semantics of types (which in turn is based on domain theory and the theory metric spaces) and regular tree grammars. Even if a similar approach could be made to work, we find such systems to be fragile in the face of future extensions. We would rather work with a simple and robust subtyping relation that does not necessitate rethinking every detail with every extension, so we make a design decision: we give up full completeness and instead design a system that admits the rules we are likely to encounter in practice.
 
@@ -50,11 +49,10 @@ Since we are interested in intersections and unions, we would like to at least a
 \end{mathpar}
 Going from right to left turns out to be easy, but we quickly run into a problem if we try to do the other direction: whether we break down the union on the right or the intersection on the left, we always lose half the information we need to carry out the rest of the proof.%
 \footnote{This issue does not come up in the other direction since intersection right and union left rules are invertible, that is, they preserve all information.}
-\todo{Are these paragraphs repetitive?}
 
 Our solution is doing the obvious: if the problem is losing half the information, well, we should just keep it around. This suggests a system where the single type on the left and the type on right are replaced with \emph{(multi)sets} of types. That is, instead of the judgment $A \le B$, we use a judgment of the form $A_1, \ldots, A_n \subA B_1, \ldots, B_n$, where the left of $\subA$ is interpreted as a conjunction (intersection) and the right is interpreted as a disjunction (union). This results in a system reminiscent of classical sequent calculus with multiple conclusions \cite{Gentzen35, Girard87}. However, our system is slightly different since we are working with coinductive rules.
 
-The new system is Figure~\ref{refinements:subtyping-multi-rules}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. This results is a system that does not admit distributivity of intersections and unions over structural types. We conjecture that matching multiple types will give distributivity over structural types, though the intricacies that arise has lead us to leave this to future work.
+The new system is presented \cref{refinements:subtyping-multi-rules}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. This results is a system that does not admit distributivity of intersections and unions over structural types. We conjecture that matching multiple types will give distributivity over structural types, though the intricacies that arise has lead us to leave this to future work.
 
 \begin{rules}[refinements:subtyping-multi-rules]{Subtyping with multiple hypothesis and conclusions}
   % Intersection
@@ -92,16 +90,16 @@ The new system is Figure~\ref{refinements:subtyping-multi-rules}. We use $\typeL
 \subsection{Properties of Subtyping}
 \label{refinements:subtyping-properties}
 
-First, let us make sure that the new system in fact admits the desired distributivity rules:
 \begin{remark}
   \label{refinements:distributivity-proof}
-  We have
+  Note that the new system in fact admits the desired distributivity rules. That is,
+  we have
   $(A_1 \union B) \intersect (A_2 \union B) \subA (A_1 \intersect A_2) \union B$
   and
   $(A_1 \union A_2) \intersect B \subA (A_1 \intersect B) \union (A_2 \intersect B)$.
 \end{remark}
 \begin{proof}
-We give the following derivation for the former relation:
+We give the following derivation for the former:
 $$
   \infer[\SubA{\union\Right}]
   { (A_1 \union B) \intersect (A_2 \union B) \subA (A_1 \intersect A_2) \union B }
@@ -170,7 +168,14 @@ Next, we verify that usual properties expected of logical systems (such as weake
   $\typeList \subA \typeList$ for all non-empty $\typeList$.
 \end{theorem}
 \begin{proof}
-  Assume \todo{Resolve the same problem for equality and old subtyping first.}
+  We will prove a more general statement which says $\typeList', A \subA A, \typeListB'$ for any $A, \typeList', \typeListB'$. Since $\typeList$ in question is non-empty, we can instantiate $A$ to be any type in $\typeList$ and pick $\typeList' = \typeListB'$ to be the rest of the list.
+
+  We proceed by coinduction on the structure of $A$.
+  \begin{itemize}
+    \item If $A$ has a structural construct at the top level, we apply the corresponding rule for $\subA$ and satisfy the premises using the coinduction hypotheses.
+    \item If $A$ is a $\mu$, we unfold on both sides and use the coinduction hypothesis.
+    \item If $A$ is a $\intersect$ or a $\union$, we unfold on both sides. The derivation splits into two cases, which we satisfy using the coinduction hypotheses.
+  \end{itemize}
 \end{proof}
 
 \begin{theorem}[Admissibility of Cut]
@@ -224,7 +229,7 @@ Next, we verify that usual properties expected of logical systems (such as weake
      }
   $$
   where $\trans$ is a specific use of $\cut$ defined in \cref{refinements:sub-is-preorder}.
-  \todo{Is the application of trans here OK for readability? It is fine form a technical standpoint by inlining the definition.}
+  \todo{Frank: Is the application of trans here OK for readability? It is fine form a technical standpoint by inlining the definition.}
 
   \item $\DD$ and $\EE$ are by symmetric non-structural rules on $A$. This turns out to be the most tricky case and the only case where we need the induction. Case for $\mu\Right$/$\mu\Left$ follows from an immediate application of the coinduction hypothesis (note that $\size{(A)}$ shrinks by one). Cases for $\intersect\Right$/$\intersect\Left$ and $\union\Right$/$\union\Left$ are similar, so we will show the former. We have:
     \begin{mathpar}
@@ -270,7 +275,7 @@ Of course, we do not have multisets of types at the top level. The final subtypi
 \end{proof}
 
 
-\subsection{Completeness of $\subASing$ with Respect to $\sub$}
+\subsection{Completeness of \texorpdfstring{$\subASing$}{Algorithmic Subtyping} with Respect to \texorpdfstring{$\sub$}{Declarative Subtyping}}
 
 Whenever one changes the structure of a judgement, it is a good idea to establish a relation between the new and the old judgements. Usually, the relation established is equivalence, where the new system is shown to be sound and complete with respect to the old. Completeness shows that the new system is not any weaker: everything derivable in the old system is also derivable in the new. Soundness is the converse: everything derivable in the new system was already derivable in the old. Soundness clearly fails here since $\subASing$ admits distributivity among property types whereas $\sub$ does not. In fact, this was precisely the reason for switching over! We still would like to make sure that we are not \emph{losing} and relations, which is witnessed by the following theorem:
 
