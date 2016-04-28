@@ -25,9 +25,14 @@ followed by the matching receiving construct. Discussion of other typing rules i
 
 Note that cut, $\mathtt{send}$, and $\mathtt{recv}$ bind the spawned, sent, and received channel names, which means these are identified up to alpha conversion. We denote the usual capture avoiding simultaneous substitution of channels $\tvector c$ for $\tvector x$ in $P$ by $\subst {\tvector c} {\tvector x} P$ where $\tvector c$ and $\tvector x$ are ordered sequences of equal length.
 
-Let us consider an example program to get more intuition about the system. We will use process level natural numbers, $\nat$, as a running example. Note that we use concrete syntax to write programs, but the mapping to abstract syntax presented above should be clear. Also, this example (and almost any interesting one) requires recursive types, which are introduced in \cref{base:recursion}.
 
-First, we define the interface:
+\subsection{An Example Process: Process Level Naturals}
+
+Let us consider an example program to get more intuition about the system. We will use process level natural numbers, $\nat$, as a running example. Examples are given using concrete syntax, which closely follows the abstract syntax presented above with some syntactic sugar. Briefly, channel names start with a \texttt{`}. Type declarations have the form \texttt{type <type name> = <definition>} and process declarations have the form \texttt{<offered channel> <- <process name> = <definition>}. Process declarations can refer to the offered channel, and both kinds of declarations can use the declared name recursively.%
+\footnote{Recursive types and processes are introduced formally in \cref{base:recursion}.}
+All declarations are considered mutually recursive. We define $\tsendChannel c d P = \tsend c x {\tfwd x d} P$ and $\tfwd c P = \tspawn x P {\parens{\tfwd c x}}$ as syntactic sugar. If a process declaration has a type $A_1 \lolli A_2 \lolli \ldots \lolli A_n \lolli B$, then it can be applied to $n$ channels of the corresponding types, which gets translated into a spawn followed by $n$ sends.\todo{Frank: is the concrete syntax explanation sufficient.}
+
+With that out of the way, we can give our first example. First, we define the interface:
 
 \begin{lstlisting}[language=krill, style=custom]
   type Nat = +{zero : 1, succ : Nat}

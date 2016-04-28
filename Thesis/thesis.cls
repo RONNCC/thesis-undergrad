@@ -189,6 +189,8 @@
       {\large in the \par}
       {\large \facname \par}
       {\large \deptname \par}
+      \medskip
+      {\large Advisor: Frank Pfenning \par}
       \bigskip
       \bigskip
       \bigskip
