@@ -57,7 +57,6 @@ An important observation about reductions in typed configurations is that they a
     \item For the single channel case, assume $\ctx = d : A$. If $d = c$, then we pick $\config_1 = \emptyConfig$, $\config_2 = \config$, and $\config_2' = \config'$. The result follows immediately. Otherwise, we know $\proc c P \in \config$ was not part of the reduction, so we can apply the induction hypothesis. We add $\proc c P$ to the $\config_1$ we get from the induction hypothesis.
     \item For the multiple channel case, assume $\ctx = d_1 : A_1, \ldots, d_n : A_n$, $\config = \config^1, \ldots, \config^n$, and $\provides {\config^i} {d_i} {A_i}$. We know the reduction must work on only one of the $\config_i$, so we apply the induction hypothesis on that portion of the context. We add the rest to $\config_1$.
   \end{itemize}
-  \todo{Frank: how is the detail on the proof? I somewhat gloss over it since it is quite boring.}
 \end{proof}
 
 
@@ -200,7 +199,7 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
 
             $\confOne$ on $\providesCtx {\config_1^1} {\ctx_d}$ and $\DD$ with $\typeeq\Right$ gives $\provides {\config_1^1, \proc a {R_a}} a {D_1}$. Similarly, $\confOne$ on $\providesCtx {\config_1^2} {\ctx_d'}$ and $\EE$ with $\typeeq\Right$ gives $\provides {\config_1^2, \proc d {Q'}} d {D_2}$. Finally, $\confOne$ using the previous two derivations, $\providesCtx {\config_1^{c'}} {\ctx_c'}$, and $\FF$ with gives the desired result.
 
-          \item $\internal\Right, \lolli\Right, \external\Right :$ Similar to above. \todo{Probably a good idea to check these cases.}
+          \item $\internal\Right, \lolli\Right, \external\Right :$ Similar to above.
 
           %%% Inductive Cases
           \item $\predQC{\infer[\typeeq\Right]{\typeRecD {\ctx_d} \emptyset Q d {D'}}%

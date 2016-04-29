@@ -1,0 +1,48 @@
+
+\chapter{Concrete Syntax}
+
+The formal grammar of the concrete syntax is presented below. We use \texttt{[}\textit{pattern}\texttt{]} for optional productions and \texttt{\{}\textit{pattern}\texttt{\}} for zero or more repetitions.
+
+
+\begin{grammar}
+  <top> ::= "{" <typedef> | <typesig> | <procdef> "}"
+
+  <typedef> ::= `type' <typename> `=' <type>
+
+  <typesig> ::= <procname> `:' <type>
+
+  <procdef> ::= <channel> `<-' <procname> <args> `=' <proc>
+
+
+  <type> ::= <typename>
+         \alt `1'
+         \alt <type> `*' <type>
+         \alt `+' `{' <fields> `}'
+         \alt <type> `-o' <type>
+         \alt `&' `{' <fields> `}'
+         \alt <type> `and' <type>
+         \alt <type> `or' <type>
+         \alt `(' <type> `)'
+
+  <proc> ::= <channel> `<-' <channel>
+         \alt <channel> `<-' <procname> <args> `;' <proc>
+         \alt `close' <channel>
+         \alt `wait' <channel> `;' <proc>
+         \alt `send' <channel> `(' <channel> `<-' <proc> `)' `;' <proc>
+         \alt `send' <channel> <channel> `;' <proc>
+         \alt <channel> `<-' `recv' <channel> `;' <proc>
+         \alt <channel> `.' <label> `;' <proc>
+         \alt `case' <channel> `of' "{" <branch> "}"
+
+
+  <args> ::= "{" <channel> "}"
+
+  <fields> ::= <field> `,' "..." `,' <field>
+
+  <field> ::= <label> `:' <type>
+
+  <branch> ::= <label> `->' <proc>
+\end{grammar}
+
+Here, \synt{typename}, \synt{procname}, \synt{channel}, and \synt{label} consist of alphanumerical characters, except \synt{channel} starts with a backtick (`). \synt{typename} starts with an uppercase letter, whereas \synt{procname} and \synt{label} both start with lowercase letters.
+

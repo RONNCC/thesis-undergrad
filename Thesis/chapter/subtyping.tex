@@ -6,7 +6,7 @@ Subtyping is a binary relation between types which captures the notion of being 
 
 The notion of session subtyping we use is closely modeled on that of Gay and Hole \cite{GayH05}, whose system has width and depth subtyping for $n$-ary choices, which are natural for record-like structures. Subtyping also doubles as a convenient way of identifying a recursive type and its unfolding, thus, subsuming and generalizing the type equality we introduced before. In a refinement system, subtyping is especially important since it is used to propagate refinements and erase them as necessary (when interfacing legacy code for example). This last point is deferred to \cref{refinements:subtyping} since we are still introducing the base system.
 
-As usual, we introduce subtyping to term typing using what are called subsumption rules, which are presented in \cref{subsumption}. The right rule says that if a process provides a type $A'$, it can also be seen as providing a (less specific) supertype $A$. Dually, the left rule says that if a process can properly handle a less specific type $A'$, then it does not hurt to make the type more specific. \todo{Frank: Is the dual reading consistent or should I flip it?}
+As usual, we introduce subtyping to term typing using what are called subsumption rules, which are presented in \cref{subsumption}. The right rule says that if a process provides a type $A'$, it can also be seen as providing a (less specific) supertype $A$. Dually, the left rule says that if a process can properly handle a type $A'$, then it does not hurt to make the type more specific.
 
 \begin{rules}[subsumption]{Subsumption rules}
   \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}

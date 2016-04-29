@@ -30,7 +30,7 @@ Note that cut, $\mathtt{send}$, and $\mathtt{recv}$ bind the spawned, sent, and 
 
 Let us consider an example program to get more intuition about the system. We will use process level natural numbers, $\nat$, as a running example. Examples are given using concrete syntax, which closely follows the abstract syntax presented above with some syntactic sugar. Briefly, channel names start with a \texttt{`}. Type declarations have the form \texttt{type <type name> = <definition>} and process declarations have the form \texttt{<offered channel> <- <process name> = <definition>}. Process declarations can refer to the offered channel, and both kinds of declarations can use the declared name recursively.%
 \footnote{Recursive types and processes are introduced formally in \cref{base:recursion}.}
-All declarations are considered mutually recursive. We define $\tsendChannel c d P = \tsend c x {\tfwd x d} P$ and $\tfwd c P = \tspawn x P {\parens{\tfwd c x}}$ as syntactic sugar. If a process declaration has a type $A_1 \lolli A_2 \lolli \ldots \lolli A_n \lolli B$, then it can be applied to $n$ channels of the corresponding types, which gets translated into a spawn followed by $n$ sends.\todo{Frank: is the concrete syntax explanation sufficient.}
+All declarations are considered mutually recursive. We define $\tsendChannel c d P = \tsend c x {\tfwd x d} P$ and $\tfwd c P = \tspawn x P {\parens{\tfwd c x}}$ as syntactic sugar. If a process declaration has a type $A_1 \lolli A_2 \lolli \ldots \lolli A_n \lolli B$, then it can be applied to $n$ channels of the corresponding types, which is translated into a spawn followed by $n$ sends.
 
 With that out of the way, we can give our first example. First, we define the interface:
 
