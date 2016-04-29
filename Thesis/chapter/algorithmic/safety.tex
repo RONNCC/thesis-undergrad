@@ -2,7 +2,7 @@
 \section{Type Safety}
 \label{algorithmic:semantics}
 
-In this \namecref{algorithmic:semantics}, we prove type safety for the algorithmic system. Through the equivalence of the algorithmic system to the declarative system, we also establishes type safety for the declarative system.
+In this \namecref{algorithmic:semantics}, we prove type safety for the algorithmic system. Through the equivalence of the algorithmic system to the declarative system, we also establish type safety for the declarative system.
 
 Note that we did not add new forms of processes, so process configurations and reduction are the same as in \cref{base:semantics}. We have, however, altered process typing quite a bit. This will require a change in the structure of progress and preservation proofs. We also slightly modify configuration typing to use the new rules:
   $$
@@ -14,33 +14,36 @@ Note that we did not add new forms of processes, so process configurations and r
 Note that we use singular types (rather than multisets of types) at the top level. The other cases ($\confZero$ and $\confN$) are the same as before.
 
 
-\subsection{Progress}
-
-For presentation purposes, we will generalize the poised judgement we introduced in \cref{base:progress-section}. We say $\blockedOn {\proc c P} d$ if the process $P$ is waiting to communicate along channel $d$. We define the judgement more formally in \cref{algorithmic:blockedOn}. We can then say $\poised {\proc c P} \iff \blockedOn {\proc c P} c$.
-
-\begin{rules}[algorithmic:blockedOn]{Blocking channel}
-  \infer{\blockedOn{\proc{c}{\tclose{c}}} c} {}
-  \and \infer{\blockedOn{\proc{c}{\twait d Q}} d} {c \neq d}
-  \and \infer{\blockedOn{\proc{c}{\tsend d e {P_e} Q}} d} {}
-  \and \infer{\blockedOn{\proc{c}{\trecv x d {Q_x}}} d} {}
-  \and \infer{\blockedOn{\proc{c}{\tselect d i P}} d} {}
-  \and \infer{\blockedOn{\proc{c}{\tcase d {\tbranches Q I}}} d} {}
-\end{rules}
+Unfortunately, we have found a bug in our proofs of progress and type preservation. We were able to fix progress, but the proof is currently not very elegant. We are working on a fix for type preservation, and expect that our solution will lead to a nicer proof progress. These statements are conjectures until then. \todo{Fix these proofs.}
 
 
-The statement of the progress lemma does not change:
+% \subsection{Progress}
 
-\begin{theorem}[Progress]
+% For presentation purposes, we will generalize the poised judgement we introduced in \cref{base:progress-section}. We say $\blockedOn {\proc c P} d$ if the process $P$ is waiting to communicate along channel $d$. We define the judgement more formally in \cref{algorithmic:blockedOn}. We can then say $\poised {\proc c P} \iff \blockedOn {\proc c P} c$.
+
+% \begin{rules}[algorithmic:blockedOn]{Blocking channel}
+%   \infer{\blockedOn{\proc{c}{\tclose{c}}} c} {}
+%   \and \infer{\blockedOn{\proc{c}{\twait d Q}} d} {c \neq d}
+%   \and \infer{\blockedOn{\proc{c}{\tsend d e {P_e} Q}} d} {}
+%   \and \infer{\blockedOn{\proc{c}{\trecv x d {Q_x}}} d} {}
+%   \and \infer{\blockedOn{\proc{c}{\tselect d i P}} d} {}
+%   \and \infer{\blockedOn{\proc{c}{\tcase d {\tbranches Q I}}} d} {}
+% \end{rules}
+
+
+Statement of progress and preservation do not change:
+
+\begin{conjecture}[Progress]
 If $\providesCtx \config \ctx$ then either
 \begin{enumerate}
   \item $\steps{\config}{\config'}$ for some $\config'$, or
   \item $\config$ is poised.
 \end{enumerate}
-\end{theorem}
-\begin{proof}
-  By induction configuration typing followed by inversion on the structure of the process for the single channel case.
+\end{conjecture}
 
-\end{proof}
+\begin{conjecture}[Preservation]
+If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
+\end{conjecture}
 
-\subsection{Preservation}
+% \subsection{Preservation}
 
