@@ -5,10 +5,22 @@ Designing a syntax directed type checking algorithm is quite simple for the base
 
 In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free, and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
 
-The former problem is solved by \emph{bidirectional type-checking} where we only check subtyping at the identity rule (delegation). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. \todo{Explain the subformula rule.}
-%This relies on the following crucial observation: if we are checking a process against a structural type, subparts of the process must check against subparts of the type. For example, if we are checking $\tsend c d {P_d} Q$ against $c : A \tensor B$, then $P_d$ must check against $d : A$ and $Q$ must check against $c : B$. To make sure we can always decompose property types, we add unfolding rules on the right and on the left, and apply these eagerly along with rules for intersections and unions.
+The former problem is solved by \emph{bidirectional type-checking} where we only check subtyping at the identity rule and at recursive process variables (delegation). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The fact that we can delegate subtyping in this way is formalized later in \cref{algorithmic:delegation-sub}, when we prove the equivalence of the algorithmic system to the declarative one. \todo{Explain the subformula rule.}
 
-Algorithmic typing rules for processes are given in \cref{algorithmic:process-typing}. Rules for recursive processes are not duplicated since they simply capture sets of types rather than a single type. \todo{Do rules for recursive processes since the rule for variable needs to be relaxed.}
+Algorithmic typing rules for processes are given in \cref{algorithmic:process-typing}. The rules make use of the following definitions:
+
+\begin{definition}[Cumulative Intersection and Union]
+  For all non-empty $\typeList = A_1, \ldots, A_n$, define $\all \typeList = A_1 \intersect \ldots \intersect A_n$ and $\any \typeList = A_1 \union \ldots \union A_n$. Even though we consider $\typeList$ to be unordered, these operations are well-defined since $\intersect$ and $\union$ are associative and commutative (with respect to the subtyping relation).
+
+  Similarly, for a context $\ctx = c_1 : \typeList_1, \ldots, c_n : \typeList_n$, define $\all \ctx = c_1 : \all {\typeList_1}, \ldots, c_n : \all {\typeList_n}$ and $\any \ctx = c_1 : \any {\typeList_1}, \ldots, c_n : \any {\typeList_n}$.
+\end{definition}
+
+\begin{definition}[Subtyping of Contexts]
+  For $\ctx = c_1 : \typeList_1, \ldots, c_n : \typeList_n$ and $\ctx' = c_1 : \typeListB_1, \ldots, c_n : \typeListB_n$, we say $\ctx \subA \ctx'$ whenever $\typeList_i \subA \all \typeListB_i$ for all $1 \le i \le n$.
+\end{definition}
+
+
+The rules $\intersect\Right$, $\intersect\Left$, $\union\Right$, $\union\Left$, $\mu\Right$ and $\mu\Left$ are applied eagerly as mentioned before. If and when these rules are saturated, we examine the structure of the process and non-deterministically commit to a type. At every step, either the process gets structurally smaller, or it stays the same and the $\size$ of a type in the context or the provided type shrinks by 1. Thus, the algorithm always terminates.
 
 \begin{rules}[algorithmic:process-typing]{Algorithmic process typing}
   % Intersection
@@ -73,6 +85,16 @@ Algorithmic typing rules for processes are given in \cref{algorithmic:process-ty
   \and \infer[\external\Left]{\typeRecAJR{\ctx, c : (\typeList, \externals{A}{I})} { \tselect{c}{i}{P} } {d} {\typeListB}}
     { i \in I
     & \typeRecAJR{\ctx, c : A_i}{P}{d}{\typeListB}
+    }
+  % Recursive processes
+  \\ \infer[\rec]{\typeRecAJ {\tapp {\parens*{ \trec p {\tvector y} P}} {\tvector z}} c \typeList}
+   { \typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c \typeList
+   & \recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} \typeList
+   }
+   \and \infer[\procVar]{\typeRecA {\ctx'} \recCtx {\tapp p {\tvector z}} {\subst {\tvector z} {\tvector y} c} \typeListB}
+    {\parens{\typeDJ {\tvar p {\tvector y}} c \typeList} \in \recCtx
+    & \ctx' \subA \subst {\tvector z} {\tvector y} \ctx
+    & \any\typeList \subA \typeListB
     }
 \end{rules}
 

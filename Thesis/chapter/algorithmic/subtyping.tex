@@ -1,9 +1,33 @@
 
 \section{Algorithmic Subtyping}
 
-The subtyping judgment we gave is already mostly algorithmic (a necessity of working with coinductive rules), so we only have to tie a couple loose-ends. The first is deciding which rule to pick when multiple are applicable. We apply $\SubA{\intersect\Right}$, $\SubA{\intersect\Left}$, $\SubA{\union\Right}$, $\SubA{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these are invertible. At some point, we must hit all structural types due to our contractiveness restriction, at which point we non-deterministically pick a structural rule and continue.
+The subtyping judgment we gave is already mostly algorithmic (a necessity of working with coinductive rules), so we only have to tie a couple loose-ends. The first is deciding which rule to pick when multiple are applicable. We apply $\SubA{\intersect\Right}$, $\SubA{\intersect\Left}$, $\SubA{\union\Right}$, $\SubA{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly (in any order) since these are invertible (\cref{refinements:subtyping-inversion}). When we hit all structural types (which will always be the case due to our contractiveness restriction, though the proof of termination does not depend on this fact) we non-deterministically pick a structural rule and continue.
 
-Second, the coinductive nature of typing means we can (and often will) have infinite derivations. We combat this by using a cyclicity check (similar to the one in \cite{GayH05}): we maintain a context of previously seen subtyping comparisons and immediately terminate with success if we ever compare the same pair of sets of types again. Every recursive step corresponds to a rule, which ensures a productive derivation. We know there cannot be an infinite chain of new types due to the contractiveness restriction. A more formal treatment can be found in \cite{StoneS05}.
+Second, the coinductive nature of typing means we can (and often will) have infinite derivations. We combat this by using a cyclicity check (similar to the one in \cite{GayH05}): we maintain a context of previously seen subtyping comparisons and immediately terminate with success if we ever compare the same pair of sets of types again. Every recursive step corresponds to a rule, which ensures a productive derivation.%
+\footnote{Assuming the conclusion and showing productivity corresponds to how coinductive proofs usually proceed.}
+For example, to show $\recursive t {1 \lolli t} \subA \recursive s {1 \lolli 1 \lolli s}$, we could have the following derivation:
+$$
+  \infer[\SubA{\mu\Left}]{\subACtx \emptyCtx  {\recursive t {1 \lolli t}} {\recursive s {1 \lolli 1 \lolli s}}}
+   { \infer[\SubA{\mu\Right}]{\subACtx {\parens{{\recursive t {1 \lolli t}} \subA {\recursive s {1 \lolli 1 \lolli s}}}}
+           {1 \lolli \recursive t {1 \lolli t}} {\recursive s {1 \lolli 1 \lolli s}}}
+      { \infer[\SubA\lolli]{\subACtx \ldots
+           {1 \lolli \recursive t {1 \lolli t}} {1 \lolli 1 \lolli \recursive s {1 \lolli 1 \lolli s}}}
+         { \infer[\SubA\terminate] {\subACtx \ldots 1 1} {}
+         & \infer[\SubA{\mu\Left}]{\subACtx \ldots  {\recursive t {1 \lolli t}} {1 \lolli \recursive s {1 \lolli 1 \lolli s}}}
+            { \infer[\SubA\lolli]{\subACtx \ldots  {1 \lolli \recursive t {1 \lolli t}} {1 \lolli \recursive s {1 \lolli 1 \lolli s}}}
+               { \infer[\SubA\terminate] {\subACtx \ldots 1 1} {}
+               & \infer[\irb{hyp}] {\subACtx \lolli  {\recursive t {1 \lolli t}} {\recursive s {1 \lolli 1 \lolli s}}} {}
+               }
+            }
+         }
+      }
+   }
+$$
+The contexts are elided (written $\ldots$) to save space, but they are always supersets of ${\recursive t {1 \lolli t}} \subA {\recursive s {1 \lolli 1 \lolli 1}}$. $\irb{hyp}$ simply matches the goal with an assumption in the context.
 
-\todo{Prove that this algorithm terminates. Give more details.}
+It is not hard to see that the algorithm is a correct decision procedure for the subtyping system. If a subtyping judgement is derivable in the original system, it certainly is derivable with the additional rule since all $\irb{hyp}$ can do is to terminate the derivation at a finite depth. Conversely, we can always convert a proof that uses $\irb{hyp}$ into a coinductive (and infinite) proof since we must have made progress between the introduction of a hypothesis and its usage. We simply duplicate this partial derivation indefinitely.
+
+Finally, we need to show that the algorithm always terminates. At every step, the context grows by one element.%
+\footnote{If it does not, we must be adding an element that already exists, but then we should have applied $\irb{hyp}$.}
+Thus, termination comes down to finding a finite upper bound on the size of the context. Assume we are trying to establish $A \subA B$. The only types that can appear in the context are substructures of $A$ and $B$ (modulo unfolding) of which there are finitely many. Since subtyping is defined on pairs, and each side of $\subA$ is a multiset \todo{multiset complicates this analysis} rather than a single type, the maximum size increases exponentially, but still stays finite. A more formal treatment can be found in \cite{StoneS05}. \todo{This needs more work. Multisets complicate things a little. Even if we had sets, we would need more explanation.}
 

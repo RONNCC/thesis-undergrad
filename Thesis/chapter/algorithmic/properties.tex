@@ -1,40 +1,28 @@
 
 \section{Properties of Algorithmic Type-checking}
 
-In this section, we explore the properties of the bidirectional system analogous to the ones we proved for the multiset subtyping relation in \cref{refinements:subtyping-properties}. First, we define the notation we will need in the statements of the following results:
-
-\begin{definition}[Context Concatenation]
-  For all (multiset) contexts $\ctx$ and $\ctx'$, define their concatenation as:
-  $$
-  \ctx, \ctx' = \setdef{c : \lookup \ctx c, \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}} \cup \parens{\ctx \setminus \dom{\ctx'}} \cup \parens{\ctx' \setminus \dom{\ctx}}.
-  $$
-\end{definition}
-
-\begin{definition}[Cumulative Intersection and Union]
-  For all non-empty $\typeList = A_1, \ldots, A_n$, define $\all \typeList = A_1 \intersect \ldots \intersect A_n$ and $\any \typeList = A_1 \union \ldots \union A_n$. Even though we consider $\typeList$ to be unordered, these operations are well-defined since $\intersect$ and $\union$ are associative and commutative.
-
-  Similarly for a context $\ctx = c_1 : \typeList_1, \ldots, c_n : \typeList_n$, define $\all \ctx = c_1 : \all {\typeList_1}, \ldots, c_n : \all {\typeList_n}$ and $\any \ctx = c_1 : \any {\typeList_1}, \ldots, c_n : \any {\typeList_n}$.
-\end{definition}
-
+We now explore the properties of the bidirectional system analogous to the ones we proved for the multiset subtyping relation in \cref{refinements:subtyping-properties}.
 
 \begin{lemma}[Weakening]
-  If $\typeRecAJ P c \typeList$, then $\typeRecAJR {\ctx, \ctx'} P C {\typeList, \typeList'}$ for all $\typeList'$ and $\ctx'$ such that $\dom{\ctx'} \subseteq \dom\ctx$.
+  If $\typeRecAJ P c \typeList$, then $\typeRecAJR {\ctx \concat \ctx'} P C {\typeList, \typeList'}$ for all $\typeList'$ and $\ctx'$ such that $\dom{\ctx'} \subseteq \dom\ctx$. Here, $\ctx \concat \ctx'$ is defined as follows:
+  $$ \ctx \concat \ctx' = \setdef{c : \lookup \ctx c, \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}} \cup \parens{\ctx \setminus \dom{\ctx'}} \cup \parens{\ctx' \setminus \dom{\ctx}}.
+  $$
 \end{lemma}
 \begin{proof}
   By a simple induction on the typing derivation since all rules are parametric in the unused types.
 \end{proof}
 
-\begin{lemma}[Contraction]
-  The following are admissible:
-  \begin{itemize}
-    \item $\typeRecAJR \ctx P c {A, A, \typeList} \implies \typeRecAJR \ctx P c {A, \typeList}$.
-    \item $\typeRecAJR {\ctx, d : A, A, \typeList} P c \typeList \implies \typeRecAJR {\ctx, d : A, \typeList} P c \typeList$.
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  By induction on the typing derivation.
-  \todo{Do this proof.}
-\end{proof}
+% \begin{lemma}[Contraction]
+%   The following are admissible:
+%   \begin{itemize}
+%     \item $\typeRecAJR \ctx P c {A, A, \typeList} \implies \typeRecAJR \ctx P c {A, \typeList}$.
+%     \item $\typeRecAJR {\ctx, d : A, A, \typeList} P c \typeList \implies \typeRecAJR {\ctx, d : A, \typeList} P c \typeList$.
+%   \end{itemize}
+% \end{lemma}
+% \begin{proof}
+%   By induction on the typing derivation.
+%   \todo{Do this proof.}
+% \end{proof}
 
 \begin{lemma}[Invertibility]
   \label{algorithmic:property-invertible}
@@ -57,8 +45,6 @@ In this section, we explore the properties of the bidirectional system analogous
   \end{description}
 \end{lemma}
 \begin{proof}
-  Right to left is derivable by an application of $\intersect\Right$, $\intersect\Left$, $\union\Right, \union\Left, \mu\Right$, or $\mu\Left$ respectively.
-
-  Forward direction is by induction on the typing derivation. \todo{Do this proof.}
+  Right to left is derivable by an application of $\intersect\Right$, $\intersect\Left$, $\union\Right, \union\Left, \mu\Right$, or $\mu\Left$ respectively. Forward direction is by induction on the typing derivation.
 \end{proof}
 

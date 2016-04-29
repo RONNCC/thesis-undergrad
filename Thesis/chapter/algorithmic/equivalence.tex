@@ -1,15 +1,15 @@
 
 \section{Equivalence to the Declarative System}
+\label{algorithmic:equivalence}
 
-\todo{Intro to equivalence of systems.}
+We are now ready to prove that the algorithmic system is equivalent (modulo type annotations) to the declarative system. We do this by showing the soundness and completeness of the algorithmic system with respect to the declarative system.
 
-Note that subtyping extends to contexts in a straightforward way: $\ctx \subASing \ctx'$ if and only if $\ctx = c_1 : \typeList_1, \ldots, c_n : \typeList_n$, $\ctx' = c_1 : \typeListB_1, \ldots, c_n : \typeListB_n$, and $\typeList_i \subA \all{\typeListB_i}$ for all $i \in \set{1, \ldots, n}$.
-
+% Note that subtyping extends to contexts in a straightforward way: $\ctx \subASing \ctx'$ if and only if $\ctx = c_1 : \typeList_1, \ldots, c_n : \typeList_n$, $\ctx' = c_1 : \typeListB_1, \ldots, c_n : \typeListB_n$, and $\typeList_i \subA \all{\typeListB_i}$ for all $i \in \set{1, \ldots, n}$.
 
 \subsection{Soundness}
 
 \begin{theorem}[Soundness of Algorithmic Typing]
-  If $\typeRecAJ P c \typeList$, then $\typeRecD {\all\ctx} {\recCtx} {\erase P} c {\any \typeList}$.
+  If $\typeRecAJ P c \typeList$, then $\typeRecD {\all\ctx} {\recCtx'} {\erase P} c {\any \typeList}$ where $\recCtx'$ is $\recCtx$ suitably converted using $\all$ and $\any$.
 \end{theorem}
 \begin{proof}
   We proceed by induction on the typing derivation.
@@ -42,7 +42,8 @@ Note that subtyping extends to contexts in a straightforward way: $\ctx \subASin
     % Structural rules
     \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] Follows from $\irb{Sub}\Right$ to ``pick out the right type'' followed by the corresponding rule in the declarative system.
     \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Follows from $\irb{Sub}\Left$ to ``pick out the right type'' followed by the corresponding rule in the declarative system.
-    \todo{Recursive types?}
+    \item[Case $\mu :$] Follows immediately from the induction hypothesis.
+    \item[Case $\procVar :$] Follows from $\irb{Sub}\Right$, $\irb{Sub}\Left$, and the induction hypothesis.
   \end{description}
 \end{proof}
 
@@ -57,45 +58,45 @@ Note that subtyping extends to contexts in a straightforward way: $\ctx \subASin
     \item If $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$ then $\typeRecAJ P c {\typeList'}$.
     \item If $\typeRecAJR {\ctx, d : \typeList} P c \typeListB$ and $\typeList' \subA \typeList$ then $\typeRecAJR {\ctx, d : \typeList'} P c \typeListB$.
   \end{itemize}
-  Note that $P$ stays the same, which means we do not need to change type annotations.
+  Note that $P$ stays the same, which means type annotations do not need to change.
 \end{lemma}
-\begin{proof}
-  By induction on the structure of $P$ and appealing to \cref{algorithmic:interpretation-commutes}. Since both parts of the theorem are similar, we only show the former. Assume $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$. By \cref{algorithmic:interpretation-commutes}, we know
-  $$ \interpP {\typeRecAJ P c \typeList}
-    \iff \interp \typeList {\lam A { \interpC \ctx {\lam {\ctx'} {\typeRecAJRStruct {\ctx'} P c A}} }}
-  $$
-  and
-  $$ \interpP {\typeList \subA \typeList'}
-     \iff \interpC \typeList {\lam A {\interp {\typeList'} {\lam {A'} {A \subAStruct A'}} }}.
-  $$
-  By \cref{algorithmic:interpretation-mix}, it suffices to show
-  $$
-    \typeRecAJStruct P c A \wedge \interp {\typeList'} {\lam {A'} {A \subAStruct A'}}
-    \implies \interp {\typeList'} {\lam {A'} {\typeRecAJStruct P c {A'}} }
-  $$
-  for some $A \in \typesStruct$. Similarly, by \cref{algorithmic:interpretation-connectives}, it suffices to show
-  $$
-    \typeRecAJStruct P c A \wedge A \subAStruct A'
-    \implies \typeRecAJStruct P c {A'}
-  $$
-  for some $A' \in \typesStruct$. Assume $\DD : \typeRecAJStruct P c A$ and $\EE : A \subAStruct A'$. We use inversion on $\DD$:
-  \begin{description}
-    \item[Case $\id :$] Follows from the transitivity of $\subA$.
-    \item[Case $\cut :$] We have
-      $$ \DD = \vcenter{
-          \infer[\cut]{\typeRecAJR {\ctx_1, \ctx_2} {\tspawnType d Q B {P'}} c A}
-           { \DD_1 : \typeRecAJR {\ctx_1} Q d B
-           & \DD_2 : \typeRecAJR {\ctx_2, d : B} Q d A
-           }
-         }
-      $$
-      The induction hypothesis on $\DD_2$ and $\EE$ gives $\typeRecAJR {\ctx_2, d : B} Q d {A'}$. $\cut$ on this and $\DD_1$ gives the result.
-    \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] Inversion on $\EE$ gives the necessary subtyping relation(s). We match these with the sub-derivations from $\DD$ which lets us apply the induction hypotheses. The result follows from the same rule using these.
-    \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Follows immediately from the induction hypotheses.
+\todo{Do the lemma.}
+%   By induction on the structure of $P$ and appealing to \cref{algorithmic:interpretation-commutes}. Since both parts of the theorem are similar, we only show the former. Assume $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$. By \cref{algorithmic:interpretation-commutes}, we know
+%   $$ \interpP {\typeRecAJ P c \typeList}
+%     \iff \interp \typeList {\lam A { \interpC \ctx {\lam {\ctx'} {\typeRecAJRStruct {\ctx'} P c A}} }}
+%   $$
+%   and
+%   $$ \interpP {\typeList \subA \typeList'}
+%      \iff \interpC \typeList {\lam A {\interp {\typeList'} {\lam {A'} {A \subAStruct A'}} }}.
+%   $$
+%   By \cref{algorithmic:interpretation-mix}, it suffices to show
+%   $$
+%     \typeRecAJStruct P c A \wedge \interp {\typeList'} {\lam {A'} {A \subAStruct A'}}
+%     \implies \interp {\typeList'} {\lam {A'} {\typeRecAJStruct P c {A'}} }
+%   $$
+%   for some $A \in \typesStruct$. Similarly, by \cref{algorithmic:interpretation-connectives}, it suffices to show
+%   $$
+%     \typeRecAJStruct P c A \wedge A \subAStruct A'
+%     \implies \typeRecAJStruct P c {A'}
+%   $$
+%   for some $A' \in \typesStruct$. Assume $\DD : \typeRecAJStruct P c A$ and $\EE : A \subAStruct A'$. We use inversion on $\DD$:
+%   \begin{description}
+%     \item[Case $\id :$] Follows from the transitivity of $\subA$.
+%     \item[Case $\cut :$] We have
+%       $$ \DD = \vcenter{
+%           \infer[\cut]{\typeRecAJR {\ctx_1, \ctx_2} {\tspawnType d Q B {P'}} c A}
+%            { \DD_1 : \typeRecAJR {\ctx_1} Q d B
+%            & \DD_2 : \typeRecAJR {\ctx_2, d : B} Q d A
+%            }
+%          }
+%       $$
+%       The induction hypothesis on $\DD_2$ and $\EE$ gives $\typeRecAJR {\ctx_2, d : B} Q d {A'}$. $\cut$ on this and $\DD_1$ gives the result.
+%     \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] Inversion on $\EE$ gives the necessary subtyping relation(s). We match these with the sub-derivations from $\DD$ which lets us apply the induction hypotheses. The result follows from the same rule using these.
+%     \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Follows immediately from the induction hypotheses.
 
-    \item[Case $\mu, \procVar :$] \todo{Recursive processes.}
-  \end{description}
-\end{proof}
+%     \item[Case $\mu, \procVar :$] \todo{Recursive processes.}
+%   \end{description}
+% \end{proof}
 
 
 \begin{theorem}[Completeness of Algorithmic Typing]
@@ -116,10 +117,11 @@ Note that subtyping extends to contexts in a straightforward way: $\ctx \subASin
     \item[Case $\irb{Sub}\Right, \irb{Sub}\Left :$] Follows from the induction hypothesis and \cref{algorithmic:delegation-sub}.
 
     % Intersection and union
-    \item[Case $\intersect\Right :$] \todo{This branch is tricky since we have to combine two annotations.}
-    \item[Case $\union\Left :$] \todo{This branch is tricky since we have to combine two annotations.}
+    \item[Case $\intersect\Right :$] The induction hypotheses give the two premises needed to apply the corresponding rule in the algorithmic system. The only problem is, the annotated processes returned by the two hypotheses need not have the same annotations. We believe taking the intersection of corresponding annotations should be sufficient, though we could not come up with a proof. \todo{What to do for this case?}
+    \item[Case $\union\Left :$] Similar to the previous case. \todo{Related to the previous case.}
 
-    \todo{Recursive types?}
+    % Recursive processes
+    \item[Case $\mu, \procVar :$] Follows immediately from the induction hypotheses.
   \end{description}
-
 \end{proof}
+
