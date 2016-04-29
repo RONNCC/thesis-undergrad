@@ -6,7 +6,7 @@
 
 We express reduction rules using \emph{substructural operational semantics} \cite{Simmons12} which are based on \emph{multiset rewriting} \cite{CervesatoS09}. For example, the rule for $\terminate$ can be written as:
 $$ \proc{c}{\tclose{c}} \otimes \proc{d}{\twait{c}{P}} \lolli \monad{\proc{d}{P}}. $$
-Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. Instead, a rule of the form $A_1 \tensor \ldots \tensor A_n \lolli \monad{B_1 \tensor \ldots \tensor B_m}$ means we can replace the resources $A_1, \ldots, A_n$ with $B_1, \ldots, B_m$. The curly braces $\braces \ldots$ indicates a monad which essentially forces the rules to be interpreted as a multiset rewriting rule. $\monad{\exists x. F}$ generates a fresh $a$ and proceeds with $subst a x F$, while $c = d$ performs a global identification of $c$ and $d$ in the configuration. The rest of the rules are given in \cref{base:reduction-relation}.
+Note that the rule is written using linear connectives, however, these should not be confused with connectives we used for types. Instead, a rule of the form $A_1 \tensor \ldots \tensor A_n \lolli \monad{B_1 \tensor \ldots \tensor B_m}$ means we can replace the resources $A_1, \ldots, A_n$ with $B_1, \ldots, B_m$. The curly braces $\braces \ldots$ indicates a monad which essentially forces the rules to be interpreted as a multiset rewriting rule. $\monad{\exists x. F}$ generates a fresh $a$ and proceeds with $\subst a x F$, while $c = d$ performs a global identification of $c$ and $d$ in the configuration. The rest of the rules are given in \cref{base:reduction-relation}.
 
 \begin{figure}[!ht]
   \centering

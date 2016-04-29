@@ -2,9 +2,9 @@
 \section{Encoding \texorpdfstring{$n$-ary}{n-ary} Choice Using Intersections and Unions}
 \label{encoding-choice}
 
-In this \namecref{encoding-choice}, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process level constructs whereas intersections are implicit.
+In this \namecref{encoding-choice}, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. We do this by reinterpreting $n$-ary choices using intersections and unions, in a similar manner to Reynolds' reinterpretation of records using intersections \cite{Reynolds96}. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process level constructs whereas intersections are implicit.
 
-Consider the special case of binary external choice: $\external\braces{\irb{inl} : A, \irb{inr} : B}$. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
+Consider the special case of binary external choice: $\external\braces{\irb{inl} : A, \irb{inr} : B}$. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton external choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
 \begin{mathpar}
   \externals A I \defined \bigintersect_{\indexVar \in I}{\externalSing {\lab_\indexVar} {A_\indexVar}} \\
   \internals A I \defined \bigunion_{\indexVar \in I}{\internalSing {\lab_\indexVar} {A_\indexVar}}
@@ -12,7 +12,7 @@ Consider the special case of binary external choice: $\external\braces{\irb{inl}
 
 It can be verified that these definitions satisfy the typing and subtyping rules for external and internal choices, so they are faithful to the meaning of original constructs. At this point, we could remove $n$-ary external and internal choices from the system in favor of singleton choices. These definitions do not indicate what happens when $I$ is empty, however. We could either insist this be not the case (since there are not many useful programs that make use of empty choices), or we could add empty choices along with singleton choices.
 
-An advantage of singleton choices is that they simplify the typing and subtyping rules. The new typing rules are:
+An advantage of singleton choices is that they simplify the typing rules:
 \begin{mathpar}
   % Internal choice
   \infer[\internal\Right]{\typeRecDJ { \tselect{c}{}{P} } {c} {\internalSing \lab A} }
@@ -29,7 +29,7 @@ An advantage of singleton choices is that they simplify the typing and subtyping
   \and \infer[\external\Left]{\typeRecD {\ctx, c : \externalSing \lab A} \recCtx { \tselect{c}{}{P} } d D}
     { \typeRecD {\ctx, c : A} \recCtx P d D }
 \end{mathpar}
-And the simplified subtyping rules are given below.
+and the subtyping rules:
 \begin{mathpar}
   \infer=[\Sub\internal]{\internalSing \lab A \sub \internalSing \lab {A'}}
     {A \sub A'}

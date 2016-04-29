@@ -5,7 +5,7 @@ Designing a syntax directed type checking algorithm is quite simple for the base
 
 In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free, and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
 
-The former problem is solved by \emph{bidirectional type-checking} where we only check subtyping at the identity rule and at recursive process variables (delegation). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The fact that we can delegate subtyping in this way is formalized later in \cref{algorithmic:delegation-sub}, when we prove the equivalence of the algorithmic system to the declarative one. \todo{Explain the subformula rule.}
+The former problem is solved by \emph{bidirectional type-checking} where we only check subtyping at the identity rule and at recursive process variables (delegation). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The fact that we can delay subtyping in this way is formalized later in \cref{algorithmic:delegation-sub}, when we prove the equivalence of the algorithmic system to the declarative one.
 
 Algorithmic typing rules for processes are given in \cref{algorithmic:process-typing}. The rules make use of the following definitions:
 
