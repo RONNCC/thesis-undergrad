@@ -2,7 +2,7 @@
 \section{Process Configurations}
 \label{chapter/session-types/configurations}
 
-So far, we have only considered processes in isolation. In a concurrent setting, we need to be able to talk about multiple processes and the interactions between them. In this section, we introduce process configurations, which are simply sets of processes where each process is labelled with the channel along which it provides. We use the notation $\proc c P$ for labelling the process $P$, and require that all labels in a configuration are distinct. That is, a process configuration $\set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is valid if and only if $c_1, \ldots, c_n$ are all distinct. Note that we do not require channels that occur within $P_i$ to be distinct, this is handled by the typing judgement given next.
+So far, we have only considered processes in isolation. In a concurrent setting, we need to be able to talk about multiple processes and the interactions between them. In this section, we introduce process configurations, which are simply sets of processes where each process is labelled with the channel along which it provides. We use the notation $\proc c P$ for labelling the process $P$, and require that all labels in a configuration are distinct. That is, a process configuration $\set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is valid if and only if $c_1, \ldots, c_n$ are all distinct. Note that we do not require channels that occur within $P_i$ to be distinct, this is handled by the typing judgment given next.
 
 \begin{definition}[Process Configuration]
   $\config = \set{\proc{c_1}{P_1}, \ldots, \proc{c_n}{P_n}}$ is called a process configuration if $c_1, \ldots, c_n$ are all distinct.

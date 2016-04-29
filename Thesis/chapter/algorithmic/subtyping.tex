@@ -25,7 +25,7 @@ $$
 $$
 The contexts are elided (written $\ldots$) to save space, but they are always supersets of ${\recursive t {1 \lolli t}} \subA {\recursive s {1 \lolli 1 \lolli 1}}$. $\irb{hyp}$ simply matches the goal with an assumption in the context.
 
-It is not hard to see that the algorithm is a correct decision procedure for the subtyping system. If a subtyping judgement is derivable in the original system, it certainly is derivable with the additional rule since all $\irb{hyp}$ can do is to terminate the derivation at a finite depth. Conversely, we can always convert a proof that uses $\irb{hyp}$ into a coinductive (and infinite) proof since we must have made progress between the introduction of a hypothesis and its usage. We simply duplicate this partial derivation indefinitely.
+It is not hard to see that the algorithm is a correct decision procedure for the subtyping system. If a subtyping judgment is derivable in the original system, it certainly is derivable with the additional rule since all $\irb{hyp}$ can do is to terminate the derivation at a finite depth. Conversely, we can always convert a proof that uses $\irb{hyp}$ into a coinductive (and infinite) proof since we must have made progress between the introduction of a hypothesis and its usage. We simply duplicate this partial derivation indefinitely.
 
 Finally, we need to show that the algorithm always terminates. At every step, the context grows by one element.%
 \footnote{If it does not, we must be adding an element that already exists, but then we should have applied $\irb{hyp}$.}

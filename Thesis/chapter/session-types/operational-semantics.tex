@@ -41,7 +41,7 @@ Note that the rule is written using linear connectives, however, these should no
 
 We say that $\config$ reduces to or steps to $\config'$ if one application of the above rules transforms $\config$ into $\config'$, and write $\steps{\config}{\config'}$. We denote the reflexive transitive closure of $\stepArrow$ by $\stepManyArrow$.
 
-An important observation about reductions in typed configurations is that they are constrained to one subtree, where the tree structure is implicit in the typing judgement as discussed in \cref{chapter/session-types/configurations}. This observation leads to the following framing rule.
+An important observation about reductions in typed configurations is that they are constrained to one subtree, where the tree structure is implicit in the typing judgment as discussed in \cref{chapter/session-types/configurations}. This observation leads to the following framing rule.
 
 \begin{definition}[Root of Reduction] We say that channel $c$ is the root of $\steps{\config}{\config'}$ if $\proc c P \in \config$ is rewritten by the reduction, and either it is the only process to the left of $\lolli$ (rules $\irb{id}, \irb{cut}, \irb{rec}$), or it is the client.
 \end{definition}
@@ -63,7 +63,7 @@ An important observation about reductions in typed configurations is that they a
 \subsection{Progress}
 \label{base:progress-section}
 
-In a conventional functional language, the progress theorem states that a well-typed expression either is a value or it takes a reduction step. We do not have values in a process calculus, but there is a corresponding notion we call being poised. Intuitively, a process is poised if it is waiting on its client. We introduce a new judgement $\poised{\proc c P}$ capturing this notion and define it in \cref{poised}.
+In a conventional functional language, the progress theorem states that a well-typed expression either is a value or it takes a reduction step. We do not have values in a process calculus, but there is a corresponding notion we call being poised. Intuitively, a process is poised if it is waiting on its client. We introduce a new judgment $\poised{\proc c P}$ capturing this notion and define it in \cref{poised}.
 
 \begin{rules}[poised]{Poised processes}
   \infer{\poised{\proc{c}{\tclose{c}}}}
@@ -98,7 +98,7 @@ We say that a process configuration $\config$ is poised if every process in $\co
   \begin{description}
     \item[Case $\id, \cut, \terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left, \rec :$] Impossible since $P$ is poised.
 
-    \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] If the rule matches the expected type (e.g.\ $A \typeeq 1$ and the rule is $\terminate\Right$), then $P$ has the expected form and we are done. Otherwise, we use inversion on the type equality judgement to show that the case is impossible.
+    \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] If the rule matches the expected type (e.g.\ $A \typeeq 1$ and the rule is $\terminate\Right$), then $P$ has the expected form and we are done. Otherwise, we use inversion on the type equality judgment to show that the case is impossible.
 
     \item[Case $\typeeq\Left :$] Follows immediately from the induction hypothesis.
 
