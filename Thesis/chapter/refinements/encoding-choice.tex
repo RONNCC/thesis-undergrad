@@ -2,8 +2,6 @@
 \section{Encoding \texorpdfstring{$n$-ary}{n-ary} Choice Using Intersections and Unions}
 \label{encoding-choice}
 
-\todo{Talk about Pavoni or whatever.}
-
 In this \namecref{encoding-choice}, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process level constructs whereas intersections are implicit.
 
 Consider the special case of binary external choice: $\external\braces{\irb{inl} : A, \irb{inr} : B}$. This type says: I will act as $A$ if you send me $\irb{inl}$ \emph{and} I will act as $B$ if you send me $\irb{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
@@ -39,15 +37,20 @@ And the simplified subtyping rules are given below.
     {A \sub A'}
 \end{mathpar}
 
-Another advantage is we recover some form of distributivity of intersections and unions over choices. In particular, the following rules hold by definition (modulo the commutativity and associativity of intersection and union):
+Another advantage is we recover some form of distributivity of intersections and unions over choices. In particular, the following relations hold simply by definition (modulo the commutativity and associativity of intersection and union):
+\begin{mathpar}
+   % Intersection
+   \externals A I \intersect \externals B J \sub \externals A I \cup \externals B J ~ (I \cap J = \emptyset)\\
+   % Union
+   \internals A I \cup \internals B J \sub \internals A I \union \internals B J ~ (I \cap J = \emptyset)
+\end{mathpar}
+Unfortunately, some properties still do not hold since we do not have distributivity over structural types. For example, we cannot derive the following in general:
 \begin{mathpar}
    % Intersection
    \internals A I \intersect \internals B J \sub \internal\braces{\lab_\indexVar : A_\indexVar \intersect B_\indexVar}_{\indexVar \in I \cap J} \\
-   \externals A I \intersect \externals B J \sub \externals A I \cup \externals B J ~ (I \cap J = \emptyset)\\
    % Union
-   \internals A I \cup \internals B J \sub \internals A I \union \internals B J ~ (I \cap J = \emptyset) \\
    \external\braces{\lab_\indexVar : A_\indexVar \union B_\indexVar}_{\indexVar \in I \cap J} \sub \externals A I \union \externals B J
 \end{mathpar}
 
-\todo{Check the above rules. Also mention what still doesn't hold.}
+Still, this encoding simplifies the type system and establishes the connection between intersections and external choice, and unions and internal choice.
 

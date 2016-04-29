@@ -71,7 +71,6 @@ We also have to extend the typing context to keep track of process variables. No
    { \typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c A
    & \recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A
    }
-
    \and \infer[\procVar]{\typeRecD {\rho{\parens \ctx}} \recCtx {\tapp p {\tvector z}} {\rho{\parens c}} A}
     {\typeDJ {\tvar p {\tvector y}} c A \in \recCtx
     & \rho{(\vartheta)} = \subst {\tvector z} {\tvector y} \vartheta

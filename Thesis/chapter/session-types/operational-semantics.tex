@@ -66,7 +66,7 @@ An important observation about reductions in typed configurations is that they a
 
 In a conventional functional language, the progress theorem states that a well-typed expression either is a value or it takes a reduction step. We do not have values in a process calculus, but there is a corresponding notion we call being poised. Intuitively, a process is poised if it is waiting on its client. We introduce a new judgement $\poised{\proc c P}$ capturing this notion and define it in \cref{poised}.
 
-\begin{rules}[poised]{Poised Processes}
+\begin{rules}[poised]{Poised processes}
   \infer{\poised{\proc{c}{\tclose{c}}}}
    {}
   \and \infer{\poised{\proc{c}{\tsend{c}{d}{P_d}{Q}}}}

@@ -36,7 +36,7 @@ Unions allow us to describe some interesting properties. For example, we can sho
       zero -> wait `d; `c.zero; close `c
       succ -> `c.succ; `e <- iso `d; `c <- `e
 \end{lstlisting}
-We have to unfold one level since our system cannot prove $Nat \sub Even \union Odd$.
+We have to unfold one level since our system cannot prove $Nat \sub Even \union Odd$. A more involved example is given in \cref{example:bitstrings}.
 
 Definitions of unguarded variables and $\size$ are extended similarly:
 \begin{align*}
