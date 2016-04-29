@@ -1,0 +1,29 @@
+
+\chapter{Another Example: Bit Strings}
+\label{example:bitstrings}
+
+Here, we give a slightly more involved example where we define a more interesting property using recursive refinements.
+
+First, we define process level bit string:
+\begin{lstlisting}[language=krill, style=custom]
+  type Bits = +{eps : 1, zero : Bits, one : Bits}
+\end{lstlisting}
+Here, \texttt{eps} is the empty string, \texttt{zero} and \texttt{one} append a least significant bit. We can define bit strings in standard form (no leading zeros) as follows:
+\begin{lstlisting}[language=krill, style=custom]
+  type Empty = +{eps : 1}
+  type Std = Empty  or StdPos
+  type StdPos = +{one : Std, zero : StdPos}
+\end{lstlisting}
+
+Then, we can write an increment function that preserves bit strings in standard form:
+\begin{lstlisting}[language=krill, style=custom]
+  inc : Std -o Std and StdPos -o StdPos and Empty -o StdPos
+  `c <- inc `d =
+    case `d of
+      eps -> wait `d; `c.one; `c.eps; close `c
+      zero -> `c.one; `c <- `d
+      one -> `c.zero; `c <- inc `d
+\end{lstlisting}
+
+Note that checking this definition just against the type \texttt{Std -o Std} will fail, and we need to assign the more general type for the type checking to go through.  This is because of the bidirectional nature of our system which essentially requires the type checker to check a fixed point rather than infer the least one. This has proven highly beneficial for providing good error messages even without the presence of intersections and unions~\cite{Griffith16phd}.
+
