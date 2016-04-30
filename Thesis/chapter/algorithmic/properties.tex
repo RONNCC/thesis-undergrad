@@ -1,12 +1,18 @@
 
 \section{Properties of Algorithmic Type-checking}
 
-We now explore the properties of the bidirectional system analogous to the ones we proved for the multiset subtyping relation in \cref{refinements:subtyping-properties}.
+We now explore the properties of the bidirectional system analogous to the ones we proved for the multiset subtyping relation in \cref{refinements:subtyping-properties}. First, we have the following definitions:
+\begin{definition}[Intersections and Unions of Contexts]
+  For all contexts $\ctx$ and $\ctx'$,
+  $$ \ctx \cap \ctx' = \setdef{c : \lookup \ctx c, \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}}
+  $$
+  and
+  $$ \ctx \cup \ctx' =  \parens{\ctx \cap \ctx'}, \parens{\ctx \setminus \dom{\ctx'}}, \parens{\ctx' \setminus \dom{\ctx}}.
+  $$
+\end{definition}
 
 \begin{lemma}[Weakening]
-  If $\typeRecAJ P c \typeList$, then $\typeRecAJR {\ctx \concat \ctx'} P C {\typeList, \typeList'}$ for all $\typeList'$ and $\ctx'$ such that $\dom{\ctx'} \subseteq \dom\ctx$. Here, $\ctx \concat \ctx'$ is defined as follows:
-  $$ \ctx \concat \ctx' = \setdef{c : \lookup \ctx c, \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}} \cup \parens{\ctx \setminus \dom{\ctx'}} \cup \parens{\ctx' \setminus \dom{\ctx}}.
-  $$
+  If $\typeRecAJ P c \typeList$, then $\typeRecAJR {\ctx \concat \ctx'} P C {\typeList, \typeList'}$ for all $\typeList'$ and $\ctx'$ such that $\dom{\ctx'} \subseteq \dom\ctx$.
 \end{lemma}
 \begin{proof}
   By a simple induction on the typing derivation since all rules are parametric in the unused types.
@@ -46,5 +52,32 @@ We now explore the properties of the bidirectional system analogous to the ones 
 \end{lemma}
 \begin{proof}
   Right to left is derivable by an application of $\intersect\Right$, $\intersect\Left$, $\union\Right, \union\Left, \mu\Right$, or $\mu\Left$ respectively. Forward direction is by induction on the typing derivation.
+\end{proof}
+
+
+We will also need a way to relate the channels in a typing context to the process being typed. Assume $\typeRecAJ P c \typeList$. Since we have a linear system, one might expect $\dom \ctx$ to be exactly the set of free channels of $P$ minus the channel $c$. However, this is not true due to two reasons. First, empty choices might be well-typed under any context. For example, we have $\typeRecAJR {\ctx, d : \internal \braces {}} {\tcase d {\braces {}}} c \typeList$ for any $\ctx$ and $\typeList$ by an application of $\internal\Left$. In this case, we might have $\free P \setminus \set{c} \subsetneq \dom \ctx$. Second, we allow unused branches in case expressions, which creates a problem even if we disallowed empty choices. As an example, consider
+$P = \tcase c {\set{ \tbranch {\lab_1} {\tclose c}, \tbranch {\lab_2} {\twait d {\tclose e}} }}$.
+We have $\typeRecAJR \emptyCtx P c {\externalSing {\lab_1} \terminate}$, but clearly $\dom \ctx \subsetneq \free P \setminus \set{c}$. So the intuition fails both ways. Fortunately, we do not require a full analysis, and the following suffices for out purposes:
+
+\begin{lemma}
+  If $\typeRecAJ P c \typeList$ and $\typeRecAJR {\ctx'} P c \typeList$ then $\typeRecAJR {\ctx \cap \ctx'} P c \typeList$ and $\typeRecAJR {\ctx \cup \ctx'} P c \typeList$.
+\end{lemma}
+\begin{proof}
+  \todo{Check this proof. It looks simple, but might turn out to be very hard.}
+\end{proof}
+
+
+Lastly, we have the following inversion \namecref{algorithmic:restricted-process-inversion}:
+\begin{lemma}[Inversion of Process Typing]
+  \label{algorithmic:restricted-process-inversion}
+  If $\typeRecAJ P c \typeList$, then
+  \begin{itemize}
+    \item if $P = \tfwd c d$, then $\ctx = d : \typeListB$ and $\typeListB \subA \typeList$,
+    \item if $P = \tspawnType d {Q_d} A {P'_d}$, then $\ctx = \parens{\ctx_1, \ctx_2}$, $\typeRecAJR {\ctx_1} {Q_d} d A$, and $\typeRecAJR {\ctx_2, d : A} P c \typeList$, and
+    \item \todo{Case for recursive processes.}
+  \end{itemize}
+\end{lemma}
+\begin{proof}
+  \todo{Check this lemma. It should be easy with the previous lemma.}
 \end{proof}
 
