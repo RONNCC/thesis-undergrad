@@ -20,7 +20,11 @@ Algorithmic typing rules for processes are given in \cref{algorithmic:process-ty
 \end{definition}
 
 
-The rules $\intersect\Right$, $\intersect\Left$, $\union\Right$, $\union\Left$, $\mu\Right$ and $\mu\Left$ are applied eagerly as mentioned before. If and when these rules are saturated, we examine the structure of the process and non-deterministically commit to a type. At every step, either the process gets structurally smaller, or it stays the same and the $\size$ of a type in the context or the provided type shrinks by 1. Thus, the algorithm always terminates.
+The rules $\intersect\Right$, $\intersect\Left$, $\union\Right$, $\union\Left$, $\mu\Right$ and $\mu\Left$ are applied eagerly as mentioned before. If and when these rules are saturated%
+\footnote{$\size$ of the context or the provided type decreases by one after each application of these rules. Since we only consider contractive types, $\size$ is finite and we must reach all structural types at some point.}%
+, we examine the structure of the process and non-deterministically commit to a type. Whenever we need to split the context, we again try all possible splits.%
+\footnote{One might be tempted to think the correct split can be computed based on the free channels in the components of $P$. Unfortunately, that approach does not always work since case statements might have unused branches. These extra branches are never type-checked, so they could contain free occurrences of any channel name.}
+At every step, either the process gets structurally smaller, or it stays the same and the $\size$ of a type in the context or the provided type shrinks by 1. Thus, the algorithm always terminates.
 
 \begin{rules}[algorithmic:process-typing]{Algorithmic process typing}
   % Intersection

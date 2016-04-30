@@ -14,9 +14,6 @@ Note that we did not add new forms of processes, so process configurations and r
 Note that we use singular types (rather than multisets of types) at the top level. The other cases ($\confZero$ and $\confN$) are the same as before.
 
 
-Unfortunately, we have found a bug in our proofs of progress and type preservation. We were able to fix progress, but the proof is currently not very elegant. We are working on a fix for type preservation, and expect that our solution will lead to a nicer proof progress. These statements are conjectures until then. \todo{Fix these proofs.}
-
-
 % \subsection{Progress}
 
 % For presentation purposes, we will generalize the poised judgment we introduced in \cref{base:progress-section}. We say $\blockedOn {\proc c P} d$ if the process $P$ is waiting to communicate along channel $d$. We define the judgment more formally in \cref{algorithmic:blockedOn}. We can then say $\poised {\proc c P} \iff \blockedOn {\proc c P} c$.
@@ -45,5 +42,7 @@ If $\providesCtx \config \ctx$ then either
 If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
 \end{conjecture}
 
-% \subsection{Preservation}
+\todo{Fix progress and preservation.}
+
+We were, unfortunately, unable to prove progress and preservation. The technique we used in \cref{base:semantics} does not work when we add intersections and unions. The problem is $\intersect\Left$ and $\union\Right$ rules split into two derivations, however, we need both pieces of information for induction to go through. The branches individually are not enough, but there is no obvious way to put the information together. We think the solution lies in restricting where non-structural rules can be applied in the algorithmic system in order to make the system more amenable to analysis (perhaps analogous to focusing proofs for sequent calculus). We have a proof sketch for progress (though we think it is much more complicated than it needs to be), and are working to prove progress.
 

@@ -7,12 +7,12 @@
 %	Document Configuration
 %-------------------------------------------------------------------------------
 
-\documentclass[letterpaper, oneside, 11pt]{thesis}
+\documentclass[final, letterpaper, oneside, 11pt]{thesis}
 
 \usepackage{microtype}
 \usepackage[T1]{fontenc}
 
-\bibliographystyle{plainurl}
+\bibliographystyle{plain}
 
 \hypersetup{urlcolor=blue, colorlinks=true}  % Colours hyperlinks in blue, but this can be distracting if there are many links.
 
@@ -89,16 +89,15 @@
 \pagestyle{empty}  % No headers or footers for the following pages
 
 \null\vfill
-% Now comes the "Funny Quote", written in italics
-\todo{Pick one of these.}
-``\textit{The purely functional approach is like money: you throw it at things and they get better.}''
 
-``\textit{Purely functional ideas are like money: you throw them at stuff and it gets better.}''
-
-``\textit{Purely functional ideas are like money: you throw them at stuff to make it better.}''
-
+``\textit{Oh, wow. That's an intense line of questioning, Snuffles.}''
 \begin{flushright}
-    The Dalai Lama \todo{Can I legally lie about attributions?}
+  Summer Smith
+\end{flushright}
+
+``\textit{When life gives you lemons, don't make lemonade. Make life take the lemons back! Get mad! I don't want your damn lemons, what the hell am I supposed to do with these?}''
+\begin{flushright}
+  Cave Johnson
 \end{flushright}
 
 \vfill\vfill\vfill\vfill\vfill\vfill\null{}
@@ -161,7 +160,7 @@ First and foremost, I would like to thank my advisor Frank Pfenning for his cont
 % \lhead{\emph{List of Tables}}  % Set the left side page header to "List of Tables"
 % \listoftables  % Write out the List of Tables
 
-% \addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
 
 
 %-------------------------------------------------------------------------------
@@ -238,21 +237,6 @@ First and foremost, I would like to thank my advisor Frank Pfenning for his cont
 
 
 %-------------------------------------------------------------------------------
-%	Appendices
-%-------------------------------------------------------------------------------
-
-\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
-
-\clearpage
-\input{appendix/bitstrings}
-
-\clearpage
-\input{appendix/concrete-syntax}
-
-\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
-
-
-%-------------------------------------------------------------------------------
 %	Bibliography
 %-------------------------------------------------------------------------------
 
@@ -261,6 +245,21 @@ First and foremost, I would like to thank my advisor Frank Pfenning for his cont
 \label{Bibliography}
 \lhead{\emph{Bibliography}}  % Change the left side page header to "Bibliography"
 \bibliography{bibliography,db}
+
+
+%-------------------------------------------------------------------------------
+%	Appendices
+%-------------------------------------------------------------------------------
+
+\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+
+\clearpage
+\input{appendix/concrete-syntax}
+
+\clearpage
+\input{appendix/bitstrings}
+
+\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
 
 
 %-------------------------------------------------------------------------------

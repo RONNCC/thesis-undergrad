@@ -50,16 +50,16 @@ We are now ready to prove that the algorithmic system is equivalent (modulo type
 
 \subsection{Completeness}
 
-\begin{lemma}[Completeness of Delayed Subtyping]
+\begin{conjecture}[Completeness of Delayed Subtyping]
   \label{algorithmic:delegation-sub}
-  \todo{What to call this?}
   The following are admissible:
   \begin{itemize}
     \item If $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$ then $\typeRecAJ P c {\typeList'}$.
     \item If $\typeRecAJR {\ctx, d : \typeList} P c \typeListB$ and $\typeList' \subA \typeList$ then $\typeRecAJR {\ctx, d : \typeList'} P c \typeListB$.
   \end{itemize}
   Note that $P$ stays the same, which means type annotations do not need to change.
-\end{lemma}
+\end{conjecture}
+The proof of the above statement suffers from the same problems as the proofs of progress and preservation, which are discussed in \cref{algorithmic:semantics}.
 \todo{Do the lemma.}
 %   By induction on the structure of $P$ and appealing to \cref{algorithmic:interpretation-commutes}. Since both parts of the theorem are similar, we only show the former. Assume $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$. By \cref{algorithmic:interpretation-commutes}, we know
 %   $$ \interpP {\typeRecAJ P c \typeList}
