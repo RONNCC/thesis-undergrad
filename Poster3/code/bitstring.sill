@@ -4,7 +4,7 @@ module BitString where
 
   {- Bit strings in standard form (no leading zeros) -}
   type Std = +{eps : 1} or StdPos
-  type StdPos = +{one : +{eps : 1} or StdPos, zero : StdPos}
+  type StdPos = +{one : Std, zero : StdPos}
 
   eps : Bits and Std
   `c <- eps = do
