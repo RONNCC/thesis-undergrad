@@ -55,9 +55,58 @@ We now explore the properties of the bidirectional system analogous to the ones 
 \end{proof}
 
 
+Just as it was the case for subtyping in \cref{refinements:subtyping-inversion-extended}, we get a stronger inversion property for $\intersect\Left$ and $\union\Right$ when all other types are structural. However, in addition to this restriction, we need the process to be about to communicate along the channel whose type we are inverting. The theorem is not true if the typing derivation can apply a structural rule on a different channel.
+
+To express this more formally, we introduce a new judgement $\blockedOn {\proc c P} d$, which intuitively states $P$'s next action will be along $d$. The formal definition is given in \cref{algorithmic:blockedOn}. Note that we can then say $\poised {\proc c P} \iff \blockedOn {\proc c P} c$.
+
+\begin{rules}[algorithmic:blockedOn]{Blocking channel}
+  \infer{\blockedOn{\proc{c}{\tclose{c}}} c} {}
+  \and \infer{\blockedOn{\proc{c}{\twait d Q}} d} {c \neq d}
+  \and \infer{\blockedOn{\proc{c}{\tsend d e {P_e} Q}} d} {}
+  \and \infer{\blockedOn{\proc{c}{\trecv x d {Q_x}}} d} {}
+  \and \infer{\blockedOn{\proc{c}{\tselect d i P}} d} {}
+  \and \infer{\blockedOn{\proc{c}{\tcase d {\tbranches Q I}}} d} {}
+\end{rules}
+
+We now have the following \namecref{algorithmic:property-invertible-extended}.
+
+\begin{lemma}[Extended Invertibility]
+  \label{algorithmic:property-invertible-extended}
+  The following are admissible:
+  \begin{itemize}
+    \item If $\typeRecAJ P c \typeList$, $\structural \ctx$, and $\poised {\proc c P}$, then $\bigvee_{A \in \typeList}{\typeRecAJ P c A}$.
+    \item If $\typeRecAJR {\ctx, d : \typeList} P c \typeListB$, $\structural \ctx$, $\structural\typeListB$, and $\blockedOn {\proc c P} d$, then $\bigvee_{A \in \typeList}{\typeRecAJR {\ctx, d : A} P c \typeListB}$.
+  \end{itemize}
+\end{lemma}
+\begin{proof}
+  The proof is very similar to the proof of \cref{refinements:subtyping-inversion-extended} so we will not repeat it.
+\end{proof}
+
+A special case of the above lemma gives the following:
+\begin{corollary}
+  \label{algorithmic:property-invertible-extended-corollary}
+  The following are admissible:
+  \begin{itemize}
+    \item If $\typeRecAJ P c {A_1 \union A_2}$, $\structural \ctx$, and $\poised {\proc c P}$, then either $\typeRecAJ P c {A_1}$ or $\typeRecAJ P c {A_2}$.
+    \item If $\typeRecAJR {\ctx, d : A_1 \intersect A_2} P c \typeListB$, $\structural \ctx$, $\structural\typeListB$, and $\blockedOn {\proc c P} d$, then either $\typeRecAJR {\ctx, d : A_1} P c \typeListB$ or $\typeRecAJR {\ctx, d : A_2} P c \typeListB$.
+  \end{itemize}
+\end{corollary}
+\begin{proof}
+  By inversion on the typing judgement and \cref{algorithmic:property-invertible-extended}.
+\end{proof}
+
+
 We will also need a way to relate the channels in a typing context to the process being typed. Assume $\typeRecAJ P c \typeList$. Since we have a linear system, one might expect $\dom \ctx$ to be exactly the set of free channels of $P$ minus the channel $c$. However, this is not true due to two reasons. First, empty choices might be well-typed under any context. For example, we have $\typeRecAJR {\ctx, d : \internal \braces {}} {\tcase d {\braces {}}} c \typeList$ for any $\ctx$ and $\typeList$ by an application of $\internal\Left$. In this case, we might have $\free P \setminus \set{c} \subsetneq \dom \ctx$. Second, we allow unused branches in case expressions, which creates a problem even if we disallowed empty choices. As an example, consider
 $P = \tcase c {\set{ \tbranch {\lab_1} {\tclose c}, \tbranch {\lab_2} {\twait d {\tclose e}} }}$.
-We have $\typeRecAJR \emptyCtx P c {\externalSing {\lab_1} \terminate}$, but clearly $\dom \ctx \subsetneq \free P \setminus \set{c}$. So the intuition fails both ways. Fortunately, we do not require a full analysis, and the following suffices for out purposes:
+We have $\typeRecAJR \emptyCtx P c {\externalSing {\lab_1} \terminate}$, but clearly $\dom \ctx \subsetneq \free P \setminus \set{c}$. So the intuition fails both ways. Fortunately, we do not require such a comprehensive analysis, and the following results suffice for out purposes:
+
+\begin{lemma}
+  \label{algorithmic:channel-in-context}
+If $\typeRecDJ P c \typeList$ and $\blockedOn {\proc c P} d$ where $c \neq d$, then $d \in \dom\ctx$.
+\end{lemma}
+\begin{proof}
+  Follows from a simple induction on the typing derivation.
+\end{proof}
 
 \begin{lemma}
   If $\typeRecAJ P c \typeList$ and $\typeRecAJR {\ctx'} P c \typeList$ then $\typeRecAJR {\ctx \cap \ctx'} P c \typeList$ and $\typeRecAJR {\ctx \cup \ctx'} P c \typeList$.

@@ -14,29 +14,56 @@ Note that we did not add new forms of processes, so process configurations and r
 Note that we use singular types (rather than multisets of types) at the top level. The other cases ($\confZero$ and $\confN$) are the same as before.
 
 
-% \subsection{Progress}
+\subsection{Progress}
 
-% For presentation purposes, we will generalize the poised judgment we introduced in \cref{base:progress-section}. We say $\blockedOn {\proc c P} d$ if the process $P$ is waiting to communicate along channel $d$. We define the judgment more formally in \cref{algorithmic:blockedOn}. We can then say $\poised {\proc c P} \iff \blockedOn {\proc c P} c$.
+We need to use a slightly different inversion \namecref{algorithmic:process-inversion} than we did in \cref{base:progress-section}:
+\begin{lemma}[Process Inversion]
+  \label{algorithmic:process-inversion}
+  If $\typeRecA {\ctx} {\recCtx} P c A$, $\typeRecA {\ctx', c : A} {\recCtx} Q d \typeListB$, and $\poised {\proc c P}$, then the following hold:
+  \begin{itemize}
+    \item If $Q = \twait d {Q'}$ then $P = \tclose c$.
+    \item If $Q = \trecv x d {Q'}$ then $P = \tsend c e {R_e} {P'}$.
+    \item If $Q = \tsend d e {R_e} {Q'}$ then $P = \trecv x c {P'}$.
+    \item If $Q = \tcase d {\tbranches {Q'} I}$ then $P = \tselect c i {P'}$ and $i \in I$.
+    \item If $Q = \tselect d i {Q'}$ then $P = \tcase c {\tbranches {P'} I}$ and $i \in I$.
+  \end{itemize}
+\end{lemma}
+\begin{proof}
+  Let $\DD : \typeRecA {\ctx} {\recCtx} P c A$ and $\EE : \typeRecA {\ctx', c : A} {\recCtx} Q d \typeListB$. Since we are only interested in cases where $\proc d Q$ is communicating along $c$, we can assume $\blockedOn {\proc d Q} c$.%
+\footnote{Otherwise, inversion on $Q$ shows that all of the equalities in the statement of the \namecref{algorithmic:process-inversion} are false. Thus, the result follows vacuously.} We proceed by induction on $\size\ctx + \size A + \size{\ctx'} + \size\typeListB$.
+  \begin{itemize}
+    \item If $\ctx$, $\ctx'$, or $\typeListB$ contains a non-structural type, we use \cref{algorithmic:property-invertible} to break it down and apply the induction hypothesis on the derivation we get. In cases where there are two derivations, we pick either.
+    \item If $A$ is a $\mu$, we use \cref{algorithmic:property-invertible} on $\DD$ and on $\EE$, and apply the induction hypothesis.
+    \item Otherwise, we have $\structural\ctx$, $\structural{\ctx'}$, and $\structural\typeListB$, and we know $A$ is not a $\mu$.
+    \begin{itemize}
+      \item If $A = A_1 \intersect A_2$, \cref{algorithmic:property-invertible-extended-corollary} on $\EE$ gives either $\EE_1 : \typeRecA {\ctx', c : A_1} {\recCtx} Q d \typeListB$ or $\EE : \typeRecA {\ctx', c : A_2} {\recCtx} Q d \typeListB$. In the former case, inversion on $\DD$ gives $\DD_1 : \typeRecA {\ctx} {\recCtx} P c {A_1}$ and we can immediately apply the induction hypothesis on $\DD_1$ and $\EE_1$. The latter case is symmetric.
+      \item If $A = A_1 \union A_2$, then we apply \cref{algorithmic:property-invertible-extended-corollary} on $\DD$ this time and use inversion on $\EE$. We get matching cases and apply the induction hypothesis.
+      \item Otherwise, $A$ must be a structural type, $\DD$ must be by a structural rule on the right, and $\EE$ must be by a structural rule on $c$. Inversion on $\EE$ and the form of $Q$ forces the form of $A$ (e.g.\ if $Q = \twait d {Q'}$ then $A = 1$). Then, inversion on $\DD$ reveals the form of $P$, and the form of $A$ forces it to be complementary to the form of $Q$.
+    \end{itemize}
+  \end{itemize}
+\end{proof}
 
-% \begin{rules}[algorithmic:blockedOn]{Blocking channel}
-%   \infer{\blockedOn{\proc{c}{\tclose{c}}} c} {}
-%   \and \infer{\blockedOn{\proc{c}{\twait d Q}} d} {c \neq d}
-%   \and \infer{\blockedOn{\proc{c}{\tsend d e {P_e} Q}} d} {}
-%   \and \infer{\blockedOn{\proc{c}{\trecv x d {Q_x}}} d} {}
-%   \and \infer{\blockedOn{\proc{c}{\tselect d i P}} d} {}
-%   \and \infer{\blockedOn{\proc{c}{\tcase d {\tbranches Q I}}} d} {}
-% \end{rules}
 
+Given \cref{algorithmic:process-inversion}, process follows quite trivially:
 
-Statement of progress and preservation do not change:
-
-\begin{conjecture}[Progress]
+\begin{theorem}[Progress]
 If $\providesCtx \config \ctx$ then either
 \begin{enumerate}
   \item $\steps{\config}{\config'}$ for some $\config'$, or
   \item $\config$ is poised.
 \end{enumerate}
-\end{conjecture}
+\end{theorem}
+\begin{proof}
+  We proceed by induction on the derivation of $\providesCtx \config \ctx$. The case for multiple channels follows immediately from the induction hypotheses. For the single channel case, we know $\config = \config', \proc c P$. By inversion, $\DD : \typeRecA {\ctx_c} \emptyset P c A$ and $\EE : \providesCtx {\config'} {\ctx_c}$. By the induction hypothesis, either $\config'$ takes a step, in which case $\config$ takes a step and we are done, or $\config'$ is poised. Assume $\config'$ is poised. We case on the structure of $P$:
+  \begin{itemize}
+    \item If $P$ is a forward, a spawn, or a recursive process then $\config$ steps by $\irb{id}$, $\irb{cut}$, or $\irb{rec}$, respectively.
+    \item If $\poised {\proc c P}$, then $\config$ is poised.
+    \item Otherwise, we must have $\blockedOn {\proc c P} d$ where $c \neq d$. By \cref{algorithmic:channel-in-context}, $d : B \in \ctx_c$. Inversion on $\EE$ gives $\typeRecAJR {\ctx_d} Q d B$ where $\proc d Q \in \config'$. Since $\config'$ is poised, $\proc d Q$ is poised. We can then apply \cref{algorithmic:process-inversion}, which shows that $P$ and $Q$ have matching forms and can take a step together.
+  \end{itemize}
+\end{proof}
+
+
+\section{Type Preservation}
 
 \begin{conjecture}[Preservation]
 If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.

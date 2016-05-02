@@ -153,6 +153,44 @@ Intuitively, these proofs go thorough since $\SubA{\intersect\Left}$ and $\SubA{
   \end{itemize}
 \end{proof}
 
+One might think the cases for $\SubA{\intersect\Left}$ and $\SubA{\union\Right}$ can be strengthened. After all, if $\typeList \subA A_1 \union A_2$ then it should be the case that either $\typeList \subA A_1$ or $\typeList \subA A_2$. However, this intuition is not true in general. Consider how the proof for $A_1 \union A_2 \subA A_1 \union A_2$ would proceed: we would apply $\SubA{\union\Left}$ which splits the derivation in half, and then depending on the branch, we would either pick $A_1$ or $A_2$ on the right. Luckily, it turns out that we can recover this result if all types on the left are \emph{structural}.
+
+Define $\structural A$ if $A$ has a structural type construct at the top level (i.e.\ not $\mu$, $\intersect$ or $\union$). We say $\structural\typeList$ or $\structural\ctx$ if $\structural A$ for all $A \in \typeList$ or $A \in \ctx$, respectively. Then,
+
+\begin{lemma}[Extended Invertibility]
+  \label{refinements:subtyping-inversion-extended}
+  The following are admissible:
+  \begin{itemize}
+    \item If $\typeList \subA \typeListB$ and $\structural \typeList$, then $\bigvee_{A \in \typeListB}{\typeList \subA A}$.
+    \item If $\typeList \subA \typeListB$ and $\structural \typeListB$, then $\bigvee_{A \in \typeList}{A \subA \typeListB}$.
+  \end{itemize}
+\end{lemma}
+\begin{proof}
+  We will only show the first case; the other is symmetric. We proceed by induction on $\size \typeListB$ and case analysis on $\DD : \typeList \subA \typeListB$.
+  \begin{itemize}
+    \item $\DD$ is by $\SubA{\intersect\Right}$. The induction hypotheses give $\bigvee_{A \in B_1, \typeListB'}{\typeList \subA A}$ and $\bigvee_{A \in B_2, \typeListB'}{\typeList \subA A}$ where $\typeListB = B_1 \intersect B_2, \typeListB'$. If $\typeList \subA B_1$ and $\typeList \subA B_2$ then $\typeList \subA B_1 \intersect B_2$ by $\SubA{\intersect\Right}$. Otherwise, $\bigvee_{A \in \typeListB'}{\typeList \subA A}$.
+
+    \item $\DD$ is by $\SubA{\union\Right}$. The induction hypothesis gives $\bigvee_{A \in B_1, B_2, \typeListB'}{\typeList \subA A}$ where $\typeListB = B_1 \union B_2, \typeListB'$. If $\typeList \subA B_1$ or $\typeList \subA B_2$, then $\typeList \subA B_1, B_2$ by $\weak$, and thus $\typeList \subA B_1 \union B_2$ by $\SubA{B_1 \union B_2}$. Otherwise, we have $\bigvee_{A \in \typeListB'}{\typeList \subA A}$.
+
+    \item $\DD$ is by $\SubA{\mu\Right}$. The induction hypothesis gives $\bigvee_{A \in \subst {\recursive t B_t} t {B_t}, \typeListB'}{\typeList \subA A}$ where $\typeListB = \recursive t {B_t}, \typeListB'$. If $\typeList \subA {\recursive t B_t} t {B_t}$, then the result follows form $\mu\Right$. Otherwise, it is immediate.
+
+    \item $\DD$ is by by a structural rule. The rule picks one type in $\typeListB$ and the rest are irrelevant, so the result is immediate.
+  \end{itemize}
+  The other cases are impossible since $\structural\typeList$.
+\end{proof}
+
+\begin{corollary}
+  We have the following:
+  \begin{itemize}
+    \item If $\typeList \subA A_1 \union A_2$ and $\structural \typeList$, then either $\typeList \subA A_1$ or $\typeList \subA A_2$.
+    \item If $A_1 \union A_2 \subA \typeListB$ and $\structural \typeListB$, then either $A_1 \subA \typeListB$ or $A_2 \subA \typeListB$.
+  \end{itemize}
+\end{corollary}
+\begin{proof}
+  Follows trivially from inversion and \cref{refinements:subtyping-inversion-extended}.
+\end{proof}
+
+
 Next, we verify that usual properties expected of logical systems (such as weakening and cut admissibility) are valid for our system.
 
 \begin{lemma}[Weakening]
