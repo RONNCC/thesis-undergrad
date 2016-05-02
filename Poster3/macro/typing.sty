@@ -1,0 +1,61 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macro/typing}
+  [2016/01/29 version 1.0.0 Typing Rules]
+
+
+% Functions
+\DeclareMathOperator{\free}{free}
+\DeclareMathOperator{\unguarded}{UV}
+\DeclareMathOperator{\size}{size}
+
+% Contractiveness
+\newcommand{\contractive}[1]{{#1}\;\mathtt{contractive}}
+
+
+% Context
+\newcommand{\emptyCtx}{\emptyset}
+\newcommand{\ctx}{\Psi}
+\newcommand{\recCtx}{\eta}
+
+\newcommand{\config}{\Omega}
+\newcommand{\emptyConfig}{\emptyset}
+
+\newcommand{\remove}{\mathbin{/}}
+\newcommand{\lookup}[2]{{#1}{(#2)}}
+\newcommand{\concat}{\cup}
+
+
+
+% Declarative system
+\newcommand\hasType[3]{#1 :: \parens{#2 : #3}}
+\newcommand\typeD[4]{#1 \vdash \hasType{#2}{#3}{#4}}
+\newcommand\typeDJ{\typeD{\ctx}}
+\newcommand\typeRecD[5]{{#1} \vdash_{#2} \hasType{#3}{#4}{#5}}
+\newcommand\typeRecDJ{\typeRecD{\ctx}{\recCtx}}
+
+% Algorithmic system
+\newcommand\typeA[4]{#1 \Vdash #2 :: \parens{#3 : #4}}
+\newcommand\typeAJ{\typeA{\ctx}}
+\newcommand\typeRecA[5]{{#1} \Vdash_{#2} \hasType{#3}{#4}{#5}}
+\newcommand\typeRecAJ{\typeRecA{\ctx}{\recCtx}}
+\newcommand\typeRecAJR[1]{\typeRecA{#1}{\recCtx}}
+\newcommand{\typeList}{\alpha}
+\newcommand{\typeListB}{\beta}
+
+
+% Configurations
+\newcommand\provides[3]{\models {#1} :: \parens{{#2} : {#3}}}
+\newcommand\providesCtx[2]{\models {#1} :: {#2}}
+\newcommand\poised[1]{#1\;\mathtt{poised}}
+\newcommand\blockedOn[2]{{#1}\;\mathtt{blocked\;on}\;{#2}}
+\newcommand\valid[4]{\models \hasType{\state{#1}{#2}}{#3}{#4}}
+
+% Dynamic semantics
+\newcommand\stepArrow{\longrightarrow}
+\newcommand\stepManyArrow{\stepArrow^*}
+\newcommand\steps[2]{#1 \stepArrow #2}
+\newcommand\stepsName[3]{#1 \overset{#3}{\stepArrow} #2}
+\newcommand\stepsMany[2]{#1 \stepManyArrow #2}
+
+\newcommand\proc[2]{\mathtt{proc}_{#1}\parens{#2}}
+

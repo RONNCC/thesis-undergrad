@@ -1,0 +1,62 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macro/types}
+  [2016/01/29 version 1.0.0 Types]
+
+\RequirePackage{mathtools}
+\RequirePackage{kvoptions}
+\RequirePackage{stmaryrd}
+\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
+
+\SetupKeyvalOptions{
+  prefix=macro@types@
+}
+
+\DeclareStringOption[x]{index}
+\DeclareStringOption[lab]{label}
+\ProcessKeyvalOptions*
+
+
+\newcommand\variables{\mathbf{Variable}}
+\newcommand\channels{\mathbf{Channel}}
+\newcommand\labels{\mathbf{Label}}
+\newcommand\types{\mathbf{Type}}
+
+\newcommand\structural[1]{#1\;\mathtt{structural}}
+
+
+\newcommand\terminate{\mathbf{1}}
+\newcommand\singleton[1]{\{#1\}}
+
+\newcommand\lolli{\multimap}
+\newcommand\tensor{\otimes}
+
+\newcommand\recvVal{\supset}
+\newcommand\sendVal{\wedge}
+
+\newcommand\internal{\oplus}
+\newcommand\external{\&}
+
+\newcommand\internalSing[2]{\internal\braces{{#1} : {#2}}}
+\newcommand\externalSing[2]{\external\braces{{#1} : {#2}}}
+
+\newcommand\internals[2]{\internal\braces{\macro@types@label_\macro@types@index : {#1}_\macro@types@index}_{\macro@types@index \in #2}}
+\newcommand\externals[2]{\external\braces{\macro@types@label_\macro@types@index : {#1}_\macro@types@index}_{\macro@types@index \in #2}}
+
+
+\newcommand\intersect{\mathbin{\sqcap}}
+\newcommand\union{\mathbin{\sqcup}}
+\newcommand\bigintersect{\bigsqcap}
+\newcommand\bigunion{\bigsqcup}
+\newcommand{\recursive}[2]{\mu{#1} . {#2}}
+
+\newcommand\sub{\le}
+\newcommand\subA{\mathrel\Rightarrow}
+\newcommand\subASing{\mathrel\Rightarrow}
+\newcommand\subACtx[3]{{#1} \vdash {#2} \subA {#3}}
+\newcommand\typeeq{\equiv}
+
+% Algorithmic to declarative system
+\DeclareMathOperator\all{\bigsqcap}
+\DeclareMathOperator\any{\bigsqcup}
+\DeclarePairedDelimiter\erase{\llbracket}{\rrbracket}
+

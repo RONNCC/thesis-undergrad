@@ -1,0 +1,27 @@
+module BitString where
+  {- eps is the empty string, zero and one append a least significant bit -}
+  type Bits = +{eps : 1, zero : Bits, one : Bits}
+
+  {- Bit strings in standard form (no leading zeros) -}
+  type Std = +{eps : 1} or StdPos
+  type StdPos = +{one : +{eps : 1} or StdPos, zero : StdPos}
+
+  eps : Bits and Std
+  `c <- eps = do
+    `c.eps
+    close `c
+
+  zero : Bits -o Bits
+  one : Bits -o Bits and Std -o Std
+
+  {- Increment a bit string by one. Note the hypotheses that we added manually -}
+  succ : Std -o Std and {- hypotheses -} StdPos -o StdPos and +{eps : 1} -o StdPos
+  `c <- succ `d =
+    case `d of
+      eps -> do wait `d; `c.one; `c.eps; close `c
+      zero -> do `c.one; `c <- `d
+      one -> do
+        `c.zero
+        `sd <- succ `d
+        `c <- `sd
+

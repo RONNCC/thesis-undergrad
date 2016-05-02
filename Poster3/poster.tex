@@ -1,0 +1,269 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% baposter Landscape Poster
+% LaTeX Template
+% Version 1.0 (11/06/13)
+%
+% baposter Class Created by:
+% Brian Amberg (baposter@brian-amberg.de)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[landscape,a0paper,fontscale=0.290]{baposter} % Adjust the font scale/size here
+
+\usepackage{graphicx}     % Required for including images
+\graphicspath{{figures/}} % Directory in which figures are stored
+\usepackage{listings}
+
+\usepackage{amsmath} % For typesetting math
+\usepackage{amssymb} % Adds new symbols to be used in math mode
+\usepackage{amsthm, amsfonts, mathtools}
+\usepackage{proof}              % For inference rules
+\usepackage{mathpartir}         % Automatic rule layout
+
+\usepackage{booktabs} % Top and bottom rules for tables
+\usepackage{enumitem} % Used to reduce itemize/enumerate spacing
+\usepackage{palatino} % Use the Palatino font
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+
+
+\setlength{\columnsep}{1.5em} % Slightly increase the space between columns
+\setlength{\columnseprule}{0mm} % No horizontal rule between columns
+
+\usepackage{tikz} % Required for flow chart
+\usetikzlibrary{shapes,arrows} % Tikz libraries required for the flow chart in the template
+
+\newcommand{\compresslist}{% Define a command to reduce spacing within itemize/enumerate environments, this is used right after \begin{itemize} or \begin{enumerate}
+\setlength{\itemsep}{1pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+}
+
+
+
+%----------------------------------------------------------------------------------------
+%	MACROS
+%----------------------------------------------------------------------------------------
+
+\newcommand\indexVar{k}
+\newcommand\lab{lab}
+
+\usepackage{macro/generic}
+\usepackage[index=\indexVar,label=\lab]{macro/types}
+\usepackage[index=\indexVar,label=\lab]{macro/terms}
+\usepackage{macro/inference}
+\usepackage{macro/typing}
+\usepackage{macro/code}
+
+
+
+%----------------------------------------------------------------------------------------
+%	POSTER
+%----------------------------------------------------------------------------------------
+
+\definecolor{lightblue}{rgb}{0.145,0.6666,1} % Defines the color used for content box headers
+
+\definecolor{borderColor}{rgb}{0.8,0.243,0.243} % Defines the color used for content box headers
+
+\begin{document}
+
+\begin{poster}
+{
+columns=3,
+headerborder=closed, % Adds a border around the header of content boxes
+colspacing=1em, % Column spacing
+bgColorOne=white, % Background color for the gradient on the left side of the poster
+bgColorTwo=white, % Background color for the gradient on the right side of the poster
+borderColor=borderColor, % Border color
+headerColorOne=black, % Background color for the header in the content boxes (left side)
+headerColorTwo=borderColor, % Background color for the header in the content boxes (right side)
+headerFontColor=white, % Text color for the header text in the content boxes
+boxColorOne=white, % Background color of the content boxes
+textborder=roundedleft, % Format of the border around content boxes, can be: none, bars, coils, triangles, rectangle, rounded, roundedsmall, roundedright or faded
+eyecatcher=true, % Set to false for ignoring the left logo in the title and move the title left
+headerheight=0.1\textheight, % Height of the header
+headershape=roundedright, % Specify the rounded corner in the content box headers, can be: rectangle, small-rounded, roundedright, roundedleft or rounded
+headerfont=\Large\bf\textsc, % Large, bold and sans serif font in the headers of content boxes
+%textfont={\setlength{\parindent}{1.5em}}, % Uncomment for paragraph indentation
+linewidth=2pt % Width of the border lines around content boxes
+}
+%----------------------------------------------------------------------------------------
+% TITLE SECTION 
+%----------------------------------------------------------------------------------------
+%
+{\includegraphics[height=4em]{cmu_logo.jpg}} % First university/lab logo on the left
+{\bf\textsc{Refinements for Session-typed Concurrency}\vspace{0.5em}} % Poster title
+{\textsc{\{ By: Josh Acay \hspace{6pt} Advisor: Frank Pfenning \} \hspace{12pt} Carnegie Mellon University}} % Author names and institution
+{\includegraphics[height=4em]{scs_logo.png}} % Second university/lab logo on the right
+
+%----------------------------------------------------------------------------------------
+% INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Introduction}{name=introduction,column=0,row=0}{%
+%
+Session types regulate the communication behaviour along channels between concurrent processes in a typed setting with message-passing concurrency. Recently, a connection between session-types and linear logic have been presented (through the lens of the Curry-Howard correspondence), which gave rise to languages such as SILL \cite{Pfenning15}. Languages incorporating linear session-types enjoy many desirable properties such as global progress, absence of deadlock, and race freedom.
+
+However, vanilla session-types are not strong enough to describe more interesting behavioral properties of concurrent processes. Here, we present a refinement type system in the style of \cite{Freeman91}. Our system combines intersections and unions with equirecursive types, which is strong enough to specify and automatically verify many properties of concurrent programs. We have implemented a type-checker for our system.
+}
+
+%----------------------------------------------------------------------------------------
+% LANGUAGE
+%----------------------------------------------------------------------------------------
+
+\headerbox{Language}{name=language,column=0,below=introduction}{%
+%
+\setlength\tabcolsep{4pt}
+
+Session types are described by the following grammar:
+\begin{center}
+\begin{tabular}{l c l l}
+  $A, B, C$ & ::= & $\terminate$        & \footnotesize send \texttt{end} and terminate \\
+            & $|$ & $A \tensor B$       & \footnotesize send channel of type $A$ and continue as $B$ \\
+            & $|$ & $\internals{A}{I}$  & \footnotesize send $\lab_i$ and continue as $A_i$ \\
+            & $|$ & $A \lolli B$        & \footnotesize receive channel of type $A$ and continue as $B$ \\
+            & $|$ & $\externals{A}{I}$  & \footnotesize receive $\lab_i$ and continue as $A_i$ \\
+            %
+            & $|$   & $A \intersect B$    & \footnotesize act as both $A$ and $B$ \\
+            & $|$   & $A \union B$        & \footnotesize act as either $A$ or $B$
+\end{tabular}
+\end{center}
+
+Below is a summary of the process expressions, with the sending construct
+followed by the matching receiving construct.
+\begin{center}
+\begin{tabular}{l c l l}
+  $P, Q, R$ & ::= & $\tspawn{x}{P_x}{Q_x}$     & \footnotesize cut (spawn) \\
+            & $|$ & $\tfwd c d$                & \footnotesize id (forward) \\
+            & $|$ & $\tclose c \mid \twait c P$  & \footnotesize $\terminate$ \\
+            & $|$ & $\tsend{c}{y}{P_y}{Q} \mid \trecv{x}{c}{R_x}$ & \footnotesize $A \tensor B,$ $A \lolli B$ \\
+            & $|$ & $\tselect{c}{}{P} \mid \tcase c {\tbranches Q i}$  \\ && \footnotesize $\externals A I,$ $\internals A I$
+\end{tabular}
+\end{center}
+
+Note that intersections and unions have no matching constructs since they specify behavioral properties and not structure. Any well-typed program can be given an intersection or a union type. We have three main judgements:
+\begin{description}
+  \item[$\bracks{A \sub B}$] $A$ is a subtype of $B$
+  \item[$\bracks{\typeDJ P c A}$] Process $P$ offers along channel $c$ the session $A$ in the context $\ctx$
+  \item[$\bracks{\providesCtx \config \ctx}$] Process configuration $\config$ provides all the channels in $\ctx$
+\end{description}
+}
+
+
+%----------------------------------------------------------------------------------------
+% INTERSECTIONS AND UNIONS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Intersections and Unions}{name=prop,column=1, row=0}{
+
+Typing rules for intersections and unions are given below.
+
+\subsection*{Intersections}
+\begin{mathpar}
+  \infer[\intersect\Right]{\typeDJ{P}{c}{A \intersect B}}
+    {\typeDJ{P}{c}{A} & \typeDJ{P}{c}{B}}
+  \and {\infer[\intersect\Left_1]{\typeD{\ctx, c : A \intersect B}{P}{d}{D}}
+    {\typeD{\ctx, c : A}{P}{d}{D}}}
+  \and {\infer[\intersect\Left_2]{\typeD{\ctx, c : A \intersect B}{P}{d}{D}}
+    {\typeD{\ctx, c : B}{P}{d}{D}}}
+\end{mathpar}
+
+
+\subsection*{Unions}
+\begin{mathpar}
+  {\infer[\union\Right_1]{\typeDJ{P}{c}{A \union B}}
+    {\typeDJ{P}{c}{A}}}
+  \and {\infer[\union\Right_2]{\typeDJ{P}{c}{A \union B}}
+    {\typeDJ{P}{c}{B}}}
+  \and \infer[\union\Left]{\typeD{\ctx, c : A \union B}{P}{d}{D}}
+    {\typeD{\ctx, c : A}{P}{d}{D} & \typeD{\ctx, c : B}{P}{d}{D}}
+\end{mathpar}
+
+}
+
+
+%----------------------------------------------------------------------------------------
+% EXAMPLE
+%----------------------------------------------------------------------------------------
+
+\headerbox{Example}{name=example,column=1,below=prop,bottomaligned=language}{%
+%
+We can define strings of bits using processes. Below, \texttt{Bits} is the type of bit strings. \texttt{emp} represents the empty string, and \texttt{zero} and \texttt{one} append the corresponding bit to the least significant position.
+
+\lstinputlisting[language=krill, style=custom]{code/bitstring.sill}
+}
+
+
+%----------------------------------------------------------------------------------------
+% ALGORITHMIC
+%----------------------------------------------------------------------------------------
+
+\headerbox{Bidirectional Type Checking}{name=algorithmic,column=2,row=0}{%
+%
+\setlength{\parskip}{5pt plus 1pt}
+Due to the non-structural nature of intersections and unions, there is no obvious way to go from the declarative typing rules to a type-checking algorithm. We therefore designed an algorithmic system, on which the implementation is based.
+
+We write the algorithmic typing judgement as $ \typeA \ctx P c \typeList$ where $\typeList$ is a multiset of types, and $\ctx$ maps a channel to a multiset. On the right, a multiset is interpreted as a disjunction, and on the left, it it interpreted as a conjunction. Additionally, subtyping is handled exclusively at a forward (meaning subsumption cannot be applied freely). Whenever we see an intersection on the left, we break it up into two. We do the same for unions on the right.
+
+The two systems are related through the following soundness and completeness results:
+\begin{theorem}[Soundness]
+If $\typeA \ctx P c \typeList,$ then $\typeD {\all{\ctx}} P c {\any{\typeList}}$.
+\end{theorem}
+\begin{theorem}[Completeness]
+If $\typeD \ctx P c A,$ then $\typeA \ctx P c A$.
+\end{theorem}
+}
+
+%----------------------------------------------------------------------------------------
+%	RESULTS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Metatheory}{name=results,column=2,below=algorithmic}{%
+%
+We give the standard progress and preservation theorems.
+
+\begin{theorem}[Progress]
+If $\providesCtx{\config}{\ctx}$ then either
+\begin{enumerate}
+  \item $\steps{\config}{\config'}$ for some $\config'$, or
+  \item $\config$ is poised.
+\end{enumerate}
+Intuitively, a process configuration $\config$ is poised if every process in $\config$ is waiting on its client.
+\end{theorem}
+
+
+\begin{theorem}[Preservation]
+If $\providesCtx{\config}{\ctx}$ and $\steps{\config}{\config'}$ then $\providesCtx{\config'}{\ctx}$.
+\end{theorem}
+Proof of preservation is currently in progress.
+
+}
+
+
+%----------------------------------------------------------------------------------------
+% REFERENCES
+%----------------------------------------------------------------------------------------
+
+\headerbox{References}{name=references,column=2,below=results, bottomaligned=example}{
+
+\renewcommand{\section}[2]{\vskip 0.05em} % Get rid of the default "References" section title
+\nocite{*} % Insert publications even if they are not cited in the poster
+\small{ % Reduce the font size in this block
+\bibliographystyle{unsrt}
+\bibliography{references} % Use references.bib as the bibliography file
+}}
+
+%----------------------------------------------------------------------------------------
+
+\end{poster}
+
+\end{document}
