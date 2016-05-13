@@ -50,53 +50,58 @@ We are now ready to prove that the algorithmic system is equivalent (modulo type
 
 \subsection{Completeness}
 
-\begin{conjecture}[Completeness of Delayed Subtyping]
+\begin{lemma}[Completeness of Delayed Subtyping]
   \label{algorithmic:delegation-sub}
   The following are admissible:
   \begin{itemize}
-    \item If $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$ then $\typeRecAJ P c {\typeList'}$.
-    \item If $\typeRecAJR {\ctx, d : \typeList} P c \typeListB$ and $\typeList' \subA \typeList$ then $\typeRecAJR {\ctx, d : \typeList'} P c \typeListB$.
+    \item If $\typeRecAJ P c \typeList$ and $\any\typeList \subA \typeListB$ then $\typeRecAJ P c {\typeListB}$.
+    \item If $\typeRecAJR {\ctx, d : \typeList} P c \typeListB$ and $\typeList' \subA \all\typeList$ then $\typeRecAJR {\ctx, d : \typeList'} P c \typeListB$.
   \end{itemize}
   Note that $P$ stays the same, which means type annotations do not need to change.
-\end{conjecture}
-The proof of the above statement suffers from the same problems as the proofs of progress and preservation, which are discussed in \cref{algorithmic:semantics}.
-\todo{Do the lemma.}
-%   By induction on the structure of $P$ and appealing to \cref{algorithmic:interpretation-commutes}. Since both parts of the theorem are similar, we only show the former. Assume $\typeRecAJ P c \typeList$ and $\typeList \subA \typeList'$. By \cref{algorithmic:interpretation-commutes}, we know
-%   $$ \interpP {\typeRecAJ P c \typeList}
-%     \iff \interp \typeList {\lam A { \interpC \ctx {\lam {\ctx'} {\typeRecAJRStruct {\ctx'} P c A}} }}
-%   $$
-%   and
-%   $$ \interpP {\typeList \subA \typeList'}
-%      \iff \interpC \typeList {\lam A {\interp {\typeList'} {\lam {A'} {A \subAStruct A'}} }}.
-%   $$
-%   By \cref{algorithmic:interpretation-mix}, it suffices to show
-%   $$
-%     \typeRecAJStruct P c A \wedge \interp {\typeList'} {\lam {A'} {A \subAStruct A'}}
-%     \implies \interp {\typeList'} {\lam {A'} {\typeRecAJStruct P c {A'}} }
-%   $$
-%   for some $A \in \typesStruct$. Similarly, by \cref{algorithmic:interpretation-connectives}, it suffices to show
-%   $$
-%     \typeRecAJStruct P c A \wedge A \subAStruct A'
-%     \implies \typeRecAJStruct P c {A'}
-%   $$
-%   for some $A' \in \typesStruct$. Assume $\DD : \typeRecAJStruct P c A$ and $\EE : A \subAStruct A'$. We use inversion on $\DD$:
-%   \begin{description}
-%     \item[Case $\id :$] Follows from the transitivity of $\subA$.
-%     \item[Case $\cut :$] We have
-%       $$ \DD = \vcenter{
-%           \infer[\cut]{\typeRecAJR {\ctx_1, \ctx_2} {\tspawnType d Q B {P'}} c A}
-%            { \DD_1 : \typeRecAJR {\ctx_1} Q d B
-%            & \DD_2 : \typeRecAJR {\ctx_2, d : B} Q d A
-%            }
-%          }
-%       $$
-%       The induction hypothesis on $\DD_2$ and $\EE$ gives $\typeRecAJR {\ctx_2, d : B} Q d {A'}$. $\cut$ on this and $\DD_1$ gives the result.
-%     \item[Case $\terminate\Right, \tensor\Right, \internal\Right, \lolli\Right, \external\Right :$] Inversion on $\EE$ gives the necessary subtyping relation(s). We match these with the sub-derivations from $\DD$ which lets us apply the induction hypotheses. The result follows from the same rule using these.
-%     \item[Case $\terminate\Left, \tensor\Left, \internal\Left, \lolli\Left, \external\Left :$] Follows immediately from the induction hypotheses.
+\end{lemma}
+\begin{proof}
+  We only show the first part since the two parts are similar. We will use lexicographic induction, first on the structure of $P$, then on $\size \ctx + \size \typeList + \size \typeListB$. Assume $\DD : \typeRecAJ P c \typeList$ and $\EE : \any\typeList \subA \typeListB$.
+  \begin{itemize}
+    \item If $\typeListB$ contains a non-structural type, we use \cref{refinements:subtyping-inversion} to break it down and apply the induction hypotheses. The result follows from $\intersect\Right$, $\union\Right$, or $\mu\Right$.
 
-%     \item[Case $\mu, \procVar :$] \todo{Recursive processes.}
-%   \end{description}
-% \end{proof}
+    \item Otherwise, we know $\structural{\typeListB}$, and case on the last rule in $\DD$.
+    \begin{itemize}
+      \item $\DD$ is by $\intersect\Left$, $\union\Left$, or $\mu\Left$. Follows from the induction hypotheses and the same rule.
+
+      \item $\DD$ is by $\intersect\Right$: This is the most interesting case of the proof. We have:
+        $$ \DD = \vcenter{
+            \infer[\intersect\Right]{\typeRecAJ P c {A_1 \intersect A_2, \typeList'}}
+             { \DD_1 : \typeRecAJ P c {A_1, \typeList'}
+             & \DD_2 : \typeRecAJ P c {A_2, \typeList'}
+             }
+           }
+        $$
+        By inversion on $\EE$, we have $A_1 \intersect A_2 \subA \typeListB$ and $\typeList' \subA \typeListB$. Since $\structural \typeListB$, either $A_1 \subA \typeListB$ or $A_2 \subA \typeListB$. In the former case, we have $A_1, \typeList' \subA \typeListB$, so we can apply the induction hypothesis on $\DD_1$ and get the desired result. In the latter, we apply it on $\DD_2$.
+
+      \item $\DD$ is by $\union\Right$: We have $\typeList = A_1 \union A_2, \typeList'$ where $\union\Right$ is applied on $A_1 \union A_2$. Since $\any {\parens{A_1, A_2, \typeList'}} \subA \any {\parens{A_1 \union A_2, \typeList'}}$, we know $\any {\parens{A_1, A_2, \typeList'}} \subA \typeListB$. The result follows immediately by the induction hypothesis.
+
+      \item $\DD$ is by $\mu\Right$: Similar to above since $\subst {\recursive t {A_t}} t {A_t} \subA \recursive t {A_t}$.
+
+      \item $\DD$ is by $\id$. Follows from the transitivity of $\subA$.
+      \item $\DD$ is by $\cut$. We have
+        $$ \DD = \vcenter{
+            \infer[\cut]{\typeRecAJR {\ctx_1, \ctx_2} {\tspawnType d Q B {P'}} c \typeList}
+             { \DD_1 : \typeRecAJR {\ctx_1} Q d \typeList
+             & \DD_2 : \typeRecAJR {\ctx_2, d : B} Q d \typeList
+             }
+           }
+        $$
+        The induction hypothesis on $\DD_2$ and $\EE$ gives $\typeRecAJR {\ctx_2, d : A} Q d {\typeListB}$. $\cut$ on this and $\DD_1$ gives the result.
+
+      \item $\DD$ is by $\terminate\Left$, $\tensor\Left$, $\internal\Left$, $\lolli\Left$, or $\external\Left$. Follows the same structure as the case for $\cut$.
+
+      \item $\DD$ is by $\terminate\Right$, $\tensor\Right$, $\internal\Right$, $\lolli\Right$, or $\external\Right$. The rule must be applied on some type $A \in \typeList$. We have $\EE' : A \subA \typeListB$ by inversion on $\EE$. Since $\structural \typeListB$, another inversion on $\EE'$ gives the necessary subtyping relation(s). We match these with the sub-derivations from $\DD$ which lets us apply the induction hypotheses. The result follows from the same rule using these.
+
+      \item $\DD$ is by $\mu$. Follows immediately from the induction hypothesis.
+      \item $\DD$ is by $\procVar$. Follows from the transitivity of $\subA$.
+    \end{itemize}
+  \end{itemize}
+\end{proof}
 
 
 \begin{theorem}[Completeness of Algorithmic Typing]
