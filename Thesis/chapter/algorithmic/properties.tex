@@ -2,13 +2,13 @@
 \section{Properties of Algorithmic Type-checking}
 
 We now explore the properties of the bidirectional system analogous to the ones we proved for the multiset subtyping relation in \cref{refinements:subtyping-properties}. First, we have the following definitions:
-\begin{definition}[Intersections and Unions of Contexts]
-  For all contexts $\ctx$ and $\ctx'$,
-  $$ \ctx \cap \ctx' = \setdef{c : \lookup \ctx c, \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}}
-  $$
-  and
-  $$ \ctx \cup \ctx' =  \parens{\ctx \cap \ctx'}, \parens{\ctx \setminus \dom{\ctx'}}, \parens{\ctx' \setminus \dom{\ctx}}.
-  $$
+\begin{definition}[Operations on Comtexts]
+  For all contexts $\ctx$ and $\ctx'$, we have:
+  \begin{mathpar}
+    \ctx \cap \ctx' = \setdef{c : \lookup \ctx c \cap \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}}
+    \\ \ctx \cup \ctx' =  \setdef{c : \lookup \ctx c, \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}}, \parens{\ctx \setminus \dom{\ctx'}}, \parens{\ctx' \setminus \dom{\ctx}}
+  \end{mathpar}
+  where intersection and union of multisets is defined as usual.
 \end{definition}
 
 \begin{lemma}[Weakening]

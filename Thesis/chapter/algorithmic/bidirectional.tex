@@ -1,5 +1,6 @@
 
 \section{Bidirectional Type-checking}
+\label{algorithmic:bidirectional}
 
 Designing a syntax directed type checking algorithm is quite simple for the base system where we only have structural types (no recursion or subtyping), since the form of the process determines a unique applicable typing rule. The $\cut$ rule causes a small problem since we do not have a type for the helper process to check against. This is solved by adding type annotations in spawning processes so that the new form is $\tspawnType c {P_c} A {Q_c}$. We define $\erase{P}$ to be the function which erases these annotations.
 

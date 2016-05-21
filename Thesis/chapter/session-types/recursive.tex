@@ -71,10 +71,8 @@ We also have to extend the typing context to keep track of process variables. No
    { \typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c A
    & \recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A
    }
-   \and \infer[\procVar]{\typeRecD {\rho{\parens \ctx}} \recCtx {\tapp p {\tvector z}} {\rho{\parens c}} A}
-    {\typeDJ {\tvar p {\tvector y}} c A \in \recCtx
-    & \rho{(\vartheta)} = \subst {\tvector z} {\tvector y} \vartheta
-    }
+   \and \infer[\procVar]{\typeRecD {\subst {\tvector z} {\tvector y} \ctx} \recCtx {\tapp p {\tvector z}} {\subst {\tvector z} {\tvector y} c} A}
+    { \typeDJ {\tvar p {\tvector y}} c A \in \recCtx }
 \end{rules}
 
 Note that in the definition of $\recCtx'$, $\typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A$ is not a typing judgment. Instead, $\recCtx$ should be thought of as nothing more than a map from variable names to four tuples containing parameter names, typing context, provided channel name, and provided type. It is necessary to store the context since channels are linear and channel types evolve over time, but the context needs to be the same at every occurrence of $p$.

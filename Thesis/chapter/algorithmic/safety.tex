@@ -65,6 +65,41 @@ If $\providesCtx \config \ctx$ then either
 
 \section{Type Preservation}
 
+First, we need the following inversion results.
+
+\begin{lemma}[Inversion of Id]
+If $\typeRecAJ {\tfwd c d} c \typeList$, then $\ctx = d : \typeListB$ and $\typeListB \subA \typeList$.
+\end{lemma}
+\begin{proof}
+  By induction on the typing derivation. The case for $\id$ is immediate. Otherwise, the last rule must be one of $\intersect\Right$, $\intersect\Left$, $\union\Right$, $\union\Left$, $\mu\Right$, or $\mu\Left$, in which case, we immediately apply the induction hypotheses and combine the results with the corresponding subtyping rule.
+\end{proof}
+
+\begin{lemma}[Inversion of Cut]
+  If $\typeRecAJ {\tspawnType d {P_d} A {Q_d}} c \typeList$ then there exist $\ctx_1$ and $\ctx_2$ such that $\ctx = \parens{\ctx_1, \ctx_2}$, $\typeRecAJR {\ctx_1} {Q_d} d A$, and $\typeRecAJR {\ctx_2, d : A} {P_d} c \typeList$.
+\end{lemma}
+\begin{proof}
+  Let $P = \tspawnType d {Q_d} A {P'_d}$ and $\DD : \typeRecAJ P c \typeList$. We proceed by induction on $\DD$.
+  \begin{itemize}
+    \item If $\DD$ is by $\cut$, we have the desired result.
+    \item If $\DD$ is by $\intersect\Left$ or $\mu\Left$ on channel $e \in \dom\ctx$, we apply the induction hypothesis to get two derivations. The results follows from the same rule on one of the derivations (depending on whether $e \in \dom{\ctx_1}$ or $e \in \dom{\ctx_2}$).
+    \item If $\DD$ is by $\union\Right$ or $\mu\Right$, the result follows from the induction hypothesis and the same rule on the typing derivation for $P'_d$.
+    \item Otherwise, $\DD$ is by $\intersect\Right$ or $\union\Left$. Since the case for $\union\Left$ is slightly more complicated, we will show that. We have:
+    $$ \DD =
+       \vcenter{
+         \infer[\union\Left]{\typeRecAJR{\ctx', e : (\typeListB, B \union C)} P c \typeList}
+           { \DD_1 : \typeRecAJR {\ctx', e : (\typeListB, B)} P c \typeList
+           & \DD_2 : \typeRecAJR {\ctx', e : (\typeListB, C)} P c \typeList
+           }
+       }
+    $$
+    Induction hypothesis on $\DD_1$ gives $\ctx^B_1, \ctx^B_2$ such that $\ctx', e : (\typeListB, B) = \parens{\ctx^B_1, \ctx^B_2}$, $\EE_1 : \typeRecAJR {\ctx^B_1} {Q_d} d A$ and $\EE_2 : \typeRecAJR {\ctx^B_2, d : A} {P'_d} c \typeList$.
+    Similarly, from $\DD_2$ we get $\ctx^C_1, \ctx^C_2$ such that $\ctx', e : (\typeListB, C) = \parens{\ctx^C_1, \ctx^C_2}$, $\FF_1 : \typeRecAJR {\ctx^C_1} {Q_d} d A$ and $\FF_2 : \typeRecAJR {\ctx^C_2, d : A} {P'_d} c \typeList$.
+
+
+ \end{itemize}
+\end{proof}
+
+
 \begin{conjecture}[Preservation]
 If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
 \end{conjecture}
