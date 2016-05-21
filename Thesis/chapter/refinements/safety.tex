@@ -2,5 +2,110 @@
 \section{Type Safety}
 \label{refinements:semantics}
 
-At this point, we would prove type safety for the extended system. However, applicability of subsumption at any point in the presence of intersections and unions complicates a full analysis. Instead, we will first introduce the better behaved algorithmic system and establish safety for that system. The equivalence of the algorithmic system to the declarative will then imply safety for the declarative system.\footnote{At the time of writing, we are still working on establishing type-safety for the algorithmic system.}
+It turns out type preservation fails with the current formulation of the system. The problem stems from the fact that $\cut$, $\tensor\Right$, and $\lolli\Left$ split the context into two, however, these splits do not have to be unique. In the base system, the split is only done once so type safety holds, but $\intersect\Right$ and $\union\Left$ rules branch into two derivations, each of which could split the context differently. This sort of dependence does not work for configuration typing which must have a tree structure (where the children of a process correspond to all the channels used by that process) \emph{irrespective} of the types of the processes. That is, we need to know exactly which channels go into typing the newly spawned process when we step a cutting or a sending process, and this choice cannot depend on the type.
+
+We will suggest a fix to this problem, but first, let us look at a concrete example which shows preservation fails. The outline of the disproof is as follows. First, we give a process which offers an intersection and a typing derivation where the context is split in two different ways for the two branches of the intersection. Next, we put this process in a configuration and show that it is well typed. Finally, we take a valid step, and argue why the new configuration cannot be well-typed.
+
+\begin{example}
+  \label{refinements:counterexample}
+We will show $\typeRecD {d_1 : \terminate, d_2 : \terminate} \emptyCtx P c A$ where
+  \begin{mathpar}
+    A = (A_l \tensor A_r) \intersect (A_r \tensor A_l)
+    \and A_l = \externalSing {\mathtt{inl}} \terminate
+    \and A_r = \externalSing {\mathtt{inr}} \terminate
+    \\ P = \tsend c x {P'_x} {P'_c}
+    \\ P'_x = \tcase x {\braces
+      { \tbranch {\mathtt{inl}} {\twait {d_1} {\tclose x}}
+      ,~\tbranch {\mathtt{inr}} {\twait {d_2} {\tclose x}}
+      }
+    }
+  \end{mathpar}
+  The typing derivation is given below:
+  $$ \infer [\intersect\Right] {\typeRecD {d_1 : \terminate, d_2 : \terminate} \emptyCtx P c A}
+      { \infer [\tensor\Right] {\typeRecD {d_1 : \terminate, d_2 : \terminate} \emptyCtx P c {A_l \tensor A_r}}
+         { \infer [\external\Right] {\typeRecD {d_1 : \terminate} \emptyCtx {P'_x} x {A_l}}
+            { \infer [\terminate\Left] {\typeRecD {d_1 : \terminate} \emptyCtx {\twait {d_1} {\tclose x}} x \terminate}
+               { \infer [\terminate\Right] {\typeRecD \emptyCtx \emptyCtx {\tclose x} x \terminate} {}
+               }
+            }
+         & \deduce [\vdots] {\typeRecD {d_2 : \terminate} \emptyCtx {P'_c} c {A_r}} {}
+         }
+      & \cdots
+      }
+  $$
+  (cases left out are similar). It is important to note that for the left branch, $d_1$ is used to type $P'_x$ and $d_2$ is used to type $P'_c$, whereas for the right branch, the opposite is true.
+
+  Next, it is easy to check $\typeRecD {c : A} \emptyCtx Q e {(A_l \tensor A_r \tensor \terminate) \intersect (A_r \tensor A_l \tensor \terminate)}$ where
+  $$ Q = \trecv y c {\tsendChannel e y {\tsendChannel e c {\tclose e}}}. $$
+  Now, consider $\config = \proc {d_1} {\tclose {d_1}}, \proc {d_2} {\tclose {d_2}}, \proc c P, \proc e Q$, which is easily typed given the derivations above. $\proc c P$ and $\proc e Q$ can take a step together using $\irb{tensor}$, but the new configuration is untypeable. The process spawned off by $\proc c P$ needs both $d_1$ and $d_2$, so does the process $\proc c P$ steps into. There is no way to split the context properly at the configuration level, thus preservation fails.\footnote{Rigorously proving that the new configuration is untypeable is not easy in the declarative system, so we only present an intuitive argument. The proof could be formalized using the system given in \cref{algorithmic:bidirectional} if necessary.}
+\end{example}
+
+One way to restore type safety is to ensure there is always a unique split. One might be mislead to think this should already be the case: whenever we have $\typeRecDJ P c A$, it must be the case that $\free P \setminus \set{c} \subseteq \dom\ctx$ since the context must provide all unbound variables, and $\dom\ctx \subseteq \free P \setminus \set{c}$ since all channels must be used in a linear context. That is, we must have $\dom\ctx = \free P \setminus \set{c}$ which would uniquely determine the context based on the free channels of a process. However, this fails for three reasons:
+\begin{enumerate}
+  \item Empty choices $\external\braces{}$ and $\internal\braces{}$ might be well-typed under any context since $\external\Right$ and $\internal\Left$ have no premises. For example, we have $\typeRecD {\ctx, d : \internal \braces {}} \emptyCtx {\tcase d {\braces {}}} c A$ for any $\ctx$ and $A$ by an application of $\internal\Left$. In this case, we might have $\free P \setminus \set{c} \subsetneq \dom \ctx$.
+  \item We allow unused branches in case expressions, which might contain any channel name, so it may not be the case that $\dom \ctx \subsetneq \free P \setminus \set{c}$. This is what we exploited in the counterexample above.
+  \item Recursive processes may be well-typed in any context. For example:
+    $$ \infer[\rec]{\typeRecD \ctx \emptyCtx {\tapp {\parens{\trec p \emptyVector {\parens{\tapp p \emptyVector}}}} \emptyVector} c A}
+        { \infer[\procVar]{\typeRecDJ {\tapp p \emptyVector} c A}
+           {\typeDJ {\tvar p \emptyVector} c A \in \set{\typeDJ {\tvar p \emptyVector} c A}}
+        & \recCtx = \typeDJ {\tvar p \emptyVector} c A
+        }
+    $$
+    holds for any $\ctx$ and $A$.
+\end{enumerate}
+
+We introduce the following (reasonable) restrictions to restore this property:
+\begin{enumerate}
+  \item Empty choices are disallowed. Whenever we see $\externals A I$ or $\internals A I$, we check that $I \neq \emptyset$.
+  \item All branches of a case expressions must have the same set of free channels. That is, if we have $\tcase c {\tbranches P I}$, then we must have $\free {P_i} = \free {P_j}$ for $i, j \in I$.
+  \item In the rule $\rec$, which types $\typeRecDJ {\tapp {\parens*{ \trec p {\tvector y} P}} {\tvector z}} c A$, we add the premise $\tvector z = \dom\ctx \cup \set c$ so that all relevant channels are explicitly mentioned in the term.
+\end{enumerate}
+
+With these restrictions, we get the following regularity \namecref{refinements:regularity}:
+\begin{theorem}[Regularity of Contexts]
+  \label{refinements:regularity}
+  If $\typeRecDJ P c A$ and for all $\typeD {\ctx'} {\tvar p {\tvector y}} d D \in \recCtx$, $\tvector y = \dom{\ctx'} \cup \set d$, then $\free P = \dom\ctx \cup \set c$.
+\end{theorem}
+\begin{proof}
+  By induction on the typing derivation. The only nontrivial cases are $\external\Right$, $\internal\Left$, $\rec$, and $\procVar$.
+  \begin{description}
+    \item[Case $\external\Right, \internal\Left :$] Restriction (1) ensures there is at least one premise on which we can apply the induction hypothesis. Due to restriction (2), it does not matter which branch is typed. The result then follows easily.
+
+    \item[Case $\mu :$] We know $P = \tapp {\parens*{ \trec p {\tvector y} {P'}}} {\tvector z}$ and $\typeRecD \ctx {\recCtx'} {\subst {\tvector z} {\tvector y} P} c A$, where $\recCtx' = \recCtx, \typeD {\subst {\tvector y} {\tvector z} \ctx} {\tvar p {\tvector y}} {\subst {\tvector y} {\tvector z} c} A$. In addition, restriction (3) gives $\tvector z = \dom\ctx \cup \set c$. Since $\free P = \parens*{\free {P'} \setminus {\tvector y}} \cup \tvector z$, it suffices to show $\free {P'} = \tvector y$.
+
+    Before we can apply the induction hypothesis, we need to show $\tvector y = \dom{\parens{\subst {\tvector y} {\tvector z} \ctx}} \cup \set {\subst {\tvector y} {\tvector z} c}$, which follows easily from the fact that $\tvector z = \dom\ctx \cup \set c$. The induction hypothesis then gives $\free{\parens{\subst {\tvector z} {\tvector y} {P'}}} = \dom\ctx \cup \set c$. Finally, we have:
+    $$ \free{P'}
+     = \free{\parens{\subst {\tvector y} {\tvector z}{\subst {\tvector z} {\tvector y} {P'}}}}
+     = \dom{\parens{\subst {\tvector y} {\tvector z} \ctx}} \cup \set {\subst {\tvector y} {\tvector z} c}
+     = \tvector y
+    $$
+    from before, as required.
+
+    \item[Case $\procVar :$] We have $P = \tapp p {\tvector z}$, $\ctx = \subst {\tvector z} {\tvector y} {\ctx'}$, and $c = \subst {\tvector z} {\tvector y} d$ where $\typeD {\ctx'} {\tvar p {\tvector y}} d A \in \recCtx$. By assumption, $\tvector y = \dom{\ctx'} \cup \set d$, so
+  $$ \free P
+   = \tvector z
+   = \subst {\tvector z} {\tvector y} {\tvector y}
+   = \dom{\parens{\subst {\tvector z} {\tvector y} {\ctx'}}} \cup \set {\subst {\tvector z} {\tvector y} d}
+   = \free\ctx \cup \set c
+  $$
+  as desired.
+  \end{description}
+\end{proof}
+
+\begin{corollary}[Regularity of Contexts]
+  \label{refinements:regularity-corollary}
+  If $\typeRecD \ctx \emptyCtx P c A$ then $\dom\ctx = \free P \setminus {\set c}$.
+\end{corollary}
+\begin{proof}
+  Follows trivially from \cref{refinements:regularity}. The premises are immediately satisfied since the context for process variables is empty, and we can subtract $\set c$ from both sides to get the final result.
+\end{proof}
+
+It should be worthwhile to talk about why the restrictions above are reasonable. \Cref{refinements:counterexample} shows that restriction (2) or a similar restriction on case expression is necessary for type preservation to hold. In addition, it is reasonable to expect all branches of a case expression to be related in a certain way. We could force the programmer to provide a type for all branches even when they are irrelevant, but this would make programming cumbersome and disallow the encoding in \cref{encoding-choice}. Restriction (2) is much easier to satisfy, and it makes sense in a linear setting.
+
+Restrictions (1) and (3) are necessary for \cref{refinements:regularity}, but we conjecture they are not needed for type preservation. Without (1) and (2), context splits become nondeterministic, so different branches of a derivation could split the context in different ways but not in an essential way.%
+\footnote{For example, empty choices might be well-typed under any context. Thus, if they are typed under two different contexts $\ctx_1$ and $\ctx_2$, they can also be typed under $\ctx_1 \cap \ctx_2$ or $\ctx_1 \cup \ctx_2$.}
+However, the analysis becomes unnecessarily complicated when we remove these restrictions. $\external\braces{}$ has no right rule and $\internal\braces{}$ have no left rule, so these types will not come up in real programs. Restriction (3) amounts to labeling each recursive process with the channels in the context, which should always be knows. The channels that the programmer chose not to rename can always be filled in by a compiler, so (3) poses no practical concerns.
+
+
+\Cref{refinements:regularity-corollary} is sufficient to prove type safety. However, applicability of subsumption at any point in the presence of intersections and unions complicates the proofs too much. Instead, we will first introduce the better behaved algorithmic system and establish safety for that system. The equivalence of the algorithmic system to the declarative will then imply safety for the declarative system.\footnote{At the time of writing, we are still working on establishing type-safety for the algorithmic system.}
 
