@@ -11,7 +11,7 @@ Note that we did not add new forms of processes, so process configurations and r
    & \providesCtx \config \ctx
    }
   $$
-Note that we use singular types (rather than multisets of types) at the top level. The other cases ($\confZero$ and $\confN$) are the same as before.
+Note that we use singular types (rather than multisets of types) at the top level. The other cases ($\confZero$ and $\confN$) are the same as before. Even though we use the algorithmic typing judgement in this definition, the results below will hold for declarative typing since these systems are equivalent.
 
 
 \subsection{Progress}
@@ -44,7 +44,7 @@ We need to use a slightly different inversion \namecref{algorithmic:process-inve
 \end{proof}
 
 
-Given \cref{algorithmic:process-inversion}, process follows quite trivially:
+Given \cref{algorithmic:process-inversion}, progress follows quite trivially:
 
 \begin{theorem}[Progress]
 If $\providesCtx \config \ctx$ then either
@@ -68,13 +68,15 @@ If $\providesCtx \config \ctx$ then either
 First, we need the following inversion results.
 
 \begin{lemma}[Inversion of Id]
+  \label{algorithmic:id-inversion}
 If $\typeRecAJ {\tfwd c d} c \typeList$, then $\ctx = d : \typeListB$ and $\typeListB \subA \typeList$.
 \end{lemma}
 \begin{proof}
-  By induction on the typing derivation. The case for $\id$ is immediate. Otherwise, the last rule must be one of $\intersect\Right$, $\intersect\Left$, $\union\Right$, $\union\Left$, $\mu\Right$, or $\mu\Left$, in which case, we immediately apply the induction hypotheses and combine the results with the corresponding subtyping rule.
+  By induction on the typing derivation. The case for $\id$ is immediate. Otherwise, the last rule must be one of $\intersect\Right$, $\intersect\Left$, $\union\Right$, $\union\Left$, $\mu\Right$, or $\mu\Left$, in which case we immediately apply the induction hypotheses and combine the results with the corresponding subtyping rule.
 \end{proof}
 
 \begin{lemma}[Inversion of Cut]
+  \label{algorithmic:cut-inversion}
   If $\typeRecAJ {\tspawnType d {P_d} A {Q_d}} c \typeList$ then there exist $\ctx_1$ and $\ctx_2$ such that $\ctx = \parens{\ctx_1, \ctx_2}$, $\typeRecAJR {\ctx_1} {Q_d} d A$, and $\typeRecAJR {\ctx_2, d : A} {P_d} c \typeList$.
 \end{lemma}
 \begin{proof}
@@ -93,18 +95,113 @@ If $\typeRecAJ {\tfwd c d} c \typeList$, then $\ctx = d : \typeListB$ and $\type
        }
     $$
     Induction hypothesis on $\DD_1$ gives $\ctx^B_1, \ctx^B_2$ such that $\ctx', e : (\typeListB, B) = \parens{\ctx^B_1, \ctx^B_2}$, $\EE_1 : \typeRecAJR {\ctx^B_1} {Q_d} d A$ and $\EE_2 : \typeRecAJR {\ctx^B_2, d : A} {P'_d} c \typeList$.
-    Similarly, from $\DD_2$ we get $\ctx^C_1, \ctx^C_2$ such that $\ctx', e : (\typeListB, C) = \parens{\ctx^C_1, \ctx^C_2}$, $\FF_1 : \typeRecAJR {\ctx^C_1} {Q_d} d A$ and $\FF_2 : \typeRecAJR {\ctx^C_2, d : A} {P'_d} c \typeList$.
-
-
+    Similarly, from $\DD_2$ we get $\ctx^C_1, \ctx^C_2$ such that $\ctx', e : (\typeListB, C) = \parens{\ctx^C_1, \ctx^C_2}$, $\FF_1 : \typeRecAJR {\ctx^C_1} {Q_d} d A$ and $\FF_2 : \typeRecAJR {\ctx^C_2, d : A} {P'_d} c \typeList$. By \cref{refinements:regularity-corollary}, we know $\dom {\ctx_1^B} = \dom{\ctx_1^C}$ and $\dom {\ctx_2^B} = \dom{\ctx_2^C}$, so we get the desired results by an application of $\union\Left$ on $\EE_1$ and $\FF_1$ or $\EE_2$ and $\FF_2$, depending on whether $e \in \ctx_1^B$ or $e \in \ctx_2^B$.
  \end{itemize}
 \end{proof}
 
 
-\begin{conjecture}[Preservation]
+Proof of preservation is a lot more cumbersome, as we have to roll a different induction for each case.
+\begin{theorem}[Preservation]
 If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCtx {\config'} \ctx$.
-\end{conjecture}
+\end{theorem}
+\begin{proof}
+  By \cref{framing}, it suffices to consider the subtree which types the root of reduction. So, assume $\steps{\config_1}{\config_2}$ and $\provides {\config_1} c A$ where $c$ is the root of $\steps{\config_1}{\config_2}$. We need to show $\provides {\config_2} c A$.
 
-\todo{Fix progress and preservation.}
+  By inversion, $\config_1 = \parens{\config_c, \proc c P}$, $\DD : \typeRecA {\ctx_c} \emptyset P c A$, and $\EE :\;\providesCtx {\config_c} {\ctx_c}$. We proceed by case analysis on $\steps{\config_1}{\config_2}$.
+  \begin{description}
+    \item[\irb{id} :] $P = \tfwd c d$ and $\config_2 = \subst c d {\config_c}$. By \cref{algorithmic:id-inversion}, $\ctx_c = d : D$ where $D \subASing A$. From \cref{algorithmic:delegation-sub} and $\EE$, we know $\provides {\config_c} d A$, thus, $\provides {\subst c d {\config_c}} c A$.
 
-We were, unfortunately, unable to prove progress and preservation. The technique we used in \cref{base:semantics} does not work when we add intersections and unions. The problem is $\intersect\Left$ and $\union\Right$ rules split into two derivations, however, we need both pieces of information for induction to go through. The branches individually are not enough, but there is no obvious way to put the information together. We think the solution lies in restricting where non-structural rules can be applied in the algorithmic system in order to make the system more amenable to analysis (perhaps analogous to focusing proofs for sequent calculus). We have a proof sketch for progress (though we think it is much more complicated than it needs to be), and are working to prove progress.
+    \item[\irb{cut} :] $P = \tspawnType x {Q_x} A {P'_x}$ and $\config_2 = \config_c, \proc a {Q_a}, \proc c {P'_a}$ where $a$ is fresh. The result follows straightforwardly from \cref{algorithmic:cut-inversion} and substitution.
+
+    \item[\irb{rec} :] Follows by a standard substitution lemma for process variables.
+  \end{description}
+
+  In all other cases, we have $\blockedOn {\proc c P} d$. By \cref{algorithmic:channel-in-context}, $\ctx_c = \ctx_c', d : D$ for some $D$, and $\proc d Q \in \config_c$ for some $Q$.   Inversion on $\EE$ gives $\config_c = \config_c', \config_d, \proc d Q$, $\FF_1 : \typeRecA {\ctx_d} \emptyset Q d D$ and $\FF_2 :\;\providesCtx {\config_d} {\ctx_d}$. We only give a representative subset of all cases:
+  \begin{description}
+    \item[\irb{one} :] $P = \twait d {P'}$ and $Q = \tclose d$. First, we claim $\ctx_d = \emptyCtx$.
+    \begin{proof}
+      By induction on $\FF_1$. Cases for property rules follow immediately from the induction hypothesis (by picking either branch for $\intersect\Right$ and $\union\Left$). The only other valid case is $\terminate\Right$, which requires the context to be empty, as desired.
+    \end{proof}
+
+    This shows $\config_d = \emptyset$. Next, we show $\typeRecA {\ctx_c'} \emptyset {P'} c A$.
+    \begin{proof}
+      We would like to use induction on $\DD$, however, we need to generalize the induction hypothesis. So instead, we show: for all $\ctx$, $\typeListB$, and $\typeList$, if $\DD' : \typeRecAJR {\ctx, d : \typeListB} {\twait d {P'}} c \typeList$, then $\typeRecAJ {P'} c \typeList$. Using this with $\DD$ gives the desired result.
+
+      If $\DD'$ is by a property rule on $d$, we immediately apply the induction hypothesis (either one for $\union\Left$). If it is by a property rule on $\ctx$ or $A$, the result follows from the same rule on the induction hypotheses. Otherwise, $\DD'$ must be by $\terminate\Left$, which gives the result immediately.
+    \end{proof}
+
+    At this point, we know $\config_2 = \config_c', \proc c {P'}$, which can easily be typed using the previous result.
+
+    \item[\irb{tensor} :] $P = \trecv x d {P_x'}$ and $Q = \tsend d x {R_x} {Q'}$. In addition, $\config_2 = \config_c, \config_d, \proc a {R_a}, \proc d {Q'}, \proc c {P_a'}$ where $a$ is fresh. We claim there exist $\ctx_d^1$, $\ctx_d^2$, $D_1$, and $D_2$ such that $\ctx_d = \parens{\ctx_d^1, \ctx_d^2}$, $\typeRecA {\ctx_d^1} \emptyset {R_a} a {D_1}$, $\typeRecA {\ctx_d^2} \emptyset {Q'} d {D_2}$, and $\typeRecA {\ctx_c', a : D_1, d : D_2} \emptyset {P_a'} c A$.
+  \begin{proof}
+    By induction on $\size {\ctx_c'} + \size A + \size {\ctx_d} + \size D$ and using $\DD$ and $\FF_1$. We assume $\ctx_c'$, $A$, $D$, and $\ctx_d$ are sufficiently generalized (all of them are made free, and all but $D$ is made into multisets). We use $\typeList$ instead of $A$ in the remainder of the proof to emphasize it is a multiset of types.
+    \begin{itemize}
+      \item If $\ctx_c'$ or $\typeList$ contains a recursive type, or $\ctx_c'$ contains an intersection, or $\typeList$ contains a union, we use \cref{algorithmic:property-invertible} on $\DD$ and apply the induction hypothesis. The result follows from $\mu\Left$, $\mu\Right$, $\intersect\Left$, or $\union\Right$, respectively.
+      \item If $\typeList$ contains an intersection, we use \cref{algorithmic:property-invertible} on $\DD$ and apply the induction hypotheses, which give:
+      \begin{mathpar}
+        \GG_1 : \typeRecA {\ctx_d^1} \emptyset {R_a} a {D_1^1}
+        \and \HH_1 : \typeRecA {\ctx_d^2} \emptyset {Q'} d {D_2^1}
+        \and \DD_1 : \typeRecA {\ctx_c', a : D_1^1, d : D_2^1} \emptyset {P_a'} c {A_1, \typeList'}
+        \\ \GG_2 : \typeRecA {\ctx_d^3} \emptyset {R_a} a {D_1^2}
+        \and \HH_2 : \typeRecA {\ctx_d^4} \emptyset {Q'} d {D_2^2}
+        \and \DD_2 : \typeRecA {\ctx_c', a : D_1^2, d : D_2^2} \emptyset {P_a'} c {A_2, \typeList'}
+      \end{mathpar}
+      By \cref{refinements:regularity-corollary}, $\ctx_d^1 = \ctx_d^3$ and $\ctx_d^2 = \ctx_d^4$. From \cref{algorithmic:typing-weakening} and $\intersect\Left$ on $\DD_1$ and $\DD_2$, we have:
+      \begin{mathpar}
+        \DD_1' : \typeRecA {\ctx_c', a : D_1^1 \intersect D_1^2, d : D_2^1 \intersect D_2^2} \emptyset {P_a'} c {A_1, \typeList'}
+        \\ \DD_2' : \typeRecA {\ctx_c', a : D_1^1 \intersect D_1^2, d : D_2^1 \intersect D_2^2} \emptyset {P_a'} c {A_2, \typeList'}
+      \end{mathpar}
+      Thus, by an application of $\intersect\Right$ on $\DD_1'$ and $\DD_2'$, we get
+      $$\typeRecA {\ctx_c', a : D_1^1 \intersect D_1^2, d : D_2^1 \intersect D_2^2} \emptyset {P_a'} c \typeList.$$
+      Moreover, applying $\intersect\Right$ on $\GG_1$ and $\GG_2$, and on $\HH_1$ and $\HH_2$ gives
+      \begin{mathpar}
+        \typeRecA {\ctx_d^1} \emptyset {R_a} a {D_1^1 \intersect D_1^2}
+        \and \typeRecA {\ctx_d^2} \emptyset {Q'} d {D_2^1 \intersect D_2^2}
+      \end{mathpar}
+      respectively. Picking $D_1 = D_1^1 \intersect D_1^2$ and $D_2 = D_2^1 \intersect D_2^2$ gives the result.
+      \item The case where $\ctx_c'$ contains a union is similar to the previous one.
+
+
+      \item If some $e \in \dom{\ctx_d}$ contains a recursive type or an intersection, we use \cref{algorithmic:property-invertible} on $\FF_1$ and apply the induction hypothesis. The result follows from $\mu\Left$ or $\intersect\Left$, respectively, applied on either $\ctx_d^1$ or $\ctx_d^2$, depending on whichever contains $e$.
+      \item If some $e \in \dom{\ctx_d}$ contains a union, we use \cref{algorithmic:property-invertible} on $\FF_1$ and apply the induction hypotheses, which give:
+      \begin{mathpar}
+        \GG_1 : \typeRecA {\ctx_d^1, e : \parens{\typeListB', B_1}} \emptyset {R_a} a {D_1^1}
+        \and \HH_1 : \typeRecA {\ctx_d^2} \emptyset {Q'} d {D_2^1}
+        \and \DD_1 : \typeRecA {\ctx_c', a : D_1^1, d : D_2^1} \emptyset {P_a'} c \typeList
+        \\ \GG_2 : \typeRecA {\ctx_d^1, e : \parens{\typeListB', B_2}} \emptyset {R_a} a {D_1^2}
+        \and \HH_2 : \typeRecA {\ctx_d^2} \emptyset {Q'} d {D_2^2}
+        \and \DD_2 : \typeRecA {\ctx_c', a : D_1^2, d : D_2^2} \emptyset {P_a'} c \typeList
+      \end{mathpar}
+      Here, we assume without loss of generality that $e \in \dom{\ctx_d^1}$. We have also unified the contexts using \cref{refinements:regularity-corollary}. From \cref{algorithmic:typing-weakening} and $\union\Right$ on $\GG_1$ and $\GG_2$, followed by $\union\Left$ on the results, we get:
+      $$
+        \GG : \typeRecA {\ctx_d^1, e : \typeListB} \emptyset {R_a} a {D_1^1 \union D_1^2}.
+      $$
+      From $\intersect\Right$ on $\HH_1$ and $\HH_2$, we get
+      $$
+        \HH : \typeRecA {\ctx_d^2} \emptyset {Q'} d {D_2^1 \intersect D_2^2}.
+      $$
+      Finally, by \cref{algorithmic:typing-weakening} and $\intersect\Left$ on $\DD_1$ and $\DD_2$, followed by $\union\Left$ on the results, we have
+      $$
+        \typeRecA {\ctx_c', a : D_1^1 \union D_1^2, d : D_2^1 \intersect D_2^2} \emptyset {P_a'} c \typeList.
+      $$
+      We pick $D_1 = D_1^1 \union D_1^2$ and $D_2 = D_2^1 \intersect D_2^2$ for the result.
+
+      \item Otherwise, we have $\structural {\ctx_c'}$, $\structural {\ctx_d}$, and $\structural\typeList$, which means \cref{algorithmic:property-invertible-extended-corollary} becomes applicable on $\DD$ and $\FF_1$. We case on the structure of $D$:
+        \begin{itemize}
+          \item If $D$ is a recursive type, $\DD$ must be by $\mu\Left$ and $\FF_1$ must be by $\mu\Right$. We apply the induction hypotheses on the premises, which immediately gives the result.
+          \item If $D = D_1 \intersect D_2$, then inversion on $\FF_1$ gives $\GG_1 : \typeRecA {\ctx_d} \emptyset Q d {D_1}$ and $\GG_2 : \typeRecA {\ctx_d} \emptyset Q d {D_2}$. Additionally, \Cref{algorithmic:property-invertible-extended-corollary} on $\DD$ gives $\HH_1 : \typeRecA {\ctx_c, d : D_1} \emptyset P c \typeList$ or $\HH_2 : \typeRecA {\ctx_c, d : D_2} \emptyset P c \typeList$. Applying induction hypothesis with $\GG_1$ and $\HH_1$ or with $\GG_2$ and $\HH_2$ (depending on which side of the or we have) gives the result.
+
+          \item If $D = D_1 \union D_2$, we apply inversion on $\DD$ and \cref{algorithmic:property-invertible-extended-corollary} on $\FF_1$. We get matching cases, and we can apply the induction hypothesis.
+
+          \item Otherwise, $\structural D$. Inversion on $\FF_1$ gives $D = D_1 \tensor D_2$ and the corresponding typing derivations for $R_x$ and $Q'$. Inversion on $\DD$ gives the typing derivation for $P'_x$. We get the desired result by substituting $a$ for $x$.
+        \end{itemize}
+    \end{itemize}
+  \end{proof}
+  Finally, we can split $\config_d$ into $\config_d^1$ and $\config_d^2$ such that $\providesCtx {\config_d^1} {\ctx_d^1}$ and $\providesCtx {\config_d^2} {\ctx_d^2}$. It is simple to put together a derivation for $\config_2$ using the results above.
+
+
+  \item [\irb{internal}, \irb{lolli}, \irb{external} :] Similar to above.
+
+  \end{description}
+\end{proof}
 

@@ -7,11 +7,13 @@ We now explore the properties of the bidirectional system analogous to the ones 
   \begin{mathpar}
     \ctx \cap \ctx' = \setdef{c : \lookup \ctx c \cap \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}}
     \\ \ctx \cup \ctx' =  \setdef{c : \lookup \ctx c, \lookup {\ctx'} c}{c \in \dom\ctx \cap \dom{\ctx'}}, \parens{\ctx \setminus \dom{\ctx'}}, \parens{\ctx' \setminus \dom{\ctx}}
+    \\ \restrict \ctx \channelList = \setdef{c : \lookup \ctx c}{c \in \dom\ctx \cap \channelList}
   \end{mathpar}
   where intersection and union of multisets is defined as usual.
 \end{definition}
 
 \begin{lemma}[Weakening]
+  \label{algorithmic:typing-weakening}
   If $\typeRecAJ P c \typeList$, then $\typeRecAJR {\ctx \concat \ctx'} P C {\typeList, \typeList'}$ for all $\typeList'$ and $\ctx'$ such that $\dom{\ctx'} \subseteq \dom\ctx$.
 \end{lemma}
 \begin{proof}
@@ -82,7 +84,7 @@ We now have the following \namecref{algorithmic:property-invertible-extended}.
   The proof is very similar to the proof of \cref{refinements:subtyping-inversion-extended} so we will not repeat it.
 \end{proof}
 
-A special case of the above lemma gives the following:
+A special case of the above \namecref{algorithmic:property-invertible-extended} gives the following:
 \begin{corollary}
   \label{algorithmic:property-invertible-extended-corollary}
   The following are admissible:
@@ -96,9 +98,7 @@ A special case of the above lemma gives the following:
 \end{proof}
 
 
-We will also need a way to relate the channels in a typing context to the process being typed. Assume $\typeRecAJ P c \typeList$. Since we have a linear system, one might expect $\dom \ctx$ to be exactly the set of free channels of $P$ minus the channel $c$. However, this is not true due to two reasons. First, empty choices might be well-typed under any context. For example, we have $\typeRecAJR {\ctx, d : \internal \braces {}} {\tcase d {\braces {}}} c \typeList$ for any $\ctx$ and $\typeList$ by an application of $\internal\Left$. In this case, we might have $\free P \setminus \set{c} \subsetneq \dom \ctx$. Second, we allow unused branches in case expressions, which creates a problem even if we disallowed empty choices. As an example, consider
-$P = \tcase c {\set{ \tbranch {\lab_1} {\tclose c}, \tbranch {\lab_2} {\twait d {\tclose e}} }}$.
-We have $\typeRecAJR \emptyCtx P c {\externalSing {\lab_1} \terminate}$, but clearly $\dom \ctx \subsetneq \free P \setminus \set{c}$. So the intuition fails both ways. Fortunately, we do not require such a comprehensive analysis, and the following results suffice for out purposes:
+Finally, we will need a way to relate the channels in a typing context to the process being typed.
 
 \begin{lemma}
   \label{algorithmic:channel-in-context}
@@ -106,27 +106,5 @@ If $\typeRecDJ P c \typeList$ and $\blockedOn {\proc c P} d$ where $c \neq d$, t
 \end{lemma}
 \begin{proof}
   Follows from a simple induction on the typing derivation.
-\end{proof}
-
-\begin{lemma}
-  If $\typeRecAJ P c \typeList$ and $\typeRecAJR {\ctx'} P c \typeList$ then $\typeRecAJR {\ctx \cap \ctx'} P c \typeList$ and $\typeRecAJR {\ctx \cup \ctx'} P c \typeList$.
-\end{lemma}
-\begin{proof}
-  \todo{Check this proof. It looks simple, but might turn out to be very hard.}
-\end{proof}
-
-
-Lastly, we have the following inversion \namecref{algorithmic:restricted-process-inversion}:
-\begin{lemma}[Inversion of Process Typing]
-  \label{algorithmic:restricted-process-inversion}
-  If $\typeRecAJ P c \typeList$, then
-  \begin{itemize}
-    \item if $P = \tfwd c d$, then $\ctx = d : \typeListB$ and $\typeListB \subA \typeList$,
-    \item if $P = \tspawnType d {Q_d} A {P'_d}$, then $\ctx = \parens{\ctx_1, \ctx_2}$, $\typeRecAJR {\ctx_1} {Q_d} d A$, and $\typeRecAJR {\ctx_2, d : A} P c \typeList$, and
-    \item \todo{Case for recursive processes.}
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  \todo{Check this lemma. It should be easy with the previous lemma.}
 \end{proof}
 
