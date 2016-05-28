@@ -6,7 +6,9 @@ DBLP:conf/tacs/Damm94 as Damm94
 DBLP:conf/fossacs/DunfieldP03 as Dunfield03
 DBLP:conf/popl/DunfieldP04 as DunfieldP04
 DBLP:journals/iandc/CervesatoS09 as CervesatoS09
+DBLP:conf/ppdp/CastagnaDGP09 as CastagnaDGP09 
 DBLP:conf/concur/CairesP10 as CairesP10
+DBLP:journals/corr/abs-1101-4429 as Padovani10
 DBLP:conf/csl/DeYoungCPT12 as DeYoungCPT12
 DBLP:conf/esop/CairesPPT13 as CairesPPT13
 DBLP:conf/esop/ToninhoCP13 as ToninhoCP13

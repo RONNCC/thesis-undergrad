@@ -107,6 +107,7 @@
 
 % Context
 \newcommand{\emptyCtx}{\emptyset}
+\newcommand{\emptyConfig}{\emptyset}
 \newcommand{\remove}{\mathbin{/}}
 \newcommand{\ctx}{\Psi}
 \newcommand{\recCtx}{\eta}
@@ -127,8 +128,8 @@
 \newcommand\typeRecAJR[1]{\typeRecA{#1}{\recCtx}}
 \newcommand{\typeList}{\alpha}
 \newcommand{\typeListB}{\beta}
-\DeclareMathOperator\all{all}
-\DeclareMathOperator\any{any}
+\DeclareMathOperator\all{\bigsqcap}
+\DeclareMathOperator\any{\bigsqcup}
 
 
 % Configurations
@@ -161,8 +162,9 @@
 \newcommand\rec{\mu}
 \newcommand\procVar{\irb{var}}
 
-\newcommand\confOne{\irb{cf}_1}
-\newcommand\confN{\irb{cf}_n}
+\newcommand\confZero{\irb{config}_0}
+\newcommand\confOne{\irb{config}_1}
+\newcommand\confN{\irb{config}_n}
 
 \NewEnviron{rules}[2][]{%
   \begin{figure}[!ht]
