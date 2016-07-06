@@ -1,0 +1,93 @@
+----------------------- REVIEW 1 ---------------------
+PAPER: 4
+TITLE: Intersections and Unions of Session Types
+AUTHORS: Cosku Acay and Frank Pfenning
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- Review -----------
+I quite like the paper, but have one observation that I think needs some serious thought: in the context of linear terms (or processes), it makes no sense at all to consider intersection types. Also, the motivation for adding union is rather flimsy: `they are a natural extension to a type system with intersections'.
+So we find ourselves considering a system where linearity is forced upon the calculus to deal with union types, that are added because intersection types are there, which have no use in a linear calculus.
+
+The authors need to give a clear example of why union types are needed, and give a better solution for the subject-reduction problem than linearising the calculus, like using the process variant of call by value or name reduction.
+
+It might be that a motivation for using intersection directly lies in the {\tt Nat} example of Section 4, where a subtype hierarchy is assumed, as well as an overloaded type for {\tt s}. For me, this is as good a motivation as any, but then the paper should be structured along that line.
+
+Corrections / comments:
+
+
+page 3:
+? give a cite for the calculus you use (What does he mean by that? I do refer to the other three papers that introduced this)
+
+
+page 4:
+? could you state explicitly what is the underlying logic of the system in FIg 1, if any? (Is this based on a specific linear logic?)
+
+page 5:
+? I prefer `equi-recursive' (what do you think?)
+
++ do you need to consider an equivalence on recursive types? I bet it is decidable. (don't see how this relates)
+
+? what is `rec $p(\overline{c}).P_p$'s role in the reduction relation? (described in a different paper, don't have too much space)
+
+? Why is the $\eta$ added as a subscript on the turnstile? is this an additional notion of type assignment that inherits the other rules, of would it be better to define $ \psi;\eta \vdash P :: (c : A)$? moreover, an $\eta$ is missing in the premise of the second rule (should I explain this?)
+
+page 6:
+
+? I do not see why the type inclusion relation would need to be defined coinductively. Types are not infinite structures, and neither are processes. (this is quite common in the equirecursive setting, should I mention it somewhere)?
+
+page 8:
+? use $\Gamma$ and $\Delta$ for multisets of types, as is standard, rather than $\alpha$ and $\beta$ (what do you think? These are used for functional and the affine context in other works, though I don't have those here.)
+
+page 10:
+
+? `This is solved by adding \ldots': this sentence is far too cryptic (do you have any suggestions?)
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 4
+TITLE: Intersections and Unions of Session Types
+AUTHORS: Cosku Acay and Frank Pfenning
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- Review -----------
+The paper motivates and study the addition of union and intersection types in the context of session types and their relation with linear logic. The paper is really well written and presents some technical challenges that at first sight one would not expect. Since the reader of ITRS proceedings will be certainly familiar with intersection and union types but less likely with session types and thir relation with linear logic, the presentation would have been improved if the authors had included more detailed explanation of them and of the processes (in particular I would have liked to see the example in appendix D moved in the main text). However I perfectly understand that this is just due to space limitations and I am pretty sure the authors are aware of that.
+
+
+? In the abstract you say that the use of intersection and union was first suggested by Padovani, [but] I think that the first suggestion of that was made in PPDP 09 by Castagna, Dezani, Giachino and Padovani) ( He is right. The paper indeed mentions intersections and unions. I will add this, but should I keep the other paper?)
+
+
+
+In section 4.1 you say : Note that as is usual with intersections, multiple types are assigned to the same process.
+Put differently, we cannot use two different processes or specify two different behaviors to
+satisfy the different branches of an intersection.
+
+? I agree on the first sentence but not on the second (which holds true for your system). Indeed have you considered to replace the syntax for receive with a case *on the type of the message received*?
+This would allow you to give different behaviours, and also to encode the choices (so that they no longer are a generalization). You would probably miss the direct connection with linear logic but it seems an option worth exploring. (This is a separate concern.)
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 4
+TITLE: Intersections and Unions of Session Types
+AUTHORS: Cosku Acay and Frank Pfenning
+
+OVERALL EVALUATION: 1 (weak accept)
+REVIEWER'S CONFIDENCE: 3 (medium)
+
+----------- Review -----------
+This paper proposes an extension of session types with intersection and union types,
+and studies subtyping and type-checking algorithms.
+
+? I would, however, have liked to see more convincing examples that show the usefulness
+of the proposed extension, beyond the Nat/Even/Odd example. (Good point. I suspect there is more uses than just refinements, though I don't have time to dig them up now.)
+
+As for the definition of subtyping, it seems the following relation is not derivable:
+
+   (A -o B) /\ (A -o C) <:  A -o (B/\C)
+
+? Please provide a raitonale for why (A -o B) /\ (A -o C) <:  A -o (B/\C) should not hold. (Should I worry about this? It is a very specific example. I don't think there is a reason it _shouldn't_ hold, but it is hard to incorporate it )
+
+? page 11, reference 17: please provide more information to access the paper (such as URL) (It is easy to find on Google. Should I?)
