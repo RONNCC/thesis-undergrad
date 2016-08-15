@@ -1,0 +1,6 @@
+TITLE: Intersections and Unions of Session Types
+AUTHOR: Cosku Acay
+AUTHOR: Frank Pfenning
+
+ABSTRACT:
+Prior work has extended the deep, logical connection between linear sequent calculus and session-typed message-passing concurrent computation with equirecursive types and a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. We prove session fidelity and absence of deadlock and illustrate the expressive power of our system with some simple examples. We observe that we can represent internal and external choice by intersection and union, respectively.
