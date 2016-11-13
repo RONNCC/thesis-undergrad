@@ -1,6 +1,6 @@
 \documentclass[submission,copyright,creativecommons]{eptcs}
 \providecommand{\event}{ITRS 2016} % Name of the event you are submitting to
-\usepackage{breakurl}              % Not needed if you use pdflatex only.
+%\usepackage{breakurl}              % Not needed if you use pdflatex only.
 
 \usepackage{microtype}
 
@@ -17,6 +17,7 @@
 
 \usepackage{macro/generic}
 \usepackage[index=\indexVar,label=\lab]{../macro/language}
+\usepackage{courier}
 \usepackage{../macro/code}
 
 
@@ -64,7 +65,7 @@ Our contributions are summarized below:
 
 \section{From Linear Logic to Session Types}
 \label{base}
-We only give a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut-elimination steps as communication. For this correspondence, hypotheses are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This gives us the following form for typing judgments:
+We give only a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used \emph{exactly} once. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut-elimination steps as communication. For this correspondence, hypotheses are labelled with channels (rather than with variables). We also assign a channel name to the conclusion since processes are not evaluated like in a functional language but are communicated with (along a channel). This gives us the following form for typing judgments:
 $$ \typeD {c_1 : A_1, \ldots, c_n : A_n} P c A$$
 which should be interpreted as ``$P$ offers along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ (linearly) with the corresponding types''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct.
 
@@ -83,7 +84,7 @@ Working out the isomorphism further and assigning a session type to each linear 
 \end{tabular}
 \end{center}
 
-The types we care about the most in this paper are $\internals A I$ and $\externals A I$ which are generalizations of the binary additive disjunction ($\internal$) and conjunction ($\external$). $\internals A I$ is called an internal choice, since the label is picked by the provider (we always consider the world from the provider's perspective). In the same vein, $\externals A I$ is an external choice since the choice is made externally by the client. In either case, $I$ is a \emph{finite} non-empty set, the order of labels does not matter, and each label must be unique.
+The types we care about the most in this paper are $\internals A I$ and $\externals A I$ which are generalizations of the binary additive disjunction ($\internal$) and conjunction ($\external$). $\internals A I$ is called an internal choice, since the label is selected by the provider (we always consider the world from the provider's perspective). In the same vein, $\externals A I$ is an external choice since the choice is made externally by the client. In either case, $I$ is a \emph{finite} non-empty set, the order of labels does not matter, and each label must be unique.
 
 
 \subsection{Process Expressions}
@@ -141,7 +142,7 @@ These are very simple examples, though we hope they offer some insight into the 
 
 \subsection{Type Assignment for Processes}
 
-The typing rules for processes are derived from linear logic by decorating derivations with proof terms. The rules are given in Figure~\ref{session-assignment}. One thing to note is that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier, as discussed in section~\ref{original-subtyping}.
+The typing rules for processes are derived from linear logic by decorating derivations with proof terms. The rules are given in \cref{session-assignment}. One thing to note is that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier, as discussed in \cref{original-subtyping}.
 
 \begin{rules}[session-assignment]{Type assignment for process expressions}
   % id and cut
@@ -296,7 +297,7 @@ Intuitively, it is easy to see that $\pos$, $\even$, $\odd$ are all subtypes of 
 
 
 \subsection{Intersection Types}
-We denote the intersection of two types $A$ and $B$ as $A \intersect B$. A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign the programs introduced in section~\ref{process-expressions} types specifying all behavioral properties we care about:
+We denote the intersection of two types $A$ and $B$ as $A \intersect B$. A process offers an intersection type if its behavior satisfies both types simultaneously. Using intersections, we can assign the programs introduced in \cref{process-expressions} types specifying all behavioral properties we care about:
 \begin{lstlisting}[language=krill, style=custom]
   z : Nat and Even
   s : (Nat -o Nat) and (Even -o Odd) and (Odd -o Even)
@@ -404,7 +405,7 @@ Our solution is doing the obvious: if the problem is losing half the information
 \footnote{We use multisets rather than sets since types have nontrivial equality, so it is not obvious when we should combine them into one. Additionally, we do not want to worry about whether the rest of the context already had a given type before we add it in.}
 This results in a system reminiscent of \cite{Gentzen35, Girard87}. However, we take a slightly different approach since we are working with coinductive rules.
 
-The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. We conjecture that matching multiple types might give us distributivity of intersection and union over structural types, however, this is not trivial to do without breaking type safety.
+The rules are given in \cref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. We conjecture that matching multiple types might give us distributivity of intersection and union over structural types, however, this is not trivial to do without breaking type safety.
 
 \begin{rules}[subtyping-multi]{Subtyping with multiple hypothesis and conclusions; coinductively}
   % Intersection
@@ -440,6 +441,7 @@ The rules are given in Figure~\ref{subtyping-multi}. We use $\typeList$ and $\ty
 
 
 \subsection{Reinterpreting Choice}
+\label{reinterpreting-choice}
 
 In this section, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process-level constructs whereas intersections are implicit.
 
@@ -471,7 +473,7 @@ Designing a type checking algorithm is quite simple for the base system where we
 
 In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free, and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
 
-The former problem is solved by switching to \emph{bidirectional type-checking} where we only check subtyping at the identity rule (delegation). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The new judgment is written $\typeRecAJ P c \typeList$, where $\ctx$ and $\typeList$ are multisets. Typing rules are given in Figure~\ref{algorithmic-typing}. Rules for recursive processes are not duplicated since they simply capture sets of types rather than a single type.
+The former problem is solved by switching to \emph{bidirectional type-checking} where we only check subtyping at the identity rule (delegation). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The new judgment is written $\typeRecAJ P c \typeList$, where $\ctx$ and $\typeList$ are multisets. Typing rules are given in \cref{algorithmic-typing}. Rules for recursive processes are not duplicated since they simply capture sets of types rather than a single type.
 
 
 \begin{rules}[algorithmic-typing]{Process Typing in the Algorithmic System}
@@ -569,7 +571,7 @@ Next, we show that the algorithmic system is sound and complete with respect to 
   If $\typeRecDJ P c A$, then there exists $P'$ such that $\erase{P'} = P$ and $\typeRecAJ {P'} c A$.
 \end{theorem}
 \begin{proof}
-  By induction on the typing derivation, using lemma~\ref{algorithmic:delegation-sub} for $\irb{Sub}\Right$ and $\irb{Sub}\Left$.
+  By induction on the typing derivation, using \cref{algorithmic:delegation-sub} for $\irb{Sub}\Right$ and $\irb{Sub}\Left$.
 \end{proof}
 
 
@@ -598,6 +600,11 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
   By inversion on $\steps{\config}{\config'}$, followed by induction on the typing judgments of the involved processes.
 \end{proof}
 
+
+\section{Related Work}
+\label{conclusion}
+
+Padovani describes a calculus very similar to ours~\cite{Padovani10} where he interprets session types (more specifically, internal and external choices) using intersections and unions. This is quite similar to what we did in \cref{reinterpreting-choice} except we keep singleton choices at the type and term levels to maintain the connection to linear logic whereas Padovani is able to remove them completely since his calculus is based on \textsc{CSS}~\cite{NicolaH87}. More significantly, he does not consider higher-order types and processes (which allow communicating channels themselves), or algorithmic (sub)typing; and he gives a semantic formulation of subtyping instead of the axiomatic formulation we have.
 
 \section{Conclusion}
 \label{conclusion}
