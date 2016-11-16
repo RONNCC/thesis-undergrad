@@ -207,7 +207,7 @@ and any number of incoming edges that correspond to channels the process uses. T
    & \providesCtx \config \ctx
    }
    \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
-    { \provides {\config_i} {c_i} {A_i} ~\text{for}~ i \in \set{1, \ldots, n}
+    { \provides {\config_i} {c_i} {A_i}~\text{for}~i \in \set{1, \ldots, n}
     & i > 1
     }
 \end{mathpar}
@@ -602,13 +602,12 @@ If $\providesCtx \config \ctx$ and $\steps{\config}{\config'}$ then $\providesCt
 \end{proof}
 
 
-\section{Related Work}
-\label{related-work}
-
-Padovani describes a calculus very similar to ours~\cite{Padovani10} where he interprets internal and external choices using intersections and union. This is quite similar to what we did in \cref{reinterpreting-choice} except we keep singleton choices at the type and term levels to maintain the connection to linear logic. Padovani is able to remove them completely since his calculus is based on \textsc{CSS}~\cite{NicolaH87}. While we give axiomatic rules for (sub)typing, he takes a semantic approach. We believe this is complementary to our work, though it makes deriving algorithmic rules harder (in fact, Padovani leaves this as future work). More significantly, Padovani does not consider higher-order types and processes, which means it is not possible to communicate channels along channels.
-
-\section{Conclusion}
+\section{Related Work and Conclusion}
 \label{conclusion}
+
+Padovani describes a calculus similar to ours~\cite{Padovani10} where he interprets internal and external choices as union and intersection, respectively. This resembles what we did in \cref{reinterpreting-choice} except we keep singleton choices at the type and term levels to maintain the connection to linear logic, whereas Padovani is able to remove them completely since his calculus is based on \textsc{CSS}~\cite{NicolaH87}. While we give axiomatic rules for (sub)typing, he takes a semantic approach, which we believe is complementary to our work. However, semantic definitions make deriving algorithmic rules harder and he leaves this as future work. More significantly, Padovani does not consider higher-order types and processes, which means it is not possible to communicate channels along channels. Moreover, his calculus only deals with the interaction between two processes that are required to have matching (or dual) types and behaviors (for example, if one sends, the other must receive etc.). We consider a tree of processes where each process can use many providers (as long as it respect the behavior along their channels) and even spawn new ones. For example, a client using two providers could communicate with one of them while the other is idle, or ignore both altogether and only communicate with \emph{its} client.
+
+Castagna et al.\ describe a generic framework~\cite{CastagnaDGP09} that make use of set operations (intersection, union, and negation) for sessions and take a semantic approach as well. Their framework has the advantage that it is agnostic to the underlying functional language. There are descriptions of our base calculus that take a similar approach~\cite{ToninhoCP13} and it should not be too hard to extend them to cover our contributions. Contrary to Padovani, Castagna et al.\ have higher order sessions and give algorithms to decide all semantic relation they describe. However, their system and presentation are significantly different from ours because of their semantic emphasis, inclusion of negation (which makes their session language Boolean), and treatment of process composition (which is closer to Padovani's).
 
 We introduced intersections and unions to a simple system of session types, and demonstrated how they can be used to refine behavioral specifications of processes. Some aspects that would be important in a full accounting of the system are omitted for the sake of brevity or are left as future work. For example, integrating an underlying functional language \cite{ToninhoCP13}, adding shared channels \cite{CairesP10,PfenningG15}, or considering asynchronous communication \cite{DeYoungCPT12,PfenningG15,Griffith16phd} are straightforward extensions based on prior work. In addition, it would be very useful to have behavioral polymorphism \cite{CairesPPT13} and abstract types. Their interaction with subtyping, intersections, and unions is an interesting avenue for future work.
 
