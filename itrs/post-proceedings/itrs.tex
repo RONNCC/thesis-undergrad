@@ -17,9 +17,7 @@
 
 \usepackage{macro/generic}
 \usepackage[index=\indexVar,label=\lab]{../macro/language}
-
 \usepackage{../macro/code}
-\lstset{language=krill, style=custom}
 
 
 \title{Intersections and Unions of Session Types%
@@ -294,7 +292,7 @@ Recall our definition of process-level naturals $\nat$. One can imagine cases wh
   type Odd = $\internal${succ : Even}
 \end{lstlisting}
 
-Intuitively, it is easy to see that $\pos$, $\even$, $\odd$ are all subtypes of $\nat$. We run into a problem when we try to implement the behavior described by these types, however. Consider the $\mathtt{s}$ function, for example, which satisfies many properties: $\nat \lolli \nat$, $\pos \lolli \pos$, $\even \lolli \odd$, $\odd \lolli \even$ etc. Subtyping can be used to combine some of these (e.g.\ $\nat \lolli \pos$ for $\nat \lolli \nat$ and $\pos \lolli \pos$) but it is not expressive enough to combine all properties. An elegant solution is to add intersections to the type system.
+Intuitively, it is easy to see that $\pos$, $\even$, and $\odd$ are all subtypes of $\nat$. We run into a problem when we try to implement the behavior described by these types, however. Consider the $\mathtt{s}$ function, for example, which satisfies many properties: $\nat \lolli \nat$, $\pos \lolli \pos$, $\even \lolli \odd$, $\odd \lolli \even$ etc. Subtyping can be used to combine some of these (e.g.\ $\nat \lolli \pos$ for $\nat \lolli \nat$ and $\pos \lolli \pos$) but it is not expressive enough to combine all properties. An elegant solution is to add intersections to the type system.
 
 
 \subsection{Intersection Types}

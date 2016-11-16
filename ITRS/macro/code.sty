@@ -6,10 +6,10 @@
 \RequirePackage{color}
 
 % Types
-\newcommand\nat{\mathtt{Nat}}
-\newcommand\pos{\mathtt{Pos}}
-\newcommand\even{\mathtt{Even}}
-\newcommand\odd{\mathtt{Odd}}
+\newcommand\nat{\text{\lstinline{Nat}}}
+\newcommand\pos{\text{\lstinline{Pos}}}
+\newcommand\even{\text{\lstinline{Even}}}
+\newcommand\odd{\text{\lstinline{Odd}}}
 
 % Listings settings
 \lstdefinestyle{custom}{%
@@ -44,4 +44,6 @@
   escapechar=@,            % Latex inside code with @...@
   escapeinside={\{*}{*\}}, % Latex comment with {* ... *}
 }
+
+\lstset{language=krill, style=custom}
 
