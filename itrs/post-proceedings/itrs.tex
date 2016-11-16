@@ -42,7 +42,7 @@ Pennsylvania, USA}
 \maketitle
 
 \begin{abstract}
-  Prior work has extended the deep, logical connection between linear sequent calculus and session-typed message-passing concurrent computation with equirecursive types and a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. We prove session fidelity and absence of deadlock and illustrate the expressive power of our system with some simple examples. We observe that we can represent internal and external choice by intersection and union, respectively, which was previously suggested in \cite{CastagnaDGP09,Padovani10} for a different language of session types motivated by operational rather than logical concerns.
+  Prior work has extended the deep, logical connection between the linear sequent calculus and session-typed message-passing concurrent computation with equirecursive types and a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. We prove session fidelity and absence of deadlock and illustrate the expressive power of our system with some simple examples. We observe that we can represent internal and external choice by intersection and union, respectively, which was previously suggested in \cite{CastagnaDGP09,Padovani10} for a different language of session types motivated by operational rather than logical concerns.
 \end{abstract}
 
 
@@ -103,7 +103,7 @@ The processes (or proof terms) corresponding to these types are given below with
 \end{center}
 
 \par An example program will give more intuition about the system. We will look at process-level natural numbers, which will also be our running example in this paper. We write slightly sugared concrete syntax to ease presentation, but the mapping to abstract syntax presented above should be clear.%
-\footnote{Perhaps the only thing worth noting is that we write \lstinline!`<channel> $\leftarrow$ <process-name> = <body>! to introduce a recursive process where \lstinline!`<channel>! labels the channel the process \emph{provides}, and \lstinline!<body>! can refer to \lstinline!<process-name>! (see \cref{recursive}).}
+\footnote{Perhaps the only thing worth noting is that we write \lstinline{`<channel>} $\leftarrow$ \lstinline{<process-name> = <body>} to introduce a recursive process where \lstinline{`<channel>} labels the channel the process \emph{provides}, and \lstinline{<body>} can refer to \lstinline{<process-name>} (see \cref{recursive}). Additionally, we prefix channel names by \lstinline{`} to separate them from process names.}
 In addition, this example (along with any interesting one) requires recursive types, which are introduced in the next section. First, we define the interface:
 
 \begin{lstlisting}[language=krill, style=custom]
