@@ -1,0 +1,68 @@
+Suggestion: weak accept
+
+Summary: The work present an extension of session types with union and
+intersection types. It is based on prior work that established a
+connection between linear logic and session types. I suggest very
+weakly acceptance since the presentation needs further work and there
+is no comparison with closely related work. I do not suggest rejection
+but it is clear that in its present form the paper is not at a
+publishable level.
+
+
+ 
+
+Despite a detailed introduction of the connection between linear logic
+and session types I am not sure that the paper is accessible to
+anybody not already familiar with this connection. Types are well
+explained but expressions would deserve much more explanation. The
+authors instead chose to delegate the explanation to some examples
+using a concrete syntax that does not match the abstract syntax they
+introduced just before and in any case they example lack explanation
+too. They also adopt non uniform fonts for their examples
+(e.g. variables appear in roman in the example and teletype in the
+text, which makes the understanding difficult). All this can be easily
+fixed and are minor points. For me the most important point is
+comparison with related work that appeared in ITRS itself. The author
+say in the abstract: "we observe that we can represent internal and
+external choice by intersection and union, respectively, which was
+previously suggested in [6,17] for a different language of session
+types motivated by operational rather than logical concerns" and
+nothing else appears in the text. I believe that the paper needs a
+close comparison with Padovani work. Indeed I cannot understand the
+difference of the two systems: of course they differ a lot, at least
+by their origins, but I expect the authors to say more than that. In
+particular I was wondering whether the external and internal choices
+cannot be completely encoded (by using singleton types) thus obtaining
+a system that can be more closely compared with the one by
+Padovani. In particular in section 4.4 they give the following
+encoding:
+
+&{ lab_k : A_k }_k  = /\_k &{ lab_k : A_k }
+
+and likewise for sums. So I was wondering whether one cannot just
+completely get rid of even singleton choices by using the following
+encoding
+
+
+&{ lab_k : A_k }_k  = /\_k ({lab_k} --o A_k)
+
++{ lab_k : A_k }_k  = \/_k ({lab_k} x A_k)
+
+
+where lab_k is the singleton type containing lab_k. This seems to me
+would simplify the system, and make a comparison with Padovani work
+probably easier. Of course I can be wrong and the above encoding make
+no sense, but the fact that I cannot understand whether what I wrote
+make some sense should suggest the authors that some work of
+explanation is still need and that it is not always enough to give a
+pageful of typing rules if they come without any comment. In
+conclusion, it is difficult for me to recommend wholeheartedly
+acceptance, until more explanation are given, presentation issue are
+fixed and a comparison with Padovani's work is absent. Finally some
+more practical examples that would better motivate the work would be
+very welcom.
+
+
+
+
+

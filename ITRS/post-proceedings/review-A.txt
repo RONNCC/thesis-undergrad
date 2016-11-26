@@ -1,0 +1,30 @@
+Review of "Intersections and Unions of Session Types"
+
+The paper adds intersection and union types to a system of session
+types. This has been considered before, but the novelty is to express
+it within the formalism of the correspondence between session types
+and linear logic.
+
+The basic system of process calculus and its session type system is
+reviewed, followed by the addition of recursive types and
+subtyping. Next, intersection and union types are motivated by
+examples based on natural numbers and bit strings, and their typing
+rules are presented. This is the new material, and it is clearly
+presented and easy to follow. Then subtyping is considered in the
+presence of intersection and union types, which leads to the need to
+reformulate subtyping as a relation on multisets of types. External
+and internal choice are then reformulated as intersections and unions.
+
+The next section presents an algorithm for subtyping, and summarises
+the proof of its soundness and completeness with respect to the
+declarative definition.
+
+Finally, the paper summarises the proofs of the usual progress and
+type preservation theorems, for the language with intersection and
+union types.
+
+This is a nice paper, clearly presented and making a clear
+contribution to the theory of session types and in particular to the
+line of work relating session types and linear logic. It will be a
+good contribution to the proceedings of ITRS.
+
