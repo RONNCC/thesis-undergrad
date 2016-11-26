@@ -1,0 +1,162 @@
+> Referee report on 'Intersections and Unions of Session Types' by Cosku
+> Asay and Frank Pfenning.
+> 
+> The paper presupposes too much familiarity with the underlying process
+> calculus. There is no citation for the definition of processes, where
+> I can but assume that many different dialects exist.
+> The paper is poorly organised: concepts are used before being
+> introduced, or are not introduced at all.
+> 
+> The paper makes no comparison with other work on session types with
+> intersection and union (I refer directly to Padovani's paper and
+> Castagna et al's paper), which is a grave omission.
+> 
+> The definition of process syntax is confusing and incomplete. The
+> notion is one I am not familiar with (coming from the Pi calculus and
+> CSS), and there is no help given at all to the reader to explain the
+> notation. But a more grave shortcoming is that the syntax is not the
+> one used in the examples (the paper has the optimistic phrase
+> 'concrete syntax (...) the mapping to abstract syntax (...) should be
+> clear'; it is not) and processes are allowed to be recursive whereas
+> recursion is never dealt with formally. It gets introduced very
+> casually on page 6, never gets linked to type assignment, and is a
+> snake hiding in the grass: dealing with recursion in the context of
+> intersection and union types is not straightforward, and should be
+> dealt with in detail.
+> 
+> Moreover, some (recursive!) type declarations are used without being
+> introduced or even discussed. The same holds for recursive types:
+> these are crucial to the paper (in fact, many example use them) and
+> are only informally introduced on page 5.
+> 
+> Notation is haphazard and confusing: for example, first $P_x$ stands
+> for a process that has $x$ as a free variable, and then processes are
+> labelled with the name of the channel it 'provides'? Is this the same
+> as being free? If not, why overload this notation?
+> 
+> The operational semantics rules, some of which are expressed through a
+> quantifier, are badly formulated.
+> 
+> If I understand things correctly, the $c$ in $P$ in rule $\sqcap L_i$
+> occurs only once in $P$; in those rules, one of the component of the
+> intersection type (say $A$) is selected for $c$, and in $P$ there is
+> no further need for the other type $B$. So why have intersection types
+> at all? In terms of typability, I can just use the derivation for $
+> \Psi \vdash_{\eta} P :: (c:A) $ and that for $ \Psi, c:A \vdash_{\eta}
+> P :: (d:D) $ to achieve the desired result. Yes, you have intersection
+> types, but in terms of typability they make absolutely no
+> contribution. Can you give an example of a process for which you would
+> NEED intersection types? A similar observation can be made, of course,
+> for union types.
+> 
+> I do not believe that having intersection and union types in a linear
+> calculus makes any sense at all.
+> 
+> 
+> Minor comments:
+> 
+> Abstract: add 'the' to linear sequent calculus.
+> 
+> Add a hyphen in equirecursive to get equi-recursive throughout the paper.
+> 
+> Page 2: Why should the $c$ in the judgment be different from the
+> $c_i$s in the context?
+> 
+> I'm not sure why channel name appear only once in processes? Does
+> communication not take place over channels, and does that not imply
+> that a channel name has to appear twice?
+> 
+> Page 3: Explain why is it necessary to subscript a process $P$ with a
+> variable name $x$ as in $P_x$ to indicate that $x$ is free in $P$.
+> Also, no notion of binding has been mentioned. Can a process have more
+> than one free variable? If so, is is possible that $P_x = P_y$, with
+> $x \not= y$? Are processes linear over their variables as well, or can
+> $x$ appear many times in $x$? The notation $P_a$ is very confusing; I
+> see no reason to not record which variable has been replaced in $P$.
+> Using the present notation, the identity of the variable has
+> disappeared, so it is not clear which of the variables in $P$ got
+> replaced by $a$ in $P_a$. Better use $P[a/x]$.
+> 
+> According to the syntax, variables are not processes themselves; can
+> you explain how the interaction between processes deals with
+> variables.
+> 
+> What is the fourth column in the 'definition' of the syntax about?
+> Types? Intuition? How is 'id' the same as 'forward'?
+> 
+> In the definition of syntax, it would be helpful to give a brief
+> explanation of the notation used. For example, how should I read $x
+> \leftarrow P_x;Q_x$ of $send c (y \leftarrow P_y);Q$?
+> 
+> Why are there backquotes in the 'concrete' syntax? It seems that the
+> semicolon is used also for some kind of sequential composition between
+> processes, which is missing from the syntax definition.
+> 
+> 2.2 Write 'Section 3.3'
+> 
+> Figure 1: Should you not have used $P_d$ also in the premise of rule
+> $\otimes R$?
+> 
+> Page 4: In rule $config_1$, what is $\vdash_0$? And what is $\Omega
+> \models \Psi$? How can there be more that one statement after
+> $\models$, and why should $\Omega$ 'satisfy' all of $\Psi$, and is it
+> not enough that it satisfies one of the statements?
+> 
+> Page 5: What reason is there to use the lollipop arrow also for
+> reduction and the $\oplus$ for process composition? This only creates
+> confusion and serves no real purpose.
+> 
+> What is that existential quantifier doing in the operational
+> semantics? Does the process run to True or False? Are these
+> conditional rules? Is $a$ produced by an oracle? There is some $a$,
+> but we do not know which one?
+> 
+> 'which means there are no explicit term level coercions': this is
+> incorrect. Identifying $\mu t.A$ and $A[\mu t . A / t]$ has nothing to
+> do with having fold and unfold. In the iso-recursive system you have
+> those syntactic markers, in the equi one you do not.
+> 
+> Page 6: 'which is parameterised over channels ... to allow renaming':
+> I have no idea what you mean by that.
+> 
+> Last line: Section 2.1
+> 
+> Page 7: 'should be interpreted coinductively' The only reason this is
+> the case is because of recursive types, but the rules dealing with
+> those are omitted. I find this worrying.
+> 
+> Page 7-8 'It is important to note that we restore (...) our use of the
+> linear sequent calculus' This is quite a strong claim to make that
+> does not get substantiated at all. I strongly suspect that you have
+> flattened the calculus so much that the problem disappears, not that
+> you have solved it.
+> 
+> Page 8: It would be good to see a derivation for the example on page 8.
+> 
+> Why not add $Nat \leq Even \sqcup Odd$ to the type declarations? If
+> you allow user defined types, why not user defined subtypes?
+> 
+> 'Note that checking (...) rather than infer the least one'. You are
+> taking a big leap of faith here. Not only have you not presented any
+> notion of type checking (so far). What is the 'bidirectional nature of
+> our system'?  How can the type checker 'check a fixed point'? This is
+> all far too vague and imprecise.
+> 
+> Section 4.3: why is in interesting to have these distributivity laws
+> in the system? What problem is solved by making sure they are allowed?
+> 
+> Page 10: 'at which point we non-deterministically pick'; what if you
+> pick the wrong one? Do you back-track, and pick another? Is this an
+> exhaustive search?
+> 
+> Page 11: How can 'one of the types in $A \leq B$ be free? How do you
+> bind a type?
+> 
+> 'Rules for recursive processes (...) than a single type.' I have not
+> found a single rule for recursion in the paper.
+> 
+> Theorem 5.1 What is 'suitably converted'? You cannot state a theorem
+> through handwaving.
+> 
+> Figure 3: I would expect that at least these rules would deal with
+> recursion, but alas, no.
