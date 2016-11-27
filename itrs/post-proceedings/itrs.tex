@@ -89,7 +89,7 @@ The types we care about the most in this paper are $\internals A I$ and $\extern
 \subsection{Process Expressions}
 \label{process-expressions}
 
-The processes (or proof terms) corresponding to these types are given below with the sending construct followed by the receiving construct. The notation $P_x$ means $P$ can contain the channel $x$ as a free variable. We will also use it as a shorthand for substitution, writing $P_a$ for $\subst a x P$ (where $\subst a x P$ is the capture avoiding substitution of $a$ for $x$ in $P$).
+The processes (or proof terms) corresponding to these types are given below with the sending construct followed by the receiving construct. The notation $P_x$ is used to emphasize that channel $x$ occurs free in $P$ (it does not have to be the only free channel), and also as a shorthand for substitution, writing $P_a$ for $\subst a x P$ (where $\subst a x P$ is the capture avoiding substitution of $a$ for $x$ in $P$).
 \begin{center}
 \begin{tabular}{l c l l}
   $P, Q, R$ & ::= & $\tspawn{x}{P_x}{Q_x}$     & cut (spawn) \\
@@ -100,7 +100,9 @@ The processes (or proof terms) corresponding to these types are given below with
 \end{tabular}
 \end{center}
 
-\par An example program will give more intuition about the system. We will look at process-level natural numbers, which will also be our running example in this paper. We write slightly sugared concrete syntax to ease presentation, but the mapping to abstract syntax presented above should be clear.%
+\par The intuitive readings of expressions are as follows. $\tspawn{x}{P_x}{Q_x}$ spawns a new process $P_x$ providing along the channel $x$, and $Q_x$ can use this new channel. This corresponds to the cut rule in sequent calculus (see the typing rules in \cref{session-assignment}). Forward identifies a channel in the context with the provided channel. A possible implementation of a forwarding process might tell the two end-points to communicate with each other and terminate, effectively, tying the two ends together and stepping out of the way. $\tclose c$ sends the label \texttt{end} and terminates, whereas $\twait c P$ waits for the same label (along $c$) and continues as $P$ (similar to waiting on a terminated process in Linux). $\mathrm{send}$ and $\mathrm{recv}$ are used for communicating channels along channels. In the case of $\tsend c y {P_y} Q$, a new process $P_y$ is spawned, but unlike cut, the rest of the process ($Q$) cannot refer to the new channel $y$, since it is sent along $c$ to be used by a different process. Finally, $\tselect c {} P$ sends $\lab$ along $c$, and $\tcase c {\tbranches Q I}$ receives a label along $c$ and cases on it. These are used to determine which branches to take in internal and external choices.
+
+An example program will provide more intuition about the system. We will look at process-level natural numbers, which will also be our running example in this paper. We write slightly sugared concrete syntax to ease presentation, but the mapping to abstract syntax presented above should be clear.%
 \footnote{Perhaps the only thing worth noting is that we write \lstinline{`<channel>} $\leftarrow$ \lstinline{<process-name> = <body>} to introduce a recursive process where \lstinline{`<channel>} labels the channel the process \emph{provides}, and \lstinline{<body>} can refer to \lstinline{<process-name>} (see \cref{recursive}). Additionally, we prefix channel names by \lstinline{`} to separate them from process names.}
 In addition, this example (along with any interesting one) requires recursive types, which are introduced in the next section. First, we define the interface:
 
@@ -158,7 +160,7 @@ The typing rules for processes are derived from linear logic by decorating deriv
     {\typeDJ{P}{d}{A}}
   % Tensor
   \and \infer[\tensor\Right]{\typeD{\ctx, \ctx'}{\tsend{c}{d}{P_d}{Q}}{c}{A \tensor B}}
-    { \typeD{\ctx}{P}{d}{A}
+    { \typeD{\ctx}{P_d}{d}{A}
     & \typeD{\ctx'}{Q}{c}{B}
     }
   \and \infer[\tensor\Left]{ \typeD{\ctx, c : A \tensor B}{\trecv{d}{c}{P_d}}{e}{E} }
@@ -201,7 +203,7 @@ and any number of incoming edges that correspond to channels the process uses. T
 \begin{mathpar}
   \infer[\confZero]{\providesCtx{\emptyConfig}{\emptyCtx}} {}
   \and \infer[\confOne]{\provides{\config, \proc c P}{c}{A}}
-   { \typeRecD \ctx \emptyset P c A
+   { \typeD \ctx P c A
    & \providesCtx \config \ctx
    }
    \and \infer[\confN]{\providesCtx {\config_1, \ldots, \config_n} {\parens{c_1 : A_1, \ldots, c_n : A_n}}}
@@ -345,7 +347,7 @@ Being dual to intersections, the typing rules for unions mirror the typing rules
     {\typeRecD{\ctx, c : A}{\recCtx}{P}{d}{D} & \typeRecD{\ctx, c : B}{\recCtx}{P}{d}{D}}
 \end{mathpar}
 
-The right rules state the process has to offer either the left type or the right type respectively. The left rule says we need to be prepared to handle either type. It is important to point out that we restore a long-lost symmetry for functional languages. The natural left rule we give here for unions (natural since it is dual to the right rule for intersection) has been shown to be problematic in functional languages \cite{Barbanera95ic}. One solution limits the left rule to expressions in evaluation position \cite{DunfieldP04}. The straightforward left rule turns out to be already sound here due to our use of the linear sequent calculus.
+The right rules state the process has to offer either the left type or the right type respectively. The left rule says we need to be prepared to handle either type. It is interesting to observe that the usual problems with unions in functional languages do not arise in our setting. The natural left rule we give here (natural since it is dual to the right rule for intersection) has been shown to be unsound in functional languages \cite{Barbanera95ic}. One somewhat heavy solution limits the left rule to expressions in evaluation position \cite{DunfieldP04}. The straightforward left rule turns out to be already sound here since the linear sequent calculus is better behaved.
 
 The usual subtyping rules are given below. These make the right rules derivable so they are not explicitly added to the system.
 
@@ -470,7 +472,7 @@ Second, the coinductive nature of typing means we can (and often will) have infi
 
 Designing a type checking algorithm is quite simple for the base system where we only have structural types (no recursion or subtyping), since the form of the process determines a unique applicable typing rule. The $\cut$ rule causes a small problem since we do not have a type for the helper process to check against. This is solved by adding type annotations in spawning processes so that the new form is $\tspawnType c {P_c} A {Q_c}$.
 
-In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ is free, and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
+In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ can be anything (the other will be fixed due to typing rules, but one causes enough damage), and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a multiset context multiple conclusion logic just like we did with subtyping. This makes intersection left and union right rules invertible, so they can be applied eagerly.
 
 The former problem is solved by switching to \emph{bidirectional type-checking} where we only check subtyping at the identity rule (delegation). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The new judgment is written $\typeRecAJ P c \typeList$, where $\ctx$ and $\typeList$ are multisets. Typing rules are given in \cref{algorithmic-typing}. Rules for recursive processes are not duplicated since they simply capture sets of types rather than a single type.
 
