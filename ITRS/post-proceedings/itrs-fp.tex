@@ -7,7 +7,7 @@
 \usepackage{amsmath, amsfonts, amsthm, amssymb, mathtools} % Math
 \usepackage{proof}              % For inference rules
 \usepackage{mathpartir}         % Automatic rule layout
-\usepackage{cleveref}           % Better references
+\usepackage[noabbrev]{cleveref} % Better references
 
 \usepackage[obeyFinal]{todonotes}
 
@@ -24,9 +24,6 @@
 \newcommand{\m}[1]{\mathsf{#1}}
 \newcommand{\mb}[1]{\mbox{\bf #1}}
 \newcommand{\semi}{\mathrel{;}}
-% \renewcommand{\tclose}[1]{\mb{close}\; #1}
-% \renewcommand{\tsend}
-% \renewcommand{\trecv}
 
 
 \title{Intersections and Unions of Session Types%
@@ -49,7 +46,7 @@ Pennsylvania, USA}
 \maketitle
 
 \begin{abstract}
-  Prior work has extended the deep, logical connection between the linear sequent calculus and session-typed message-passing concurrent computation with equirecursive types and a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. We prove session fidelity and absence of deadlock and illustrate the expressive power of our system with some simple examples. We observe that we can represent internal and external choice by intersection and union, respectively, which was previously suggested in \cite{CastagnaDGP09,Padovani10} for a different language of session types motivated by operational rather than logical concerns.
+  Prior work has extended the deep, logical connection between the linear sequent calculus and session-typed message-passing concurrent computation with equi-recursive types and a natural notion of subtyping. In this paper, we extend this further by intersection and union types in order to express multiple behavioral properties of processes in a single type. We prove session fidelity and absence of deadlock and illustrate the expressive power of our system with some simple examples. We observe that we can represent internal and external choice by intersection and union, respectively, which was previously suggested in \cite{CastagnaDGP09,Padovani10} for a different language of session types motivated by operational rather than logical concerns.
 \end{abstract}
 
 
@@ -59,12 +56,12 @@ Prior work has established a Curry-Howard correspondence between intuitionistic 
 
 In the base system, each type directly corresponds to a process of a certain form. For example, a process providing the type $A \tensor B$ first sends out a channel satisfying $A$, then acts as $B$. Similarly, a process offering $\terminate$ sends the label $\irb{end}$ and terminates. We call these \emph{structural types} since they correspond to processes of a certain structure. In this paper, we extend the base type system with intersections and unions. We call these \emph{property types} since they do not correspond to specific forms of processes in that any process may be assigned such a type. In addition, if we interpret a type as specifying a property, then intersection corresponds to satisfying two properties simultaneously and union corresponds to satisfying one or the other.
 
-Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type-safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equirecursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviors, which we demonstrate with examples analogous to those in functional languages \cite{FreemanP91,Dunfield03}.
+Our goal is to show that the base system extended with intersection, unions, recursive types, and a natural notion of subtyping is type-safe. We do this by proving the usual type preservation and progress theorems, which correspond to session fidelity and deadlock freedom in the concurrent context. In the presence of a strong subtyping relation and transparent (i.e.\ non-generative)  equi-recursive types, intersections and unions turn out to be powerful enough to specify many interesting communications behaviors, which we demonstrate with examples analogous to those in functional languages \cite{FreemanP91,Dunfield03}.
 
 Our contributions are summarized below:
 \begin{itemize}
   \item We introduce intersection and union types to a session-typed concurrent calculus and prove session fidelity and deadlock freedom.
-  \item We give a simple and sound coinductive subtyping relation in the presence of equirecursive types, intersections, and unions reminiscent of Gentzen's multiple conclusion sequent calculus \cite{Gentzen35, Girard87}.
+  \item We give a simple and sound coinductive subtyping relation in the presence of equi-recursive types, intersections, and unions reminiscent of Gentzen's multiple conclusion sequent calculus \cite{Gentzen35, Girard87}.
   \item We show how intersections and unions can be used as refinements of recursive types in a linear setting.
   \item We show decidability of subtyping and present a system for algorithmic type checking.
   \item We demonstrate how internal and external choice can be understood as singletons interacting with intersection and union.
@@ -75,10 +72,10 @@ Our contributions are summarized below:
 \label{base}
 We give only a brief review of linear logic and its connection to session types here. Interested readers are referred to \cite{CairesP10, PfenningG15, Honda93}. The key idea of linear logic is to treat logical propositions as resources: each must be used exactly once in a proof. According to the Curry-Howard isomorphism for intuitionistic linear logic, propositions are interpreted as session types, proofs as concurrent processes, and cut-elimination steps as communication. For this correspondence, hypotheses are labelled with channels (rather than with variables). We also assign a channel name to the conclusion so that a process \emph{providing} a session can refer to the same channel name as process \emph{using} it. This replaces the usual notion of \emph{duality} in classical session-typed calculi~\cite{Honda93} and gives us the following form for typing judgments:
 $$ \typeD {c_1 : A_1, \ldots, c_n : A_n} P c A$$
-which should be interpreted as ``\emph{$P$ provides along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ (linearly) with their corresponding types}''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct so that when a channel $c$ occurs in $P$ its reference is unambiguous.  We abbreviate hypotheses using $\ctx$,
+which should be interpreted as ``\emph{$P$ provides along the channel $c$ the session $A$ using channels $c_1, \ldots, c_n$ (linearly) with their corresponding types}''. We assume $c_1, \ldots, c_n$ and $c$ are all distinct so that when a channel $c$ occurs in $P$, its reference is unambiguous.  We abbreviate hypotheses using $\ctx$,
 $\ctx'$, etc.
 
-Two key rules explaining this judgment are \emph{cut} and \emph{identity}.  Logically, cut means that if we can prove $A$ then we can use it as a resource in the proof of some other proposition $C$.  Operationally, it corresponds to \emph{parallel composition} with a private shared variable for communication.
+Two key rules explaining this judgment are \emph{cut} and \emph{identity}.  Logically, cut means that if we can prove $A$, then we can use it as a resource in the proof of some other proposition $C$.  Operationally, it corresponds to \emph{parallel composition} with a private shared variable for communication.
 $$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
     { \typeD {\ctx} {P_c} {c} {A}
     & \typeD {\ctx', c : A} {Q_c} {d} {D}
@@ -86,12 +83,12 @@ $$ \infer[\cut]{ \typeD {\ctx, \ctx'} {\tspawn{c}{P_c}{Q_c}} {d} {D} }
 $$
 We write $\tspawn{c}{P_c}{Q_c}$ instead of the customary $(\nu c)(P_c \mid Q_c)$ because it is more readable in actual programs.  The subscript here indicates that $c$ is a bound variable and occurs in both $P_c$ and $Q_c$.
 
-Logically, the identity states the fundamental principle that the resource $A$ can be used to prove the conclusion $A$.  Operationally, it corresponds to \emph{forwarding}: we provide a session along channel $c$ by forwarding to $d$.  Note that forwarding does not have a direct correspondence in the $\pi$-calculus but can be implemented in terms of other primitives.
+Logically, the identity states the fundamental principle that the resource $A$ can be used to prove the conclusion $A$.  Operationally, it corresponds to \emph{forwarding}: we provide a session along channel $c$ by forwarding to $d$.  Note that forwarding does not have a direct correspondence in the $\pi$-calculus but can be implemented in terms of other primitives. \todo{Which primitives? Reference or explanation?}
 $$
   \infer[\id]{ \typeD {d : A} {\tfwd{c}{d}} {c} {A} }
     {}
 $$
-Forwarding is employed in session-typed programming with surprising frequency.
+Forwarding is employed in session-typed programming with surprising frequency as will be evident from the examples we provide.
 
 % Each process offers along a specific channel, and in the linear setting, each channel must be used exactly in one place. Processes cannot rename channels, which means we can treat channel names as unique process identifiers. It is important to note that linearity, or rather the lack of contraction, is crucial to the correctness of the system. Session types describe the behavior of processes and evolve over time as these processes communicate. If we were able to duplicate premises, we would have access to types that processes no longer satisfy, and could easily violate type safety.
 
@@ -107,9 +104,8 @@ Cut and identity are general constructs, independent of any particular propositi
 \end{tabular}
 \end{center}
 
-In this paper we do not need ${!}A$.  Instead of replication we use recursive types to describe recurring behavior.  We have also generalized the usual $A \oplus B$ to $\internals{A}{I}$ and $A \& B$ to $\externals{A}{I}$, which is in the tradition of much prior work on session types and makes programs much more readable.  Here, $I$ is a \emph{finite} non-empty set of distinct labels whose order does not matter.
+In this paper, we do not need ${!}A$.  Instead of replication, we use recursive types to describe recurring behavior. We also generalize the binary $A \oplus B$ to $\internals{A}{I}$ and $A \& B$ to $\externals{A}{I}$, which is in the tradition of much prior work on session types and makes programs more readable. Here, $I$ is a \emph{finite} non-empty set of distinct labels whose order does not matter. We call $\internals{A}{I}$ an internal choice since the provider selects which branch to take (i.e.\ the provider sends the label), and $\externals{A}{I}$ an external choice since the client makes the decision.
 
-% The types we care about the most in this paper are $\internals A I$ and $\externals A I$ which are generalizations of the binary additive disjunction ($\internal$) and conjunction ($\external$). $\internals A I$ is called an internal choice, since the label is selected by the provider (we always consider the world from the provider's perspective). In the same vein, $\externals A I$ is an external choice since the choice is made externally by the client. In either case, $I$ is a \emph{finite} non-empty set, the order of labels does not matter, and each label must be unique.
 
 \subsection{Process Expressions}
 \label{process-expressions}
@@ -125,44 +121,43 @@ The processes (or proof terms) corresponding to these types are given below with
 \end{tabular}
 \end{center}
 
-\par Because the a process $P$ always provides a session along a unique channel, we sometimes identify a process with the channel along which it provides. Keeping this in mind, the intuitive readings of process expressions are as follows. $\tspawn{x}{P_x}{Q_x}$ creates a fresh channel $c$, spawns a new process $P_c$ providing along the channel $c$, and $Q_c$ uses this new channel. The forwarding process $\tfwd c d$ terminates by globally identifying channels $c$ and $d$.  Further communciation along $c$ will instead take place along $d$. A possible implementation of a forwarding process might tell the two end-points to communicate with each other and terminate, effectively, tying the two ends together and stepping out of the way. Process $\tclose c$ sends the token \texttt{end} and terminates, whereas the matching $\twait c P$ waits for \texttt{end} along $c$ and continues as $P$.  Processes $\mathrm{send}$ and $\mathrm{recv}$ are used for communicating channels along channels. In the case of $\tsend c y {P_y} Q$, a new channel $d$ is created and a process $P_d$ is spawned, but unlike cut, the continuation ($Q$) cannot refer to the new channel $d$, since it is sent along $c$ to be used by a different process. Finally, $\tselect c {} P$ sends $\lab$ along $c$, and $\tcase c {\tbranches Q I}$ receives a label along $c$ and branches on it. These are used to determine which branches to take in internal and external choices.
+\par Because a process $P$ always provides a session along a unique channel, we sometimes identify a process with the channel along which it provides. Keeping this in mind, the intuitive readings of process expressions are as follows. $\tspawn{x}{P_x}{Q_x}$ creates a fresh channel $c$, spawns a new process $P_c$ providing along the channel $c$, and $Q_c$ uses this new channel. The forwarding process $\tfwd c d$ terminates by globally identifying channels $c$ and $d$.  Further communication along $c$ will instead take place along $d$. A possible implementation of a forwarding process might tell the two end-points to communicate with each other and itself terminate, effectively, tying the two ends together and stepping out of the way. Process $\tclose c$ sends the token \texttt{end} and terminates, whereas the matching $\twait c P$ waits for \texttt{end} along $c$ and continues as $P$.  Processes $\mathrm{send}$ and $\mathrm{recv}$ are used for communicating channels along channels. In the case of $\tsend c y {P_y} Q$, a new channel $d$ is created and a process $P_d$ is spawned, but unlike cut, the continuation ($Q$) cannot refer to the new channel $d$, since it is sent along $c$ to be used by a different process. Finally, $\tselect c {} P$ sends $\lab$ along $c$, and $\tcase c {\tbranches Q I}$ receives a label along $c$ and branches on it. These are used to determine which branches to take in internal and external choices.
 
 \subsection{Recursively Defined Types and Processes}
 
 For practical programming, we of course need recursive types and recursively defined processes. For this purpose we have a global signature of mutually recursive \emph{type definitions} and \emph{process definitions}.  Type definitions are straightforward, $t = A$, which adds defined type names as a new alternative to possible types. The fact that type definitions are transparent corresponds to an equi-recursive interpretation of types. Process definitions have the form $X :: (c:A) = P_c$ where $P$ provides session $A$ along $c$.
 $$ \recCtx ::= \cdot \mid \recCtx, t = A \mid X ::(c:A) = P_c $$
-Note that $c$ is a bound variable with scope $P$. Formally, our judgments are now decorated with a fixed signature $\recCtx$, but since it ordinarily does not change during a derivation we do not show it.
+Note that $c$ is a bound variable with scope $P$. Formally, our judgments are now decorated with a fixed signature $\recCtx$, but we might elide it since the signature usually does not change during a derivation.
 
-As an example, consider processes producing sequences of label $\m{succ}$ followed a single $\m{zero}$.
+As an example, consider processes producing a sequence of the label $\m{succ}$ followed a single $\m{zero}$ (i.e.\ Peano naturals).
 \[
 \begin{array}{lcl}
 \m{Nat} & = & \oplus\{\m{zero} : \terminate, \m{succ} : \m{Nat}\} \\
 \m{z} :: (c:\m{Nat}) & = & c.\m{zero} \semi \mb{close}\; c \\
-\m{s} :: (c:\m{Nat} \lolli \m{Nat}) & = & d \leftarrow \m{recv}\; c \semi c.\m{succ} \semi c \leftarrow d
+\m{s} :: (c:\m{Nat} \lolli \m{Nat}) & = & d \leftarrow \mb{recv}\; c \semi c.\m{succ} \semi c \leftarrow d
 \end{array}
 \]
 The $\m{s}$ process here receives a channel $d$ representing a natural number, outputs one $\m{succ}$, and then behaves like $d$.  Effectively, this computes the successor.  To double a natural number, we need a recursive process definition.
 \[
 \begin{array}{l}
 \m{double} :: (c:\m{Nat} \lolli \m{Nat}) = \\
-\quad d \leftarrow \m{recv}\; c \semi \\
+\quad d \leftarrow \mb{recv}\; c \semi \\
 \quad \mb{case}\; d\; \mb{of} \\
 \quad\quad \m{zero} \rightarrow \mb{wait}\; d \semi c.\m{zero} \semi \mb{close}\; c \\
 \quad\quad \m{succ} \rightarrow c.\m{succ} \semi c.\m{succ} \semi \\
-\hspace{6em} e \leftarrow \m{double} \semi \m{send}\; e\; (d' \leftarrow (d' \leftarrow d)) \semi c \leftarrow e
+\hspace{6em} e \leftarrow \m{double} \semi \mb{send}\; e\; (d' \leftarrow (d' \leftarrow d)) \semi c \leftarrow e
 \end{array}
 \]
+
 The last line here implements the following sequence:
 \[
 \begin{array}{ll}
-e \leftarrow \m{double} & \mbox{cut: cut start a new process $\m{double}$ which provides along the new $e$} \\
-\m{send}\; e\; (d' \leftarrow (d' \leftarrow d)) & \mbox{send a fresh channel $d'$ along $e$ to the new process,
-where $d'$ forwards $d$} \\
+e \leftarrow \m{double} & \mbox{cut: start a new process $\m{double}$ which provides along the new $e$} \\
+\mb{send}\; e\; (d' \leftarrow (d' \leftarrow d)) & \mbox{essentially, send $d$ along $e$ to the new process, but we have to use a forward} \\
 c \leftarrow e & \mbox{now forward $e$ to $c$}
 \end{array}
 \]
 This is a frequent pattern, so we make two small improvements in the surface syntax: (1) we parameterize process definitions with the channels that they provide and use, and (2) instead of creating a new process and then forwarding it, we directly implement the provider channel with a new call. Then the definition becomes the much more readable
-
 \[
 \begin{array}{l}
 \m{double} : \m{Nat} \lolli \m{Nat} \\
@@ -174,20 +169,21 @@ c \leftarrow \m{double}\; d = \\
 \end{array}
 \]
 
+In an actual implementation, the new definition would be ``desugared'' to the previous one.
+
 \subsection{Type Assignment for Processes}
 
-The typing rules for processes are derived from linear logic by decorating derivations with proof terms. The rules are given in \autoref{session-assignment}. One thing to note is that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier, as will be discussed in \autoref{original-subtyping}.
+The typing rules for processes are derived from linear logic by decorating derivations with proof terms. The rules are given in \cref{session-assignment}. Note that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier, which is discussed in \cref{original-subtyping}. In addition, the $\m{def}$ rule implicitly renames the channel name in the signature to the one expected by the judgment.
 
-Recall that type definitions are transparent, so we silently replace $t$ by $A$ if there is a definition $t = A$ in the signature $\recCtx$.  In our simple language, checking that a type is valid $\vdash_\recCtx A : \m{type}$ just verifies that all type names in $A$ are defined in $\recCtx$.  A signature $\recCtx'$ itself is checked with the rules below.  Note that we allow mutual recursion in the definitions since the signature $\recCtx'$ is propagated identically everywhere.
-
+Recall that type definitions are transparent, so we silently replace $t$ by $A$ if there is a definition $t = A$ in the signature $\recCtx$. This silent replacement would be formalized using a (coinductively-defined) type-equivalence judgment (subject to usual contractiveness restrictions~\cite{Stone05un, GayH05}). We accomplish the same using subtyping, but delay its discussion until \cref{recursive}. In our simple language, checking that a type is valid, $\vdash_\recCtx A : \m{type}$, just verifies that all type names in $A$ are defined in $\recCtx$.  A signature $\recCtx$ itself is checked with the rules below.  Note that we allow mutual recursion in the definitions which is witnessed by the fact that the signature $\recCtx$ is propagated identically everywhere.
 \[
 \infer[]{\vdash_\recCtx \emptyset}{}
 \hspace{3em}
 \infer[]{\vdash_\recCtx \recCtx', t = A}{\vdash_\recCtx \recCtx' &
 \vdash_\recCtx A : \m{type}}
 \hspace{3em}
-\infer[]{\vdash_\recCtx \recCtx', X :: (c:A) = P}
-{\vdash_\recCtx \recCtx & \emptyset \vdash_\recCtx P :: (c:A)}
+\infer[]{\vdash_\recCtx \recCtx', X :: (c:A) = P_c}
+{\vdash_\recCtx \recCtx & \emptyset \vdash_\recCtx {P_c} :: (c:A)}
 \]
 
 \begin{rules}[session-assignment]{Type assignment for process expressions}
@@ -237,9 +233,7 @@ Recall that type definitions are transparent, so we silently replace $t$ by $A$ 
     }
   \and \infer[\m{def}]{ \typeD {\emptyset} {X} {d}{A} }
     { X = P :: (c : A) \in \recCtx }
-  
 \end{rules}
-
 
 
 \subsection{Process Configurations}
@@ -295,18 +289,25 @@ a \emph{substructural operational semantics}~\cite{Simmons12}, presented in the 
 \section{Recursion and Subtyping}
 \label{recursive}
 
-We have already introduced recursive types through the global, mutually recursive definition of type names $t$ in the signature $\recCtx$.  Types names are considered equal to their definitions, which means that they are \emph{equi-recursive}.  This is usually incorporated into the type language in a more local way by introducing a new construct $\recursive{t}{A_t}$ and identifying $\recursive{t}{A}$ with its unfolding $\subst{\recursive{t}{A}}{t}{A}$ in the style of Amadio and Cardelli~\cite{AmadioC91}.  Types can therefore be interpreted as finite representations of potentially infinite name-free (and recursion-free) types through repeated expanding of definitions. For this to make sense, we assume that all types $A$ in definitions $t = A$ are contractive \cite{Stone05un,
-  GayH05}. Intuitively, this means occurrences of other type names must be under a \emph{structural} type.
+We have already introduced recursive types through the global, mutually recursive definition of type names $t$ in the signature $\recCtx$.  Type names are considered equal to their definitions, which means that they are \emph{equi-recursive}.  This is usually incorporated into the type language in a more local way by introducing a new construct $\recursive{t}{A_t}$ and identifying $\recursive{t}{A}$ with its unfolding $\subst{\recursive{t}{A}}{t}{A}$ in the style of Amadio and Cardelli~\cite{AmadioC91}. This makes it harder to incorporate mutual-recursion, however, requiring type constructors~\cite{Stone05un} for a fully formal treatment. We therefore decided to go with the much simpler approach of a global signature. Still, there remains a close resemblance, and types can be interpreted as finite representations of potentially infinite name-free (and recursion-free) types through repeated expanding of definitions. For this to make sense, we assume that all types $A$ in definitions $t = A$ are contractive \cite{Stone05un,
+  GayH05}. Intuitively, this means occurrences of other type names must be under a \emph{structural} type. As a simple example, the signature $t = t \tensor t$ is contractive whereas $t = t$ and $t = u, u = t$ are not.
 
 \subsection{Subtyping}
 \label{original-subtyping}
 
-Gay and Hole \cite{GayH05} add coinductive subtyping (denoted $A \sub B$ in this paper) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like and variant-like structures.\todo{Is this still true: \textit{Subtyping also doubles as a convenient way of identifying a recursive type and its unfolding (without it, we would need a type equality judgment almost equally complicated but more restrictive)}}. We do not go into the details of their system since we will switch to a different relation in the next section anyway. Either way, we relate subtyping to process typing with subsumption rules:
+Gay and Hole \cite{GayH05} add coinductive subtyping (denoted $A \sub B$ in this paper) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like and variant-like structures. In our system, subtyping also doubles as a convenient way of identifying a recursive type and its unfolding using the following rules:
+\begin{mathpar}
+  \infer=[\m{Def}\Right]{A \sub_\recCtx t}
+    {(t = B \in \recCtx) & A \sub_\recCtx B}
+  \and \infer=[\m{Def}\Left]{t \sub_\recCtx B}
+    {(t = A \in \recCtx) & A \sub_\recCtx B}
+\end{mathpar}
+Double lines here indicate that the rules should be interpreted coinductively as is common with theories using equi-recursive types. We will not go into the details of Gay and Hole's system since we will switch to a different relation in the next section anyway. Either way, we relate subtyping to process typing with subsumption rules:
 \begin{mathpar}
   \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
     {\typeRecDJ{P}{c}{A'} & A' \sub A}
   \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
-    {\typeD{\ctx, c : A'} P d B & A \sub A'}
+    {\typeRecD{\ctx, c : A'} \recCtx P d B & A \sub A'}
 \end{mathpar}
 
 This concludes the discussion of the base system. In the next section, we introduce intersections, unions, and a multiple conclusion subtyping relation which constitute our main contributions.
@@ -334,6 +335,38 @@ Recall also the definitions
 & & \hspace{6em} c \leftarrow \m{double}\; d
 \end{array}
 \]
+
+% \begin{minipage}[t]{.33\textwidth}
+%   \[
+%   \begin{array}{l}
+%   \m{z} :: (c:\m{Nat}) = \\
+%   \quad c.\m{zero} \semi \mb{close}\; c
+%   \end{array}
+%   \]
+% \end{minipage}
+% \hfill
+% \begin{minipage}[t]{.33\textwidth}
+%   \[
+%   \begin{array}{l}
+%   \m{s} :: (c:\m{Nat} \lolli \m{Nat}) = \\
+%   \quad d \leftarrow \m{recv}\; c \semi c.\m{succ} \semi c \leftarrow d
+%   \end{array}
+%   \]
+% \end{minipage}
+% \hfill
+% \begin{minipage}[t]{.33\textwidth}
+%   \[
+%   \begin{array}{l}
+%   \m{double} : \m{Nat} \lolli \m{Nat} \\
+%   c \leftarrow \m{double}\; d = \\
+%   \quad \mb{case}\; d\; \mb{of} \\
+%   \quad\quad \m{zero} \rightarrow \mb{wait}\; d \semi c.\m{zero} \semi \mb{close}\; c \\
+%   \quad\quad \m{succ} \rightarrow c.\m{succ} \semi c.\m{succ} \semi \\
+%   \hspace{6em} c \leftarrow \m{double}\; d
+%   \end{array}
+%   \]
+% \end{minipage}
+
 Intuitively, it is easy to see that $\pos$, $\even$, and $\odd$ are all subtypes of $\nat$. We run into a problem when we try to implement the behavior described by these types, however. The $\m{s}$ process, for example, satisfies many properties: $\nat \lolli \nat$, $\pos \lolli \pos$, $\even \lolli \odd$, $\odd \lolli \even$ etc. Subtyping can be used to combine some of these (e.g.\ $\nat \lolli \pos$ for $\nat \lolli \nat$ and $\pos \lolli \pos$) but it is not expressive enough to combine all properties. An elegant solution is to add intersections to the type system.
 
 \subsection{Intersection Types}
@@ -373,7 +406,7 @@ $\intersect\Left_2$)}
 \end{array}
 \]
 
-The standard subtyping rules are given below, where double lines indicate rules should be interpreted coinductively. It should be noted that the left typing rules above are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add these to the final system. Also, we will have to modify the subtyping relation later in this section, so the subtyping rules are only first attempt.
+The standard subtyping rules are given below. It should be noted that the left typing rules above are derivable by an application of subsumption on the left using $\Sub{\intersect\Left_1}$ and $\Sub{\intersect\Left_2}$, so we will not explicitly add these to the final system. Also, we will have to modify the subtyping relation later in this section, so these rules are only a first attempt.
 
 \begin{mathpar}
   \infer=[\Sub{\intersect}\Right]{A \sub B_1 \intersect B_2}
@@ -424,19 +457,19 @@ c \leftarrow \m{iso}\; d = \\
 \qquad \m{succ} \rightarrow c.\m{succ} \semi c \leftarrow \m{iso}\; d
 \end{array}
 \]
-This definition has be recursive since our system cannot prove directly that $Nat \sub Even \union Odd$
+This definition has to be recursive rather than a simple forward (essentially implementing a one-level unfold) since our system cannot prove directly that $Nat \sub Even \union Odd$.
 
-A slightly more involved example is that of bit strings, which uses unions in its type definition and demonstrates that for a recursively defined type we may need to specify more information that we ultimately care above.  We move a binary representation of natural numbers, where the least significant bit is sent first.  The string of bits is terminated with $\m{eps}$.
+A slightly more involved example is that of bit strings, which uses unions in its type definition and demonstrates that for a recursively defined type we may need to specify more information than we ultimately care above.  We move to a binary representation of natural numbers, where the least significant bit is sent first.  The string of bits is terminated with $\m{eps}$.
 \[
 \begin{array}{lcl}
-\m{Bits} & = & \internal\{\m{eps} : \terminate, \m{zero} : \m{Bits}, \m{one} : \m{Bits}
+\m{Bits} & = & \internal\{\m{eps} : \terminate, \m{zero} : \m{Bits}, \m{one} : \m{Bits}\}
 \end{array}
 \]
 We can define bit strings in standard form (no leading zeros) as follows:
 \[
 \begin{array}{lcl}
-\m{Empty} & = & \internal\{\m{eps} : \terminate\} \\
 \m{Std} & = & \m{Empty} \union \m{StdPos} \\
+\m{Empty} & = & \internal\{\m{eps} : \terminate\} \\
 \m{StdPos} & = & \internal\{\m{one} : \m{Std}, \m{zero} : \m{StdPos}\}
 \end{array}
 \]
@@ -451,7 +484,7 @@ c \leftarrow \m{inc}\; d = \\
 \qquad \m{one} \rightarrow c.\m{zero} \semi \m{inc}\; d
 \end{array}
 \]
-Note that checking this definition just against the type $\m{Std} \lolli \m{Std}$ will fail, and we need to assign the more general type for the type checking to go through. This is because of the nature of our system which essentially requires the type checker to verify a fixed point rather than infer the least one. This has proven highly beneficial for providing good error messages even in the simpler case of pure subtyping, without intersections and unions~\cite{Griffith16phd}.
+Note that checking this definition just against the type $\m{Std} \lolli \m{Std}$ will fail, and we need to assign the more specific type for the type checking to go through. This is because of the nature of our system which essentially requires the type checker to verify a fixed point rather than infer the least one. This has proven highly beneficial for providing good error messages even in the simpler case of pure subtyping, without intersections and unions~\cite{Griffith16phd}.
 
 \subsection{Subtyping Revisited}
 
@@ -469,7 +502,7 @@ Our solution is doing the obvious: if the problem is losing half the information
 }
 This results in a system reminiscent of \cite{Gentzen35, Girard87}. However, we take a slightly different approach since we are working with coinductive rules.
 
-The rules are given in \autoref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. We conjecture that matching multiple types might give us distributivity of intersection and union over structural types, although a naive extension along these lines fails to satisfy type safety.
+The rules are given in \cref{subtyping-multi}. We use $\typeList$ and $\typeListB$ to denote multisets of types. The intersection left rules are combined into one rule that keeps both branches around. The same is done with union right rules. Intersection right and union left rules split into two derivations, one for each branch, but keep the rest of the types unchanged. We can unfold a recursive type on the left or on the right. When we choose to apply a structural rule, we have to pick exactly one type on the left and one on the right with the same structure. We conjecture that matching multiple types might give us distributivity of intersection and union over structural types, although a naive extension along these lines fails to satisfy type safety.
 
 \begin{rules}[subtyping-multi]{Subtyping with multiple hypothesis and conclusions; coinductively with
 respect to a fixed signature $\eta$}
@@ -510,36 +543,35 @@ respect to a fixed signature $\eta$}
 
 In this section, we show that that intersections and unions are useful beyond their refinement interpretation, and help us understand external and internal choices better. Take external choice, for instance. A comparison between the typing rules for intersections and external choice reveal striking similarities. The only difference, in fact, is that internal choice has process-level constructs whereas intersections are implicit.
 
-Consider special case of binary external choice: $\external\braces{\m{inl} : A, \m{inr} : B}$. This type says: I will act as $A$ if you send me $\m{inl}$ \emph{and} I will act as $B$ if you send me $\m{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
+Consider the special case of binary external choice: $\external\braces{\m{inl} : A, \m{inr} : B}$. This type says: I will act as $A$ if you send me $\m{inl}$ \emph{and} I will act as $B$ if you send me $\m{inr}$. We know the \emph{and} can be interpreted as an intersection, and either side can be thought of as a singleton internal choice. A similar argument can be given for internal choice and unions. This gives us the following redefinitions of $n$-ary external and internal choices:
 \begin{mathpar}
   \externals A I \defined \bigintersect_{\indexVar \in I}{\external\braces{\lab_\indexVar : A_\indexVar}} \\
   \internals A I \defined \bigunion_{\indexVar \in I}{\internal\braces{\lab_\indexVar : A_\indexVar}}
 \end{mathpar}
 %When $I$ is empty, the intersection reduces to $\top$ and the union reduces to $\bot$, which are elided from this paper for space considerations.
-It is a straightforward calculation that hese definitions satisfy the typing and subtyping rules for external and internal choices.
+It is a straightforward calculation that these definitions satisfy the typing and subtyping rules for external and internal choices.
 
 
 \section{Algorithmic System}
 \label{algorithmic}
 
-In this section, we prove that subtyping and type-checking are decidable by designing an algorithm that takes in a (sub)typing judgment and produces true if and only if there is a derivation. Note that everything in the judgment is considered an input.
+In this section, we show that subtyping and type-checking are decidable by designing an algorithm that takes in a (sub)typing judgment and produces true if and only if there is a derivation. Note that everything in the judgment is considered an input.
 
 
 \subsection{Algorithmic Subtyping}
 
-The subtyping judgment we gave is already mostly algorithmic (a necessity of working with coinductive rules), so we only have to tie up a few loose ends. The first is deciding which rule to pick when multiple are applicable. We apply $\SubA{\intersect\Right}$, $\SubA{\intersect\Left}$, $\SubA{\union\Right}$, $\SubA{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these are invertible. At some point, all types must be structure (since definitions must be contractive), at which point we non-deterministically pick a structural rule and continue.  In the implementation, we backtrack over these choices.
+The subtyping judgment we gave is already mostly algorithmic (a necessity of working with coinductive rules), so we only have to tie up a few loose ends. The first is deciding which rule to pick when multiple are applicable. We apply $\SubA{\intersect\Right}$, $\SubA{\intersect\Left}$, $\SubA{\union\Right}$, $\SubA{\union\Left}$, $\SubA{\mu\Right}$, $\SubA{\mu\Left}$ eagerly since these are invertible. At some point, all types must be structural (since definitions are restricted to be contractive), at which point we non-deterministically pick a structural rule and continue. In the implementation, we backtrack over these choices.
 
-Second, the coinductive nature of subtyping means we can (and often will) have infinite derivations. We combat this by using a cyclicity check (similar to the one in \cite{GayH05}): we maintain a context of previously seen subtyping comparisons and immediately terminate with success if we ever compare the same pair of sets of types again. Every recursive step corresponds to a rule, which ensures a productive derivation. We know there cannot be an infinite chain of new types due to the contractiveness restriction. A more formal treatment can be found in \cite{Stone05un}.
+Second, the coinductive nature of subtyping means we can (and often will) have infinite derivations. We combat this by using a cyclicity check (similar to the one in \cite{GayH05}): we maintain a context of previously seen subtyping comparisons and immediately terminate with success if we ever compare the same pair of sets of types again. Every recursive step corresponds to a rule, which ensures a productive derivation. We know there cannot be an infinite chain of new types due to the contractiveness restriction which implies an upper-bound on the size of the previously-seen set. A more formal treatment can be found in \cite{Stone05un}.
 
 
 \subsection{Algorithmic Type-checking}
 
-Designing a type checking algorithm is quite simple for the base system where we only have structural types (no recursive types or subtyping), since the form of the process determines a unique applicable typing rule. The $\cut$ rule causes a small problem since we do not have a type for the new channel. This is solved by requiring a type annotation where necessary $\tspawnType c {P_c} A {Q_c}$.  The overwhelmingly common case where it is \emph{not} necessary is if $P_c$ is a defined process name $X$ because we simply fall back on its given type.
+Designing a type checking algorithm is quite simple for the base system where we only have structural types (no recursive types or subtyping), since the form of the process determines a unique applicable typing rule. The $\cut$ rule causes a small problem since we do not have a type for the new channel. This is solved by requiring a type annotation when necessary such that the new term becomes $\tspawnType c {P_c} A {Q_c}$. The overwhelmingly common case where it is \emph{not} necessary is when $P_c$ is a defined process name $X$ because we simply fall back on its given type.
 
-In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ can be anything (the other will be fixed due to typing rules, but one causes enough damage), and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a judgment where each channel (whether on the left or the right) is a assigned a multiset of types.  These multisets are interpreted conjunctively for channels used (on the left) and disjunctively for the channel provided (on the right). This makes intersection left and union right rules invertible, so they can be applied eagerly.
+In the extended system with subtyping and property types, type-checking is trickier for two reasons: (1) subsumption can be applied anytime where one of the types in $A \le B$ can be anything (the other will be fixed due to typing rules, but one causes enough damage), and (2) intersection left and union right rules lose information which means they have to be applied non-deterministically. The latter issue is resolved by switching to a judgment where each channel (whether on the left or the right) is assigned a multiset of types.  These multisets are interpreted conjunctively for channels used (on the left) and disjunctively for the channel provided (on the right). This makes intersection left and union right rules invertible, so they can be applied eagerly.
 
-The former problem is solved by switching checking subtyping only at the identity rule (forwarding). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The new judgment is written $\typeRecAJ P c \typeList$, where $\ctx$ and $\typeList$ are multisets. Typing rules are given in \autoref{algorithmic-typing}.
-% Rules for recursive processes are not duplicated since they simply capture sets of types rather than a single type.
+The former problem is solved by checking subtyping only at the identity rule (forwarding). This relies on the subformula property for the sequent calculus, excepting only the cut rule which is annotated. The new judgment is written $\typeRecAJ P c \typeList$, where $\ctx$ and $\typeList$ are multisets. Typing rules are given in \cref{algorithmic-typing}. Note the explicit $\intersect\Left$, $\union\Right$, $\m{Def}\Left$, and $\m{Def}\Right$. These rules were derivable in the declarative system using subsumption, which is no longer possible since application of subsumption is restricted to forwarding processes.
 
 
 \begin{rules}[algorithmic-typing]{Process Typing in the Algorithmic System}
@@ -606,7 +638,7 @@ The former problem is solved by switching checking subtyping only at the identit
     { i \in I
     & \typeRecAJR{\ctx, c : A_i}{P}{d}{\typeListB}
     }
-  \and \infer[\m{def}]{ \typeD {\emptyset} {X} {d}{A} }
+  \and \infer[\m{def}]{ \typeRecAJ {\emptyset} {X} {d}{A} }
     { X = P :: (c : A) \in \recCtx }
 
 \end{rules}
@@ -614,15 +646,14 @@ The former problem is solved by switching checking subtyping only at the identit
 
 \subsection{Equivalence to the Declarative System}
 
-Next, we show that the algorithmic system is sound and complete with respect to the declarative system (modulo type annotations). Due to space limitations, we can only give very brief proof sketches here. Interested readers are referred to the first author's thesis \cite{Acay16}.  We define $\any\typeList$ as the union of all the types in $\typeList$, and similarly for $\all\typeList$.  For contexts
+Next, we show that the algorithmic system is sound and complete with respect to the declarative system (modulo erasure of type annotations, which we denote by $\erase P$). Due to space limitations, we can only give very brief proof sketches here. Interested readers are referred to the first author's thesis \cite{Acay16}.  We define $\any\typeList$ as the union of all the types in $\typeList$, and similarly for $\all\typeList$.  For contexts
 we define $\all(c_1{:}\typeList_1, \ldots, c_n{:}\typeList_n) = c_1{:}\all\typeList_1, \ldots, c_n{:}\all\typeList_n$.
-\todo{Did not know what you mean by suitably converted, since types are singletons in the signature.  I delete this from the theorem statement}
 
 \begin{theorem}[Soundness of Algorithmic Typing]
   If $\typeRecAJ P c \typeList$, then $\typeRecD {\all\ctx} {\recCtx} {\erase P} c {\any \typeList}$.
 \end{theorem}
 \begin{proof}
-  By induction on the typing derivation. The only non-straightforward cases are $\intersect\Right$ and $\union\Left$, which depend on the distributivity of intersection and union over each (which is why we insisted such be the case while designing the subtyping relation).
+  By induction on the typing derivation. The only non-straightforward cases are $\intersect\Right$ and $\union\Left$, which depend on the distributivity of intersection and union over each other (which is one of the reasons why we insisted such be the case while designing the subtyping relation).
 \end{proof}
 
 \begin{lemma}[Completeness of Delayed Subtyping]
@@ -649,7 +680,7 @@ we define $\all(c_1{:}\typeList_1, \ldots, c_n{:}\typeList_n) = c_1{:}\all\typeL
 \section{Metatheory}
 \label{metatheory}
 
-Our main contribution is proving type safety for the system with intersections and unions, which we do so by showing the standard progress and preservation theorems, renamed to deadlock freedom and session fidelity, respectively, within this context. Since the algorithmic system is more well behaved (no subsumption), we use the algorithmic judgement in the statements and proofs of these results. Type safety for the declarative system follows from its equivalence to the algorithmic system. We only state the theorems here. Full proofs can be found in~\cite{Acay16}.
+Our main contribution is proving type safety for the system with intersections and unions, which we do so by showing the standard progress and preservation theorems, renamed to deadlock freedom and session fidelity, respectively, within this context. Since the algorithmic system is more well behaved (no subsumption), we use the algorithmic judgment in the statements and proofs of these results. Type safety for the declarative system follows from its equivalence to the algorithmic system. We only state the theorems here. Full proofs can be found in~\cite{Acay16}.
 
 In a functional setting, progress states a well-typed expression either takes a step or is a value. The corresponding notion of a value is a \emph{poised} configuration. A configuration is poised if every process in it is, and a process is poised if it is waiting to communicate with its client. With this definition, we can state the progress theorem:
 
@@ -687,7 +718,6 @@ We introduced intersections and unions to a simple system of session types, and 
 %% Bibliography
 %%
 
-% \nocite{*}
 \bibliographystyle{eptcs}
 \bibliography{bibliography,db}
 
