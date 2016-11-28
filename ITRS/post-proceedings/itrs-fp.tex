@@ -123,11 +123,13 @@ The processes (or proof terms) corresponding to these types are given below with
 
 \subsection{Recursively Defined Types and Processes}
 
-For practical programming, we of course need recursive types and recursively defined processes. For this purpose we have a global signature of mutually recursive \emph{type definitions} and \emph{process definitions}.  Type definitions are straightforward, $t = A$, which adds defined type names as a new alternative to possible types. The fact that type definitions are transparent corresponds to an equi-recursive interpretation of types. Process definitions have the form $X :: (c:A) = P_c$ where $P$ provides session $A$ along $c$.
+For practical programming, we of course need recursive types and recursively defined processes. Usually, this is incorporated into the type language in a local way by introducing a new construct $\recursive{t}{A_t}$ and identifying $\recursive{t}{A}$ with its unfolding $\subst{\recursive{t}{A}}{t}{A}$ in the style of Amadio and Cardelli~\cite{AmadioC91}. This makes it harder to incorporate mutual recursion, however, requiring type level pairs~\cite{Stone05un} for a fully formal treatment. We therefore go with the much simpler approach of using a global signature of mutually recursive \emph{type definitions} and \emph{process definitions}. Type definitions are straightforward with the form $t = A$. They add defined type names as a new alternative to possible types. The fact that type definitions are transparent, that is, the fact that they are identified with their definition (or unfolding) without process-level terms to witness the isomorphism, corresponds to an equi-recursive interpretation of types. Process definitions have the form $X :: (c:A) = P_c$ where $P$ provides session $A$ along $c$.
 $$ \recCtx ::= \cdot \mid \recCtx, t = A \mid X ::(c:A) = P_c $$
 Note that $c$ is a bound variable with scope $P$. Formally, our judgments are now decorated with a fixed signature $\recCtx$, but we might elide it since the signature usually does not change during a derivation.
 
-As an example, consider processes producing a sequence of the label $\m{succ}$ followed a single $\m{zero}$ (i.e.\ Peano naturals).
+The identification of defined type names and their unfoldings is normally formalized by defining a new type equivalence judgement and adding conversion rules to process typing. In our formalization, we will integrate this into the subtyping judgement, but we delay its discussion to \cref{original-subtyping}. For now, it suffices to think of type definitions as finite representations of possibly infinite trees. For example, the definition $t = t \tensor t$ stands for the tree $(\ldots \tensor \ldots) \tensor (\ldots \tensor \ldots)$. However, for this to make sense, we need to slightly restrict valid type definitions to those that are contractive~\cite{Stone05un, GayH05}. In our setting, this means every type definition must have a structural type at the top. For example, the previous example of $t = t \tensor t$ is contractive since its top level construct is $\tensor$ whereas $t = t$ and $t = u$ are not.
+
+As an example to signatures with recursion, consider processes producing a sequence of the label $\m{succ}$ followed a single $\m{zero}$ (i.e.\ Peano naturals).
 \[
 \begin{array}{lcl}
 \m{Nat} & = & \oplus\{\m{zero} : \terminate, \m{succ} : \m{Nat}\} \\
@@ -172,7 +174,7 @@ In an actual implementation, the new definition would be ``desugared'' to the pr
 
 The typing rules for processes are derived from linear logic by decorating derivations with proof terms. The rules are given in \cref{session-assignment}. Note that in $\internal\Left$ and $\external\Right$, we allow unused branches in case expressions. This makes width subtyping easier, which is discussed in \cref{original-subtyping}. In addition, the $\m{def}$ rule implicitly renames the channel name in the signature to the one expected by the judgment.
 
-Recall that type definitions are transparent, so we silently replace $t$ by $A$ if there is a definition $t = A$ in the signature $\recCtx$. This silent replacement would be formalized using a (coinductively-defined) type-equivalence judgment (subject to usual contractiveness restrictions~\cite{Stone05un, GayH05}). We accomplish the same using subtyping, but delay its discussion until \cref{recursive}. In our simple language, checking that a type is valid, $\vdash_\recCtx A : \m{type}$, just verifies that all type names in $A$ are defined in $\recCtx$ and that $A$ is contractive (see\todo{define this more rigorously somewhere?}).  A signature $\recCtx$ itself is checked with the rules below.  Note that we allow mutual recursion in the definitions which is witnessed by the fact that the signature $\recCtx$ is propagated identically everywhere.
+In our simple language, checking that a type is valid, $\vdash_\recCtx A : \m{type}$, just verifies that all type names in $A$ are defined in $\recCtx$ and that $A$ is contractive.  A signature $\recCtx$ itself is checked with the rules below.  Note that we allow mutual recursion in the definitions which is witnessed by the fact that the signature $\recCtx$ is propagated identically everywhere.
 \[
 \infer[]{\vdash_\recCtx \emptyset}{}
 \hspace{3em}
@@ -232,6 +234,24 @@ Recall that type definitions are transparent, so we silently replace $t$ by $A$ 
     { X = P :: (c : A) \in \recCtx }
 \end{rules}
 
+\subsection{Subtyping}
+\label{original-subtyping}
+
+Gay and Hole \cite{GayH05} add coinductive subtyping (denoted $A \sub B$ in this paper) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like and variant-like structures. In our system, subtyping also doubles as a convenient way of identifying a recursive type and its unfolding using the following rules:
+\begin{mathpar}
+  \infer=[\m{Def}\Right]{A \sub_\recCtx t}
+    {(t = B \in \recCtx) & A \sub_\recCtx B}
+  \and \infer=[\m{Def}\Left]{t \sub_\recCtx B}
+    {(t = A \in \recCtx) & A \sub_\recCtx B}
+\end{mathpar}
+Double lines here indicate that the rules should be interpreted coinductively as is common with theories using equi-recursive types. We will not go into the details of Gay and Hole's system since we will switch to a different relation in the next section anyway. Either way, we relate subtyping to process typing with subsumption rules:
+\begin{mathpar}
+  \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
+    {\typeRecDJ{P}{c}{A'} & A' \sub_\recCtx A}
+  \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
+    {\typeRecD{\ctx, c : A'} \recCtx P d B & A \sub_\recCtx A'}
+\end{mathpar}
+
 
 \subsection{Process Configurations}
 
@@ -282,30 +302,6 @@ a \emph{substructural operational semantics}~\cite{Simmons12}, presented in the 
 & \longrightarrow & \Omega, \proc{c}{P_i} , \proc{e}{Q} & \mbox{($i \in I$)} \\
 \end{array}
 \]
-
-\section{Recursion and Subtyping}
-\label{recursive}
-
-We have already introduced recursive types through the global, mutually recursive definition of type names $t$ in the signature $\recCtx$.  Type names are considered equal to their definitions, which means that they are \emph{equi-recursive}.  This is usually incorporated into the type language in a more local way by introducing a new construct $\recursive{t}{A_t}$ and identifying $\recursive{t}{A}$ with its unfolding $\subst{\recursive{t}{A}}{t}{A}$ in the style of Amadio and Cardelli~\cite{AmadioC91}. This makes it harder to incorporate mutual recursion, however, requiring type constructors~\cite{Stone05un} for a fully formal treatment. We therefore use the much simpler approach of a global signature. Still, there remains a close resemblance, and types can be interpreted as finite representations of potentially infinite name-free (and recursion-free) types through repeated expanding of definitions. For this to make sense, we assume that all types $A$ in definitions $t = A$ are contractive \cite{Stone05un,
-  GayH05}. Intuitively, this means occurrences of other type names must be under a \emph{structural} type. As a simple example, the signature $t = t \tensor t$ is contractive whereas $t = t$ and $t = u, u = t$ are not.
-
-\subsection{Subtyping}
-\label{original-subtyping}
-
-Gay and Hole \cite{GayH05} add coinductive subtyping (denoted $A \sub B$ in this paper) to their system in order to admit width and depth subtyping for $n$-ary choices, which are standard for record-like and variant-like structures. In our system, subtyping also doubles as a convenient way of identifying a recursive type and its unfolding using the following rules:
-\begin{mathpar}
-  \infer=[\m{Def}\Right]{A \sub_\recCtx t}
-    {(t = B \in \recCtx) & A \sub_\recCtx B}
-  \and \infer=[\m{Def}\Left]{t \sub_\recCtx B}
-    {(t = A \in \recCtx) & A \sub_\recCtx B}
-\end{mathpar}
-Double lines here indicate that the rules should be interpreted coinductively as is common with theories using equi-recursive types. We will not go into the details of Gay and Hole's system since we will switch to a different relation in the next section anyway. Either way, we relate subtyping to process typing with subsumption rules:
-\begin{mathpar}
-  \infer[\irb{Sub}\Right]{\typeRecDJ{P}{c}{A}}
-    {\typeRecDJ{P}{c}{A'} & A' \sub_\recCtx A}
-  \and \infer[\irb{Sub}\Left]{\typeRecD {\ctx, c : A} \recCtx P d B}
-    {\typeRecD{\ctx, c : A'} \recCtx P d B & A \sub_\recCtx A'}
-\end{mathpar}
 
 This concludes the discussion of the base system. In the next section, we introduce intersections, unions, and a multiple conclusion subtyping relation which constitute our main contributions.
 
@@ -711,8 +707,9 @@ Castagna et al.\ describe a generic framework~\cite{CastagnaDGP09} that make use
 
 We introduced intersections and unions to a simple system of session types, and demonstrated how they can be used to refine behavioral specifications of processes. Some aspects that would be important in a full accounting of the system are omitted for the sake of brevity or are left as future work. For example, integrating an underlying functional language \cite{ToninhoCP13}, adding shared channels \cite{CairesP10,PfenningG15}, or considering asynchronous communication \cite{DeYoungCPT12,PfenningG15,Griffith16phd} are straightforward extensions based on prior work. In addition, it would be very useful to have behavioral polymorphism \cite{CairesPPT13} and abstract types. Their interaction with subtyping, intersections, and unions is an interesting avenue for future work.
 
-\noindent\textbf{Acknowledgments.}
+\paragraph{Acknowledgments.}
 This work was funded in part by NSF grant CNS1423168 and by the FCT (Portuguese Foundation for Science and Technology) through the Carnegie Mellon Portugal Program.  We would like to thank the anonymous referees for the many helpful suggestions.
+
 
 %%
 %% Bibliography

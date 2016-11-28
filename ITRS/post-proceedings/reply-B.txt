@@ -24,7 +24,7 @@ from the main contributions.
 > intersection and union (I refer directly to Padovani's paper and
 > Castagna et al's paper), which is a grave omission.
 
-We have added explicit comparisons to these works; see Section 7.
+We have added explicit comparisons to these works; see conclusion.
 
 > The definition of process syntax is confusing and incomplete. The
 > notion is one I am not familiar with (coming from the Pi calculus and
