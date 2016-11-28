@@ -70,7 +70,9 @@ the conclusion.
 > more practical examples that would better motivate the work would be
 > very welcom.
 
-We have indeed considered the same encoding. This would have reasonable
+We have actually considered the same encoding. This would have reasonable
 operational behavior and would not complicate the metatheory (so it is an
-easy change), but blur to connection to the linear sequent calculus. We now
-mention this when comparing to Padovani's work.
+easy change), but blur the connection to the linear sequent calculus. Thus
+we shied away from it. We now mention this when comparing to Padovani's
+work, though.
+
