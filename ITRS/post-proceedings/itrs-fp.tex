@@ -468,6 +468,8 @@ We can define bit strings in standard form (no leading zeros) as follows:
 \m{StdPos} & = & \internal\{\m{one} : \m{Std}, \m{zero} : \m{StdPos}\}
 \end{array}
 \]
+$\m{Std}$ is not contractive according to our simple definition, but its one level unfolding is (i.e.\ inlining $\m{Empty}$ and $\m{StdPos}$ makes it contractive). We write it in closed form for better readability.%
+\footnote{It is possible to formulate a contractiveness condition that allows such definitions, but we find it unnecessary for this paper.}
 Now we can write an increment function that preserves bit strings in standard form:
 \[
 \begin{array}{l}
