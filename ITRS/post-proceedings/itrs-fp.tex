@@ -417,6 +417,8 @@ The standard subtyping rules are given below. It should be noted that the left t
     {A_2 \sub B}
 \end{mathpar}
 
+One final note about intersection types and recursion is that intersections are not considered structural types and thus do not contribute to contractiveness. That is, the type $t = t \intersect t$ is \emph{not} contractive.
+
 
 \subsection{Union Types}
 

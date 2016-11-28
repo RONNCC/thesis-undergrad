@@ -10,13 +10,15 @@ A few notes are given below in reply.
 > The paper is poorly organised: concepts are used before being
 > introduced, or are not introduced at all.
 
-An introduction to the underlying process calculus is provided in the first
+An introduction to the underlying process calculus was provided in the first
 two sections. We also refer to Luis Caires & Frank Pfenning (2010) and
 Frank Pfenning & Dennis Griffith (2015) on which the underlying calculus
-is based. Unfortunately, a complete treatment is not possible given the
-space limitations without distracting from the main contributions.
-
-TODO: maybe the references weren't clear?
+is based. We have extended this introduction to include more details
+on cut and id, which are usually not addressed in other process calculi.
+We hope that this significantly lowers the barrier of entry for those not
+already familiar with the linear sequent calculus. Unfortunately, a complete
+treatment is not possible given the space limitations without distracting
+from the main contributions.
 
 > The paper makes no comparison with other work on session types with
 > intersection and union (I refer directly to Padovani's paper and
@@ -30,24 +32,30 @@ We have added explicit comparisons to these works; see Section 7.
 > notation. But a more grave shortcoming is that the syntax is not the
 > one used in the examples (the paper has the optimistic phrase
 > 'concrete syntax (...) the mapping to abstract syntax (...) should be
-> clear'; it is not) and processes are allowed to be recursive whereas
+> clear'; it is not)...
+
+We have extended the introduction to the base system as mentioned above
+(which should clear some of the confusion). We also explain the syntax
+in more detail. In addition, we got rid of concrete syntax almost completely,
+and whatever differences remain are clearly explained.
+
+> ...and processes are allowed to be recursive whereas
 > recursion is never dealt with formally. It gets introduced very
 > casually on page 6, never gets linked to type assignment, and is a
 > snake hiding in the grass: dealing with recursion in the context of
 > intersection and union types is not straightforward, and should be
 > dealt with in detail.
-
-TODO: is the process syntax confusing?
-We have changed the concrete syntax to more closely mirror the abstract
-syntax, and added explanations for the minor differences.
-TODO: expand the section on recursive types?
-
+>
 > Moreover, some (recursive!) type declarations are used without being
 > introduced or even discussed. The same holds for recursive types:
 > these are crucial to the paper (in fact, many example use them) and
 > are only informally introduced on page 5.
 
-TODO:
+We have significantly improved our treatment of recursion throughout the
+paper. This was a very valid concern as the treatment of recursion
+in the presence of intersections and unions is possibly the most interesting
+(and challenging) part of the paper. We had apparently gone too far
+in our struggle to fit the required page limit.
 
 > Notation is haphazard and confusing: for example, first $P_x$ stands
 > for a process that has $x$ as a free variable, and then processes are
@@ -61,14 +69,15 @@ different notation to label processes with the channels they provide
 (proc_c P) so there is no overloading and there shouldn't be reason for
 confusion. Although the provided channel will be free in a process, this
 is not the same as being free. A process might have many free channels,
-as should be evident from the use of a context in typing judgements.
+as should be evident from the use of a context in typing judgements. We
+tried to make these points more clear in the revised version.
 
 > The operational semantics rules, some of which are expressed through a
 > quantifier, are badly formulated.
 
 The operational semantics is based on multiset rewriting, which is very
-well-studies. See the references. In addition, an intuitive reading is
-provided, which should be sufficient for understanding paper.
+well-studied. However, we understand why the notation would be confusing,
+and switched to a more familiar/intuitive one.
 
 > If I understand things correctly, the $c$ in $P$ in rule $\sqcap L_i$
 > occurs only once in $P$; in those rules, one of the component of the
@@ -85,18 +94,18 @@ provided, which should be sufficient for understanding paper.
 > I do not believe that having intersection and union types in a linear
 > calculus makes any sense at all.
 
-TODO:
-
+A channel can and usually will occur multiple times in a process.
+Linearity does not imply single use, it implies \emph{linear} use. We
+have changed the language to try to clear up the confusion. We also
+address the specific concern about intersections in the relevant section
+with an example.
 
 > Minor comments:
-> 
+>
 > Abstract: add 'the' to linear sequent calculus.
-
-OK.
-
 > Add a hyphen in equirecursive to get equi-recursive throughout the paper.
 
-I believe both spellings are correct.
+Fixed.
 
 > Page 2: Why should the $c$ in the judgment be different from the
 > $c_i$s in the context?
@@ -111,7 +120,7 @@ and right rules of sequent calculus.
 
 They can (and usually will) appear multiple times in a process. They simply
 have to be used linearly. For example, all branches of a case statement will
-have the same set of free variables. We could also the same channel to send
+have the same set of free variables. We could also use the same channel to send
 multiple channel references along. However, after each communication, the type
 of the channel changes. This is mirrored in the typing rules.
 
@@ -127,8 +136,8 @@ of the channel changes. This is mirrored in the typing rules.
 > replaced by $a$ in $P_a$. Better use $P[a/x]$.
 
 The $P_x$ notation is simply a syntactic convenience. As noted in the paper,
-$P_a$ precisely means $P[a/x]$.
-TODO: should we get rid of this? He has a point.
+$P_a$ precisely means $P[a/x]$. We improved consistency in our use of the
+notation.
 
 > According to the syntax, variables are not processes themselves; can
 > you explain how the interaction between processes deals with
@@ -138,15 +147,15 @@ There are two types of variables. Channels and process variables. Channels
 only occur in certain positions as determined by the syntax and typing rules.
 We can only substitute channels for channels, not process expressions. There
 are also process variables which stand for processes. This is used for recursive
-processes.
+processes. We deal with process variables more formally in the revised version.
 
 > What is the fourth column in the 'definition' of the syntax about?
 > Types? Intuition? How is 'id' the same as 'forward'?
 
-These are the corresponding types which is meant to provide operational
+These are the corresponding types which and are meant to provide operational
 intuition. This is made formal by typing rules of course. We have also
 added a paragraphs explaining the syntax. id and forwarding are identified
-through the Curry-Howard correspondence. See the typing rule.
+through the Curry-Howard correspondence. See the extended introduction.
 
 > In the definition of syntax, it would be helpful to give a brief
 > explanation of the notation used. For example, how should I read $x
@@ -158,14 +167,15 @@ Added a paragraph on intuitive readings of process.
 > semicolon is used also for some kind of sequential composition between
 > processes, which is missing from the syntax definition.
 
-We use backquotes to emphasize channel names to ease understanding. This is now
-noted in a footnote. The semicolons are present in the abstract syntax also.
-It is different from a sequential composition since they are built into the
-expressions and we cannot combine arbitrary expressions this way.
+We had used backquotes to emphasize channel names to improve readability. We
+got rid of this (along with concrete syntax) since it apparently only lead to
+confusion. The semicolons are present in the abstract syntax also.
+It is slightly different from a sequential composition since they are built
+into the expressions and we cannot combine arbitrary expressions this way.
 
 > 2.2 Write 'Section 3.3'
 
-TODO: not sure what this means.
+We're not sure what this is referring to...
 
 > Figure 1: Should you not have used $P_d$ also in the premise of rule
 > $\otimes R$?
@@ -185,8 +195,10 @@ the right of ::. We need to satisfy all channels in a context.
 > confusion and serves no real purpose.
 
 These are multiset rewriting rules. We transition from one state containing
-certain processes to another, but these processes are ``used up''. This can
-be perfectly captured using linear connectives.
+certain processes to another, but these processes are ``used up''. Linear
+logic (and this linear connectives) are perfect for capturing such ``resource''
+usage. Alas, it is clear that this is leading to confusion, so we have changed
+the notation.
 
 > What is that existential quantifier doing in the operational
 > semantics? Does the process run to True or False? Are these
@@ -195,8 +207,8 @@ be perfectly captured using linear connectives.
 
 It simply indicated that the channel is fresh. Within the context of this
 paper, it suffices to think that this is equivalent to writing ``where $a$
-is fresh'' as a side condition. But the existential quantifier is a more
-principled way of doing it (see Robert Simmons' PhD thesis (2012) for details).
+is fresh'' as a side condition (which is what exactly what we do in the
+new notation).
 
 > 'which means there are no explicit term level coercions': this is
 > incorrect. Identifying $\mu t.A$ and $A[\mu t . A / t]$ has nothing to
@@ -206,20 +218,18 @@ principled way of doing it (see Robert Simmons' PhD thesis (2012) for details).
 I believe we are saying the same thing. There are coercions in the iso-recursive
 approach and no coercions in the equi-recursive. This probably comes down to what
 we mean by ``identify'', which is similar to the distinction between definitional
-and propositional equality in dependent type theories.
+and propositional equality in dependent type theories for example.
 
 > Page 6: 'which is parameterised over channels ... to allow renaming':
 > I have no idea what you mean by that.
-
-TODO: do recursive types better.
-
+>
 > Last line: Section 2.1
-> 
+>
 > Page 7: 'should be interpreted coinductively' The only reason this is
 > the case is because of recursive types, but the rules dealing with
 > those are omitted. I find this worrying.
 
-TODO: do recursive types better.
+We have changed (and significantly improved) the way we handle recursive types.
 
 > Page 7-8 'It is important to note that we restore (...) our use of the
 > linear sequent calculus' This is quite a strong claim to make that
@@ -230,7 +240,7 @@ TODO: do recursive types better.
 This is meant more as an observation rather than a grand claim. The problem
 goes away because the calculus is better behaved (the problem with unions also
 does not arise in languages without effects, for example). I will disagree with
-the statement that we flattened calculus too much (this ties in to the previous
+the statement that we flattened the calculus *too* much (this ties in to the previous
 comments about the strength of the calculus). We did change the language though,
 which was misleading.
 
@@ -238,14 +248,19 @@ which was misleading.
 >
 > Why not add $Nat \leq Even \sqcup Odd$ to the type declarations? If
 > you allow user defined types, why not user defined subtypes?
-> 
+
+I don't think arbitrary user defined subtypes would be sound unless you
+take the proper precautions (e.g. coercive subtyping). The subtyping relation
+is implies by the structure of the type.
+
 > 'Note that checking (...) rather than infer the least one'. You are
 > taking a big leap of faith here. Not only have you not presented any
 > notion of type checking (so far). What is the 'bidirectional nature of
 > our system'?  How can the type checker 'check a fixed point'? This is
 > all far too vague and imprecise.
 
-TODO
+This should be more clear after our improvements to the handling of recursion.
+Also fixed the language.
 
 > Section 4.3: why is in interesting to have these distributivity laws
 > in the system? What problem is solved by making sure they are allowed?
@@ -262,7 +277,7 @@ but that seems challenging in the presence of higher-order types.
 > exhaustive search?
 
 Non-deterministic (as opposed to arbitrary or random) choice implies
-backtracking.
+backtracking. We state this explicitly now.
 
 > Page 11: How can 'one of the types in $A \leq B$ be free? How do you
 > bind a type?
@@ -273,15 +288,15 @@ Made this more clear in the text.
 > 'Rules for recursive processes (...) than a single type.' I have not
 > found a single rule for recursion in the paper.
 
-TODO: fix
+Fixed.
 
 > Theorem 5.1 What is 'suitably converted'? You cannot state a theorem
 > through handwaving.
 
-TODO
+Fixed.
 
 > Figure 3: I would expect that at least these rules would deal with
 > recursion, but alas, no.
 
-TODO:
+Fixed.
 
