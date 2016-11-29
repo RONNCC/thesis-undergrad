@@ -238,8 +238,7 @@ We have changed (and significantly improved) the way we handle recursive types.
 > you have solved it.
 
 This is meant more as an observation rather than a grand claim. The problem
-goes away because the calculus is better behaved (the problem with unions also
-does not arise in languages without effects, for example). I will disagree with
+goes away because the calculus is better behaved. I will disagree with
 the statement that we flattened the calculus *too* much (this ties in to the previous
 comments about the strength of the calculus). We did change the language though,
 which was misleading.
@@ -251,7 +250,7 @@ which was misleading.
 
 I don't think arbitrary user defined subtypes would be sound unless you
 take the proper precautions (e.g. coercive subtyping). The subtyping relation
-is implies by the structure of the type.
+is implied by the structure of the type.
 
 > 'Note that checking (...) rather than infer the least one'. You are
 > taking a big leap of faith here. Not only have you not presented any
@@ -266,7 +265,7 @@ Also fixed the language.
 > in the system? What problem is solved by making sure they are allowed?
 
 The bigger problem is they are admissible one way but not the other. So
-depending on how you spell-out your types, processes may or may not
+depending on how you spell out your types, processes may or may not
 type-check even though the two types are semantically equivalent. It
 would be nice to have a complete semantic characterization so that the
 type-system would identify those types that are semantically equivalent,
