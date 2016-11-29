@@ -442,19 +442,19 @@ The usual subtyping rules are given below. The $\union\Right$ rules are derivabl
     {A_1 \sub B & A_2 \sub B}
 \end{mathpar}
 
-Unions allow us to describe some interesting properties. For example, we can show that every natural is either even or odd:\todo{exactly which system is this provable in?}
-\[
-\begin{array}{l}
-\m{iso} : \m{Nat} \lolli (\m{Even} \union \m{Odd}) \\
-c \leftarrow \m{iso}\; d = \\
-\quad \mb{case}\; d\; \m{of} \\
-\qquad \m{zero} \rightarrow \mb{wait}\; d \semi c.\m{zero} \semi \mb{close}\; c \\
-\qquad \m{succ} \rightarrow c.\m{succ} \semi c \leftarrow \m{iso}\; d
-\end{array}
-\]
-This definition has to be recursive rather than a simple forward (essentially implementing a one-level unfold) since our system cannot prove directly that $Nat \sub Even \union Odd$.
+% Unions allow us to describe some interesting properties. For example, we can show that every natural is either even or odd:\todo{exactly which system is this provable in?}
+% \[
+% \begin{array}{l}
+% \m{iso} : \m{Nat} \lolli (\m{Even} \union \m{Odd}) \\
+% c \leftarrow \m{iso}\; d = \\
+% \quad \mb{case}\; d\; \m{of} \\
+% \qquad \m{zero} \rightarrow \mb{wait}\; d \semi c.\m{zero} \semi \mb{close}\; c \\
+% \qquad \m{succ} \rightarrow c.\m{succ} \semi c \leftarrow \m{iso}\; d
+% \end{array}
+% \]
+% This definition has to be recursive rather than a simple forward (essentially implementing a one-level unfold) since our system cannot prove directly that $Nat \sub Even \union Odd$.
 
-A slightly more involved example is that of bit strings, which uses unions in its type definition and demonstrates that for a recursively defined type we may need to specify more information than we ultimately care about.  We move to a binary representation of natural numbers, where the least significant bit is sent first.  The string of bits is terminated with $\m{eps}$.
+For an example where unions are the most natural way to express a property, consider moving to a binary representation of natural numbers. We define the type of binary string where the least significant bit is sent first and the string of bits is terminated with $\m{eps}$:
 \[
 \begin{array}{lcl}
 \m{Bits} & = & \internal\{\m{eps} : \terminate, \m{zero} : \m{Bits}, \m{one} : \m{Bits}\}
@@ -468,8 +468,8 @@ We can define bit strings in standard form (no leading zeros) as follows:
 \m{StdPos} & = & \internal\{\m{one} : \m{Std}, \m{zero} : \m{StdPos}\}
 \end{array}
 \]
-$\m{Std}$ is not contractive according to our simple definition, but its one level unfolding is (i.e.\ inlining $\m{Empty}$ and $\m{StdPos}$ makes it contractive). We write it in closed form for better readability.%
-\footnote{It is possible to formulate a contractiveness condition that allows such definitions, but we find it unnecessary for this paper.}
+We are able to naturally express standard bit strings as either an empty bit string \emph{or} a positive one; expressing such types without unions would be cumbersome at the very least.%
+\footnote{The acute reader might notice that $\m{Std}$ actually fails our simple contractiveness criteria. This does not lead to unsoundness, however, since its one level unfolding is contractive (i.e.\ inlining $\m{Empty}$ and $\m{StdPos}$ makes it contractive). We write it in closed form here for better readability, but one can consider this simple syntactic sugar. It is not too hard to formulate a sound contractiveness condition that allows such definitions, but we decided to err on the side of simplicity for this paper.}
 Now we can write an increment function that preserves bit strings in standard form:
 \[
 \begin{array}{l}
@@ -481,7 +481,7 @@ c \leftarrow \m{inc}\; d = \\
 \qquad \m{one} \rightarrow c.\m{zero} \semi \m{inc}\; d
 \end{array}
 \]
-Note that checking this definition just against the type $\m{Std} \lolli \m{Std}$ will fail, and we need to assign the more specific type for the type checking to go through. This is because of the nature of our system which essentially requires the type checker to verify a fixed point rather than infer the least one. This has proven highly beneficial for providing good error messages even in the simpler case of pure subtyping, without intersections and unions~\cite{Griffith16phd}.
+This example also demonstrates that for a recursively defined type we may need to specify more information than we ultimately care about, since checking this definition just against the type $\m{Std} \lolli \m{Std}$ will fail, and we need to assign the more specific type for the type checking to go through. This is because of the nature of our system which essentially requires the type checker to verify a fixed point rather than infer the least one. This has proven highly beneficial for providing good error messages even in the simpler case of pure subtyping, without intersections and unions~\cite{Griffith16phd}.
 
 \subsection{Subtyping Revisited}
 
